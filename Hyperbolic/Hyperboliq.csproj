@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{E2A76C7D-2744-4BA0-96F5-4CEC2B4BF81D}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Hyperboliq</RootNamespace>
+    <AssemblyName>Hyperboliq</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="FSharp.Core, Version=4.4.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="DeleteExpression.cs" />
+    <Compile Include="ExpressionParameter.cs" />
+    <Compile Include="FluentApi\Delete.cs" />
+    <Compile Include="FluentApi\DeleteFrom.cs" />
+    <Compile Include="FluentApi\DeleteWhere.cs" />
+    <Compile Include="FluentApi\Insert.cs" />
+    <Compile Include="FluentApi\InsertValues.cs" />
+    <Compile Include="FluentApi\SelectFrom.cs" />
+    <Compile Include="FluentApi\GroupBy.cs" />
+    <Compile Include="FluentApi\Having.cs" />
+    <Compile Include="FluentApi\Join.cs" />
+    <Compile Include="FluentApi\OrderBy.cs" />
+    <Compile Include="FluentApi\Select.cs" />
+    <Compile Include="FluentApi\SelectWhere.cs" />
+    <Compile Include="FluentApi\Update.cs" />
+    <Compile Include="InsertExpression.cs" />
+    <Compile Include="SelectExpression.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UpdateExpression.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Hyperbolic.Domain\Hyperboliq.Domain.fsproj">
+      <Project>{b364b662-03a5-4700-a554-6b9e7eabd6cd}</Project>
+      <Name>Hyperboliq.Domain</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

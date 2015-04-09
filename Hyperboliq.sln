@@ -1,0 +1,58 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.22609.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hyperboliq", "Hyperbolic\Hyperboliq.csproj", "{E2A76C7D-2744-4BA0-96F5-4CEC2B4BF81D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hyperboliq.Tests", "Hyperbolic.Tests\Hyperboliq.Tests.csproj", "{5712F2C2-4C5A-4847-A502-1A9C7137B381}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hyperboliq.Domain", "Hyperbolic.Domain\Hyperboliq.Domain.fsproj", "{B364B662-03A5-4700-A554-6B9E7EABD6CD}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hyperboliq.Sqllite", "Hyperbolic.Sqllite\Hyperboliq.Sqllite.fsproj", "{062F44CD-0CE5-48DB-BF85-FADD3101F22E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hyperboliq.Tests.Sqllite", "Hyperbolic.Tests.Sqllite\Hyperboliq.Tests.Sqllite.csproj", "{0B2C4A38-AD61-4B03-851F-F7F91F44553D}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hyperboliq.SqlServer", "Hyperbolic.SqlServer\Hyperboliq.SqlServer.fsproj", "{9F311956-BCFB-4308-A2F1-9720D9353297}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hyperboliq.Tests.SqlServer", "Hyperbolic.Tests.SqlServer\Hyperboliq.Tests.SqlServer.csproj", "{A819F5BC-F169-4336-BF20-156F3745C397}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E2A76C7D-2744-4BA0-96F5-4CEC2B4BF81D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2A76C7D-2744-4BA0-96F5-4CEC2B4BF81D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2A76C7D-2744-4BA0-96F5-4CEC2B4BF81D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2A76C7D-2744-4BA0-96F5-4CEC2B4BF81D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5712F2C2-4C5A-4847-A502-1A9C7137B381}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5712F2C2-4C5A-4847-A502-1A9C7137B381}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5712F2C2-4C5A-4847-A502-1A9C7137B381}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5712F2C2-4C5A-4847-A502-1A9C7137B381}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B364B662-03A5-4700-A554-6B9E7EABD6CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B364B662-03A5-4700-A554-6B9E7EABD6CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B364B662-03A5-4700-A554-6B9E7EABD6CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B364B662-03A5-4700-A554-6B9E7EABD6CD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{062F44CD-0CE5-48DB-BF85-FADD3101F22E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{062F44CD-0CE5-48DB-BF85-FADD3101F22E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{062F44CD-0CE5-48DB-BF85-FADD3101F22E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{062F44CD-0CE5-48DB-BF85-FADD3101F22E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B2C4A38-AD61-4B03-851F-F7F91F44553D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B2C4A38-AD61-4B03-851F-F7F91F44553D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B2C4A38-AD61-4B03-851F-F7F91F44553D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B2C4A38-AD61-4B03-851F-F7F91F44553D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F311956-BCFB-4308-A2F1-9720D9353297}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F311956-BCFB-4308-A2F1-9720D9353297}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F311956-BCFB-4308-A2F1-9720D9353297}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F311956-BCFB-4308-A2F1-9720D9353297}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A819F5BC-F169-4336-BF20-156F3745C397}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A819F5BC-F169-4336-BF20-156F3745C397}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A819F5BC-F169-4336-BF20-156F3745C397}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A819F5BC-F169-4336-BF20-156F3745C397}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
