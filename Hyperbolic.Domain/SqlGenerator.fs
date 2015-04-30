@@ -145,10 +145,24 @@ module SqlGenerator =
             match stream with
             | SingleBinaryExpression exp when HasLowerPredecence exp.Operation op -> sprintf "(%s)" sql
             | _ -> sql
-        let lhs = InternalSqlify dialect left |> AddParensIfNecessary left
-        let rhs = InternalSqlify dialect right |> AddParensIfNecessary right
-        let operation = TranslateBinaryOperation op
-        sprintf "%s %s %s" lhs operation rhs
+        let HandleNullComparison stream =
+            InternalSqlify dialect stream
+            |> AddParensIfNecessary stream
+            |> fun s ->
+                match op with 
+                | BinaryOperation.Equal -> sprintf "%s IS NULL" s
+                | BinaryOperation.NotEqual -> sprintf "%s IS NOT NULL" s
+                | _ -> failwith "Unsupported comparison with null"
+        match left, right with
+        | [ SqlNode.NullValue ], _ -> 
+            HandleNullComparison right
+        | _, [ SqlNode.NullValue ] -> 
+            HandleNullComparison left
+        | _, _ -> 
+            let lhs = InternalSqlify dialect left |> AddParensIfNecessary left
+            let rhs = InternalSqlify dialect right |> AddParensIfNecessary right
+            let operation = TranslateBinaryOperation op
+            sprintf "%s %s %s" lhs operation rhs
 
     and HandleUpdateStatementHead dialect (stmtHead : UpdateStatementHeadToken) peek =
         let addParensIfNecessary stream sql =

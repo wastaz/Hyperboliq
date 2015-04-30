@@ -73,6 +73,11 @@ namespace Hyperboliq.Tests
             return SqlNode.NewConstant(ConstantNode.NewConstantNode(constant.ToString()));
         }
 
+		public static SqlNode Null()
+		{
+			return SqlNode.NullValue;
+		}
+
         public static SqlNode InsHead<TTableType>(params string[] colNames)
         {
             return SqlNode.NewInsertHead(
