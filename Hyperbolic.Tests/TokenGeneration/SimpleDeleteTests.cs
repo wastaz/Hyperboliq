@@ -35,8 +35,7 @@ namespace Hyperboliq.Tests.TokenGeneration
                     Kw(KeywordNode.Delete),
                     Kw(KeywordNode.From),
                     Tbl<Person>(),
-                    Kw(KeywordNode.Where),
-                    BinExp(Col<Person>("Age"), BinaryOperation.GreaterThan, Const(42))
+                    Where(BinExp(Col<Person>("Age"), BinaryOperation.GreaterThan, Const(42)))
                     );
             result.ShouldEqual(expected);
         }
@@ -55,13 +54,11 @@ namespace Hyperboliq.Tests.TokenGeneration
                     Kw(KeywordNode.Delete),
                     Kw(KeywordNode.From),
                     Tbl<Person>(),
-                    Kw(KeywordNode.Where),
-                    BinExp(Col<Person>("Age"), BinaryOperation.GreaterThan, Const(42)),
-                    Kw(KeywordNode.And),
-                    BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Kalle'")),
-                    Kw(KeywordNode.Or),
-                    BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Henrik'"))
-                    );
+                    Where(
+                        BinExp(Col<Person>("Age"), BinaryOperation.GreaterThan, Const(42)),
+                        And(BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Kalle'"))),
+                        Or(BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Henrik'")))
+                    ));
             result.ShouldEqual(expected);
         }
 
@@ -82,17 +79,16 @@ namespace Hyperboliq.Tests.TokenGeneration
                     Kw(KeywordNode.Delete),
                     Kw(KeywordNode.From),
                     Tbl<Car>(),
-                    Kw(KeywordNode.Where),
-                    BinExp(
-                        Col<Car>("DriverId"),
-                        BinaryOperation.In,
-                        SubExp(StreamFrom(
-                            Kw(KeywordNode.Select),
-                            Col<Person>("Id"),
-                            Kw(KeywordNode.From),
-                            Tbl<Person>(),
-                            Kw(KeywordNode.Where),
-                            BinExp(Col<Person>("Age"), BinaryOperation.LessThan, Const(18))))));
+                    Where(
+                        BinExp(
+                            Col<Car>("DriverId"),
+                            BinaryOperation.In,
+                            SubExp(StreamFrom(
+                                Kw(KeywordNode.Select),
+                                Col<Person>("Id"),
+                                Kw(KeywordNode.From),
+                                Tbl<Person>(),
+                                Where(BinExp(Col<Person>("Age"), BinaryOperation.LessThan, Const(18))))))));
             result.ShouldEqual(expected);
         }
     }

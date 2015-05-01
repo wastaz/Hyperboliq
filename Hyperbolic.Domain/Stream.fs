@@ -33,7 +33,14 @@ module Stream =
 
     type AggregateType = Max | Min | Avg | Count
 
-    type Ordering = {
+    type ExpressionCombinatorType = And | Or
+
+    type WhereClauseNode = {
+        Combinator: ExpressionCombinatorType
+        Expression: SqlStream
+    }
+
+    and Ordering = {
         Selector : SqlStream
         Direction : Direction
         NullsOrdering : NullsOrdering
@@ -47,6 +54,11 @@ module Stream =
         Rhs: SqlStream
     }
 
+    and WhereExpressionNode = {
+        Start: SqlStream
+        AdditionalClauses: WhereClauseNode list
+    }
+
     and UpdateStatementHeadToken = {
         Table : ITableReference
         SetExpressions : UpdateSetToken list
@@ -55,7 +67,7 @@ module Stream =
     and UpdateSetToken = {
         Column : ColumnToken
         Value : SqlStream
-     }
+    }
 
     and SqlNode =
         | NullValue
@@ -68,6 +80,7 @@ module Stream =
         | SubExpression of SqlStream
         | Aggregate of AggregateToken
         | OrderingToken of Ordering
+        | Where of WhereExpressionNode
         | InsertHead of InsertStatementHeadToken
         | InsertValue of InsertValueNode list
         | UpdateStatementHead of UpdateStatementHeadToken

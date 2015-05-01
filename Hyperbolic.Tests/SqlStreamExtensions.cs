@@ -137,9 +137,24 @@ namespace Hyperboliq.Tests
 
         public static SqlNode Ord(SqlNode col, Direction direction, NullsOrdering nullsOrdering = null)
         {
-
             var no = nullsOrdering == null ? NullsOrdering.NullsUndefined : nullsOrdering;
             return SqlNode.NewOrderingToken(new Ordering(new FSharpList<SqlNode>(col, FSharpList<SqlNode>.Empty), direction, no));
+        }
+
+        public static SqlNode Where(SqlNode start, params WhereClauseNode[] additionalClauses)
+        {
+            return SqlNode.NewWhere(
+                new WhereExpressionNode(new FSharpList<SqlNode>(start, FSharpList<SqlNode>.Empty), ListModule.OfArray(additionalClauses)));
+        }
+
+        public static WhereClauseNode And(SqlNode stream)
+        {
+            return new WhereClauseNode(ExpressionCombinatorType.And, new FSharpList<SqlNode>(stream, FSharpList<SqlNode>.Empty));
+        }
+
+        public static WhereClauseNode Or(SqlNode stream)
+        {
+            return new WhereClauseNode(ExpressionCombinatorType.Or, new FSharpList<SqlNode>(stream, FSharpList<SqlNode>.Empty));
         }
 
         public static void ShouldEqual(this IEnumerable<SqlNode> self, IEnumerable<SqlNode> expected)

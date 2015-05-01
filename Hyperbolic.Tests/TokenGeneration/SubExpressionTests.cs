@@ -25,18 +25,17 @@ namespace Hyperboliq.Tests
                     Col<Person>("*"),
                     Kw(KeywordNode.From),
                     Tbl<Person>(),
-                    Kw(KeywordNode.Where),
-                    BinExp(
-                        Col<Person>("Age"),
-                        BinaryOperation.GreaterThan,
-                        SubExp(
-                            StreamFrom(
-                                Kw(KeywordNode.Select),
-                                Col<Car>("Age"),
-                                Kw(KeywordNode.From),
-                                Tbl<Car>(),
-                                Kw(KeywordNode.Where),
-                                BinExp(Col<Car>("Id"), BinaryOperation.Equal, Const(42))))));
+                    Where(
+                        BinExp(
+                            Col<Person>("Age"),
+                            BinaryOperation.GreaterThan,
+                            SubExp(
+                                StreamFrom(
+                                    Kw(KeywordNode.Select),
+                                    Col<Car>("Age"),
+                                    Kw(KeywordNode.From),
+                                    Tbl<Car>(),
+                                    Where(BinExp(Col<Car>("Id"), BinaryOperation.Equal, Const(42))))))));
             result.ShouldEqual(expected);
         }
 
@@ -55,16 +54,16 @@ namespace Hyperboliq.Tests
                     Col<Person>("*"),
                     Kw(KeywordNode.From),
                     Tbl<Person>(),
-                    Kw(KeywordNode.Where),
-                    BinExp(
-                        Col<Person>("Id"),
-                        BinaryOperation.In,
-                        SubExp(
-                            StreamFrom(
-                                Kw(KeywordNode.Select),
-                                Col<Car>("DriverId"),
-                                Kw(KeywordNode.From),
-                                Tbl<Car>()))));
+                    Where(
+                        BinExp(
+                            Col<Person>("Id"),
+                            BinaryOperation.In,
+                            SubExp(
+                                StreamFrom(
+                                    Kw(KeywordNode.Select),
+                                    Col<Car>("DriverId"),
+                                    Kw(KeywordNode.From),
+                                    Tbl<Car>())))));
             result.ShouldEqual(expected);
         }
     }

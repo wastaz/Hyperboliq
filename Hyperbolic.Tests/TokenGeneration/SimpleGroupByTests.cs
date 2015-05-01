@@ -104,8 +104,7 @@ namespace Hyperboliq.Tests
                     Tbl<Person>(),
                     Kw(KeywordNode.GroupBy),
                     Col<Person>("Name"),
-                    Kw(KeywordNode.Having),
-                    BinExp(Aggregate(AggregateType.Avg, Col<Person>("Age")), BinaryOperation.GreaterThan, Const(42))
+                    Where(BinExp(Aggregate(AggregateType.Avg, Col<Person>("Age")), BinaryOperation.GreaterThan, Const(42)))
                     );
 
             result.ShouldEqual(expected);
@@ -142,17 +141,17 @@ namespace Hyperboliq.Tests
                     Kw(KeywordNode.GroupBy),
                     Col<Person>("Name"),
                     Col<Car>("Brand"),
-                    Kw(KeywordNode.Having),
-                    BinExp(
-                        Aggregate(AggregateType.Avg, Col<Person>("Age")),
-                        BinaryOperation.GreaterThan, 
-                        Const(42)),
-                    Kw(KeywordNode.And),
-                    BinExp(
-                        Aggregate(AggregateType.Min, Col<Car>("Age")),
-                        BinaryOperation.GreaterThan, 
-                        Const(2))
-                    );
+                    Where(
+                        BinExp(
+                            Aggregate(AggregateType.Avg, Col<Person>("Age")),
+                            BinaryOperation.GreaterThan, 
+                            Const(42)),
+                        And(
+                            BinExp(
+                                Aggregate(AggregateType.Min, Col<Car>("Age")),
+                                BinaryOperation.GreaterThan, 
+                                Const(2))
+                            )));
 
             result.ShouldEqual(expected);
         }

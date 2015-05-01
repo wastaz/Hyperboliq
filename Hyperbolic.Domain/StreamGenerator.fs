@@ -38,20 +38,21 @@ module StreamGenerator =
         |> (fun y -> Keyword(KeywordNode.From) :: y)
 
     let HandleWhere ({ Clauses = whereClauses } : WhereExpression) : SqlStream =
-        let FlattenWhereClause (clause : WhereClause) : SqlStream = 
+        let FlattenWhereClause (clause : WhereClause) : WhereClauseNode = 
             match clause.JoinType with
-            | ExpressionJoinType.And -> Keyword(KeywordNode.And)
-            | ExpressionJoinType.Or -> Keyword(KeywordNode.Or)
-            |> (fun x y -> x :: y) <| ExpressionVisitor.Visit clause.Expression clause.Tables 
+            | ExpressionJoinType.And -> ExpressionCombinatorType.And
+            | ExpressionJoinType.Or -> ExpressionCombinatorType.Or
+            |> (fun x y -> { Combinator = x; Expression = y }) <| ExpressionVisitor.Visit clause.Expression clause.Tables 
         match whereClauses with
         | [] -> []
         | _ ->
             whereClauses
             |> List.rev
             |> List.map FlattenWhereClause
-            |> List.concat
-            |> List.tail
-            |> (fun y -> Keyword(KeywordNode.Where) :: y)
+            |> fun list ->
+                match list with
+                | [] -> []
+                | hd :: tl -> [ SqlNode.Where({ Start = hd.Expression; AdditionalClauses = tl }) ]
 
     let HandleJoin ({ Clauses = joinClauses } : JoinExpression) : SqlStream =
         match joinClauses with
@@ -84,10 +85,7 @@ module StreamGenerator =
         let HandleHavingPart (having : WhereClause list) : SqlStream =
             match having with
             | [] -> []
-            | _ -> 
-                HandleWhere ({ WhereExpression.Clauses = having })
-                |> List.tail
-                |> (fun x -> Keyword(KeywordNode.Having) :: x)
+            | _ -> HandleWhere ({ WhereExpression.Clauses = having })
         let HandleGroupByPart (groupby : GroupByClause list) : SqlStream =
             match groupby with
             | [] -> []

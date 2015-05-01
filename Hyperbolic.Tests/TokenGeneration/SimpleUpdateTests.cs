@@ -118,8 +118,7 @@ namespace Hyperboliq.Tests.TokenGeneration
             var expected =
                 StreamFrom(
                     UpdHead<Person>(Ust<Person>("Age", 42)),
-                    Kw(KeywordNode.Where),
-                    BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Kalle'")));
+                    Where(BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Kalle'"))));
             result.ShouldEqual(expected);
         }
 
@@ -135,12 +134,10 @@ namespace Hyperboliq.Tests.TokenGeneration
             var expected =
                 StreamFrom(
                     UpdHead<Person>(Ust<Person>("Age", 42)),
-                    Kw(KeywordNode.Where),
-                    BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Kalle'")),
-                    Kw(KeywordNode.Or),
-                    BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Pelle'")),
-                    Kw(KeywordNode.And),
-                    BinExp(Col<Person>("Age"), BinaryOperation.LessThan, Const(18)));
+                    Where(
+                        BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Kalle'")),
+                        Or(BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Pelle'"))),
+                        And(BinExp(Col<Person>("Age"), BinaryOperation.LessThan, Const(18)))));
             result.ShouldEqual(expected);
         }
     }

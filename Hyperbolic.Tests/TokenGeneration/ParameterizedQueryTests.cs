@@ -21,8 +21,7 @@ namespace Hyperboliq.Tests
                 Col<Person>("*"),
                 Kw(KeywordNode.From),
                 Tbl<Person>(),
-                Kw(KeywordNode.Where),
-                BinExp(Col<Person>("Age"), BinaryOperation.LessThan, Param("age"))
+                Where(BinExp(Col<Person>("Age"), BinaryOperation.LessThan, Param("age")))
                 );
 
             result.ShouldEqual(expected);
@@ -43,9 +42,7 @@ namespace Hyperboliq.Tests
                     Col<Person>("*"),
                     Kw(KeywordNode.From),
                     Tbl<Person>(),
-                    Kw(KeywordNode.Where),
-                    BinExp(Col<Person>("Age"), BinaryOperation.GreaterThan, Param("age"))
-                    );
+                    Where(BinExp(Col<Person>("Age"), BinaryOperation.GreaterThan, Param("age"))));
 
             result.ShouldEqual(expected);
         }
@@ -66,15 +63,13 @@ namespace Hyperboliq.Tests
                     Col<Person>("*"),
                     Kw(KeywordNode.From),
                     Tbl<Person>(),
-                    Kw(KeywordNode.Where),
-                    BinExp(
-                        BinExp(Col<Person>("Age"), BinaryOperation.GreaterThan, Param("age")),
-                        BinaryOperation.And,
-                        BinExp(Param("age"), BinaryOperation.LessThan, Const(90))
-                        ),
-                    Kw(KeywordNode.Or),
-                    BinExp(Col<Person>("Age"), BinaryOperation.LessThan, Param("age"))
-                    );
+                    Where(
+                        BinExp(
+                            BinExp(Col<Person>("Age"), BinaryOperation.GreaterThan, Param("age")),
+                            BinaryOperation.And,
+                            BinExp(Param("age"), BinaryOperation.LessThan, Const(90))
+                            ),
+                        Or(BinExp(Col<Person>("Age"), BinaryOperation.LessThan, Param("age")))));
             result.ShouldEqual(expected);
         }
     }
