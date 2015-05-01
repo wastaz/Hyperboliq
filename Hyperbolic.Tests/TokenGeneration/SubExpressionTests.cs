@@ -21,8 +21,7 @@ namespace Hyperboliq.Tests
 
             var expected =
                 StreamFrom(
-                    Kw(KeywordNode.Select),
-                    Col<Person>("*"),
+                    Select(Col<Person>("*")),
                     Kw(KeywordNode.From),
                     Tbl<Person>(),
                     Where(
@@ -31,8 +30,7 @@ namespace Hyperboliq.Tests
                             BinaryOperation.GreaterThan,
                             SubExp(
                                 StreamFrom(
-                                    Kw(KeywordNode.Select),
-                                    Col<Car>("Age"),
+                                    Select(Col<Car>("Age")),
                                     Kw(KeywordNode.From),
                                     Tbl<Car>(),
                                     Where(BinExp(Col<Car>("Id"), BinaryOperation.Equal, Const(42))))))));
@@ -50,8 +48,7 @@ namespace Hyperboliq.Tests
 
             var expected =
                 StreamFrom(
-                    Kw(KeywordNode.Select),
-                    Col<Person>("*"),
+                    Select(Col<Person>("*")),
                     Kw(KeywordNode.From),
                     Tbl<Person>(),
                     Where(
@@ -60,8 +57,7 @@ namespace Hyperboliq.Tests
                             BinaryOperation.In,
                             SubExp(
                                 StreamFrom(
-                                    Kw(KeywordNode.Select),
-                                    Col<Car>("DriverId"),
+                                    Select(Col<Car>("DriverId")),
                                     Kw(KeywordNode.From),
                                     Tbl<Car>())))));
             result.ShouldEqual(expected);

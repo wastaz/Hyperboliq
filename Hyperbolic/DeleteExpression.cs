@@ -12,7 +12,7 @@ namespace Hyperboliq
     public class DeleteExpression : ISqlStatement, ISqlStreamTransformable
     {
         internal FromExpression FromExpression { get; private set; } = NewFromExpression();
-        internal WhereExpression WhereExpression { get; private set; } = NewWhereExpression();
+        internal WhereExpressionNode WhereExpression { get; private set; }
 
         public DeleteExpression From<TTableType>()
         {
@@ -21,9 +21,17 @@ namespace Hyperboliq
         }
 
 
-        public DeleteExpression Where<TTableType>(Expression<Func<TTableType, bool>> predicate) => And(predicate);
+        public DeleteExpression Where<TTableType>(Expression<Func<TTableType, bool>> predicate)
+        {
+            WhereExpression = NewWhereExpression(predicate, TableReferenceFromType<TTableType>());
+            return this;
+        }
 
-        public DeleteExpression Where<TFirstTable, TSecondTable>(Expression<Func<TFirstTable, TSecondTable, bool>> predicate) => And(predicate);
+        public DeleteExpression Where<TFirstTable, TSecondTable>(Expression<Func<TFirstTable, TSecondTable, bool>> predicate)
+        {
+            WhereExpression = NewWhereExpression(predicate, TableReferenceFromType<TFirstTable>(), TableReferenceFromType<TSecondTable>());
+            return this;
+        }
 
 
         public DeleteExpression And<TTableType>(Expression<Func<TTableType, bool>> predicate)
@@ -56,8 +64,15 @@ namespace Hyperboliq
                 new[] {
                     StreamInput.Delete,
                     StreamInput.NewFrom(FromExpression),
-                    StreamInput.NewWhere(WhereExpression),
+                    
                 });
+            if(WhereExpression != null)
+            {
+                stream = ListModule.Concat(new[] {
+                    stream,
+                    new FSharpList<SqlNode>(SqlNode.NewWhere(WhereExpression), FSharpList<SqlNode>.Empty)
+                });
+            }
 
             return stream;
         }

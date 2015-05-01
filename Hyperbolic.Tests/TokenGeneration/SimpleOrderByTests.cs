@@ -22,8 +22,7 @@ namespace Hyperboliq.Tests
 
             var expected =
                 StreamFrom(
-                    Kw(KeywordNode.Select),
-                    Col<Person>("*"),
+                    Select(Col<Person>("*")),
                     Kw(KeywordNode.From),
                     Tbl<Person>(),
                     Kw(KeywordNode.OrderBy),
@@ -43,8 +42,7 @@ namespace Hyperboliq.Tests
 
             var expected =
                 StreamFrom(
-                    Kw(KeywordNode.Select),
-                    Col<Person>("*"),
+                    Select(Col<Person>("*")),
                     Kw(KeywordNode.From),
                     Tbl<Person>(),
                     Kw(KeywordNode.OrderBy),
@@ -66,9 +64,7 @@ namespace Hyperboliq.Tests
 
             var expected =
                 StreamFrom(
-                    Kw(KeywordNode.Select),
-                    Col<Person>("*"),
-                    Col<Car>("*"),
+                    Select(Col<Car>("*"), Col<Person>("*")),
                     Kw(KeywordNode.From),
                     Tbl<Person>(),
                     Kw(KeywordNode.NewJoin(JoinType.InnerJoin)),

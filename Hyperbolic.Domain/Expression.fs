@@ -72,28 +72,22 @@ module ExpressionParts =
         joinExpr.Clauses 
         |> List.map (fun (clause : JoinClause) -> clause.Flatten())
         |> List.concat
-        
-    type SelectExpression =
-        {
-            Expression : (ITableReference * SqlStream) list
-            IsDistinct : bool
-        }
-    
+
     let NewSelectExpression () =
         { 
-            Expression = []
             IsDistinct = false
+            Values = []
         }
 
     let MakeDistinct select =
         { select with IsDistinct = true }
 
-    let SelectAllColumns (select : SelectExpression) tableReference : SelectExpression =
-        { select with Expression = (tableReference, [ SqlNode.Column("*", tableReference) ]) :: select.Expression }
+    let SelectAllColumns select tableReference =
+        { select with Values = SqlNode.Column("*", tableReference) :: select.Values }
 
-    let SelectColumns (select : SelectExpression) expr tableReference : SelectExpression =
-        { select with Expression = (tableReference, ExpressionVisitor.Visit expr [ tableReference ]) :: select.Expression }
-
+    let SelectColumns select expr tableReference =
+        let stream = ExpressionVisitor.Visit expr [ tableReference ]
+        { select with Values = stream @ select.Values }
 
     type OrderByClause =
         {
@@ -121,20 +115,21 @@ module ExpressionParts =
             Tables : ITableReference list
         }
 
-    type WhereExpression =
-        {
-            Clauses : WhereClause list
-        }
-    
-    let NewWhereExpression () = { WhereExpression.Clauses = [] }
+    let NewWhereExpression expr ([<System.ParamArray>] tables : ITableReference array) : WhereExpressionNode = { 
+        Start = ExpressionVisitor.Visit expr tables
+        AdditionalClauses = []
+    }
 
-    let internal AddWhereClause whereExpr joinType expr ([<System.ParamArray>] tables : ITableReference array) =
-        { whereExpr with WhereExpression.Clauses = { WhereClause.JoinType = joinType; Expression = expr; Tables = List.ofArray tables; } :: whereExpr.Clauses }
-    
-    let AddWhereAndClause (whereExpr : WhereExpression) expr ([<System.ParamArray>] tables : ITableReference array) = AddWhereClause whereExpr And expr tables
+    let private CreateWhereClause cmbType whereExpr expr ([<System.ParamArray>] tables : ITableReference array) =
+        let clause = { Combinator = cmbType; Expression = ExpressionVisitor.Visit expr tables }
+        { whereExpr with AdditionalClauses = clause :: whereExpr.AdditionalClauses }
 
-    let AddWhereOrClause whereExpr expr ([<System.ParamArray>] tables : ITableReference array) = AddWhereClause whereExpr Or expr tables
-    
+    let AddWhereAndClause whereExpr expr ([<System.ParamArray>] tables : ITableReference array) = 
+        CreateWhereClause ExpressionCombinatorType.And whereExpr expr tables
+
+    let AddWhereOrClause whereExpr expr ([<System.ParamArray>] tables : ITableReference array) = 
+        CreateWhereClause ExpressionCombinatorType.Or whereExpr expr tables
+
     type GroupByClause = 
         {
             Table : ITableReference

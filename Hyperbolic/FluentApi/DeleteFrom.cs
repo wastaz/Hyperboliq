@@ -16,14 +16,14 @@ namespace Hyperboliq.FluentApi
 
         public DeleteWhere Where<TTableType>(Expression<Func<TTableType, bool>> predicate)
         {
-            var where = new DeleteWhere(expr);
-            return where.And(predicate);
+            expr.Where(predicate);
+            return new DeleteWhere(expr);
         }
 
         public DeleteWhere Where<TTable1, TTable2>(Expression<Func<TTable1, TTable2, bool>> predicate)
         {
-            var where = new DeleteWhere(expr);
-            return where.And(predicate);
+            expr.Where(predicate);
+            return new DeleteWhere(expr);
         }
 
         public FSharpList<SqlNode> ToSqlStream() { return expr.ToSqlStream(); }

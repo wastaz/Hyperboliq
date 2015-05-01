@@ -45,14 +45,14 @@ namespace Hyperboliq
 
         public SelectWhere Where<TTable>(Expression<Func<TTable, bool>> predicate)
         {
-            var where = new SelectWhere(expr);
-            return where.And(predicate);
+            expr.Where(predicate);
+            return new SelectWhere(expr);
         }
 
         public SelectWhere Where<TTable1, TTable2>(Expression<Func<TTable1, TTable2, bool>> predicate)
         {
-            var where = new SelectWhere(expr);
-            return where.And(predicate);
+            expr.Where(predicate);
+            return new SelectWhere(expr);
         }
 
         public OrderBy OrderBy<TTable>(Expression<Func<TTable, object>> orderExpr, Direction direction = null, NullsOrdering nullsOrdering = null)

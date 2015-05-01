@@ -13,16 +13,14 @@ namespace Hyperboliq.Tests
         private IEnumerable<SqlNode> GetExpectedStream(JoinType joinKeyword)
         {
             return StreamFrom(
-                    Kw(KeywordNode.Select),
-                    Col<Person>("*"),
-                    Col<Car>("*"),
-                    Kw(KeywordNode.From),
-                    Tbl<Person>(),
-                    Kw(KeywordNode.NewJoin(joinKeyword)),
-                    Tbl<Car>(),
-                    Kw(KeywordNode.On),
-                    BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId"))
-                    );
+                Select(Col<Car>("*"), Col<Person>("*")),
+                Kw(KeywordNode.From),
+                Tbl<Person>(),
+                Kw(KeywordNode.NewJoin(joinKeyword)),
+                Tbl<Car>(),
+                Kw(KeywordNode.On),
+                BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId"))
+                );
         }
 
         [Fact]
@@ -89,10 +87,7 @@ namespace Hyperboliq.Tests
 
             var expected =
                 StreamFrom(
-                    Kw(KeywordNode.Select),
-                    Col<Person>("*"),
-                    Col<Car>("*"),
-                    Col<House>("*"),
+                    Select(Col<House>("*"), Col<Car>("*"), Col<Person>("*")),
                     Kw(KeywordNode.From),
                     Tbl<House>(),
                     Kw(KeywordNode.NewJoin(JoinType.InnerJoin)),

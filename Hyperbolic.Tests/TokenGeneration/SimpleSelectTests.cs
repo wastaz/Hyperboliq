@@ -18,8 +18,7 @@ namespace Hyperboliq.Tests
 
             var expected =
                 StreamFrom(
-                    Kw(KeywordNode.Select), 
-                    Col<Person>("*"), 
+                    Select(Col<Person>("*")),
                     Kw(KeywordNode.From), 
                     Tbl<Person>());
 
@@ -35,9 +34,7 @@ namespace Hyperboliq.Tests
 
             var expected =
                 StreamFrom(
-                    Kw(KeywordNode.Select),
-                    Kw(KeywordNode.Distinct),
-                    Col<Person>("*"),
+                    SelectDistinct(Col<Person>("*")),
                     Kw(KeywordNode.From),
                     Tbl<Person>());
 
@@ -53,9 +50,7 @@ namespace Hyperboliq.Tests
 
             var expected =
                 StreamFrom(
-                    Kw(KeywordNode.Select),
-                    Col<Person>("Name"),
-                    Col<Person>("Age"),
+                    Select(Col<Person>("Name"), Col<Person>("Age")),
                     Kw(KeywordNode.From),
                     Tbl<Person>());
 
@@ -72,9 +67,7 @@ namespace Hyperboliq.Tests
 
             var expected =
                 StreamFrom(
-                    Kw(KeywordNode.Select),
-                    Kw(KeywordNode.Distinct),
-                    Col<Person>("Age"),
+                    SelectDistinct(Col<Person>("Age")),
                     Kw(KeywordNode.From),
                     Tbl<Person>());
 
@@ -88,8 +81,7 @@ namespace Hyperboliq.Tests
             var result = expr.ToSqlStream();
             var expected =
                 StreamFrom(
-                    Kw(KeywordNode.Select),
-                    Aggregate(AggregateType.Count),
+                    Select(Aggregate(AggregateType.Count)), 
                     Kw(KeywordNode.From),
                     Tbl<Person>());
             result.ShouldEqual(expected);
@@ -102,8 +94,7 @@ namespace Hyperboliq.Tests
             var result = expr.ToSqlStream();
             var expected =
                 StreamFrom(
-                    Kw(KeywordNode.Select),
-                    Aggregate(AggregateType.Count),
+                    Select(Aggregate(AggregateType.Count)),
                     Kw(KeywordNode.From),
                     Tbl<Person>());
             result.ShouldEqual(expected);

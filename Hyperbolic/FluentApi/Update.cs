@@ -34,7 +34,11 @@ namespace Hyperboliq.FluentApi
             return this;
         }
 
-        public UpdateWhere<TTable> Where(Expression<Func<TTable, bool>> predicate) => new UpdateWhere<TTable>(expr).And(predicate);
+        public UpdateWhere<TTable> Where(Expression<Func<TTable, bool>> predicate)
+        {
+            expr.Where(predicate);
+            return new UpdateWhere<TTable>(expr);
+        }
 
         public FSharpList<SqlNode> ToSqlStream() => expr.ToSqlStream();
     }

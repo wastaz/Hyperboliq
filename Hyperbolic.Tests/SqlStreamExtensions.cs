@@ -73,10 +73,10 @@ namespace Hyperboliq.Tests
             return SqlNode.NewConstant(ConstantNode.NewConstantNode(constant.ToString()));
         }
 
-		public static SqlNode Null()
-		{
-			return SqlNode.NullValue;
-		}
+        public static SqlNode Null()
+        {
+            return SqlNode.NullValue;
+        }
 
         public static SqlNode InsHead<TTableType>(params string[] colNames)
         {
@@ -139,6 +139,16 @@ namespace Hyperboliq.Tests
         {
             var no = nullsOrdering == null ? NullsOrdering.NullsUndefined : nullsOrdering;
             return SqlNode.NewOrderingToken(new Ordering(new FSharpList<SqlNode>(col, FSharpList<SqlNode>.Empty), direction, no));
+        }
+
+        public static SqlNode Select(params SqlNode[] columns)
+        {
+            return SqlNode.NewSelect(new SelectExpressionNode(false, ListModule.OfArray(columns)));
+        }
+
+        public static SqlNode SelectDistinct(params SqlNode[] columns)
+        {
+            return SqlNode.NewSelect(new SelectExpressionNode(true, ListModule.OfArray(columns)));
         }
 
         public static SqlNode Where(SqlNode start, params WhereClauseNode[] additionalClauses)

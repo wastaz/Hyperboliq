@@ -35,7 +35,7 @@ module SqlGenerator =
     let HandleKeyword kw =
         match kw with
         | InsertInto -> "INSERT INTO"
-        | Select -> "SELECT"
+        | KeywordNode.Select -> "SELECT"
         | Delete -> "DELETE"
         | Values -> "VALUES"
         | From -> "FROM"

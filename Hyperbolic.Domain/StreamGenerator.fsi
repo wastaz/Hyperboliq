@@ -11,10 +11,8 @@ module StreamGenerator =
     | InsertInto of InsertIntoExpression
     | InsertValues of InsertValuesExpression
     | UpdateSet of UpdateExpressionPart.UpdateExpression
-    | Select of SelectExpression
     | Join of JoinExpression
     | From of FromExpression
-    | Where of WhereExpression
     | GroupBy of GroupByExpression
     | OrderBy of OrderByExpression
 

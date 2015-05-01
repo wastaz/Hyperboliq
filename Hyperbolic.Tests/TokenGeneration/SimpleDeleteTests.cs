@@ -56,8 +56,8 @@ namespace Hyperboliq.Tests.TokenGeneration
                     Tbl<Person>(),
                     Where(
                         BinExp(Col<Person>("Age"), BinaryOperation.GreaterThan, Const(42)),
-                        And(BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Kalle'"))),
-                        Or(BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Henrik'")))
+                        Or(BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Henrik'"))),
+                        And(BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Kalle'")))
                     ));
             result.ShouldEqual(expected);
         }
@@ -84,8 +84,7 @@ namespace Hyperboliq.Tests.TokenGeneration
                             Col<Car>("DriverId"),
                             BinaryOperation.In,
                             SubExp(StreamFrom(
-                                Kw(KeywordNode.Select),
-                                Col<Person>("Id"),
+                                Select(Col<Person>("Id")),
                                 Kw(KeywordNode.From),
                                 Tbl<Person>(),
                                 Where(BinExp(Col<Person>("Age"), BinaryOperation.LessThan, Const(18))))))));

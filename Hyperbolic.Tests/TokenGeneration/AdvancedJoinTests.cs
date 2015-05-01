@@ -23,9 +23,7 @@ namespace Hyperboliq.Tests
 
             var expected =
                 StreamFrom(
-                    Kw(KeywordNode.Select),
-                    Col(child, "Name"),
-                    Col(parent, "Name"),
+                    Select(Col(parent, "Name"), Col(child, "Name")),
                     Kw(KeywordNode.From),
                     Tbl(child),
                     Kw(KeywordNode.NewJoin(JoinType.InnerJoin)),
@@ -47,8 +45,7 @@ namespace Hyperboliq.Tests
 
             var expected =
                 StreamFrom(
-                    Kw(KeywordNode.Select),
-                    Col<Car>("*"),
+                    Select(Col<Car>("*")),
                     Kw(KeywordNode.From),
                     Tbl<House>(),
                     Kw(KeywordNode.NewJoin(JoinType.InnerJoin)),

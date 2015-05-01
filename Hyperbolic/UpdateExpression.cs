@@ -12,7 +12,7 @@ namespace Hyperboliq
     public class UpdateExpression<TTable> : ISqlStatement, ISqlStreamTransformable
     {
         private UpdateExpression Head { get; set; } = NewUpdateExpression(TableReferenceFromType<TTable>());
-        private WhereExpression WhereExpression { get; set; } = NewWhereExpression();
+        private WhereExpressionNode WhereExpression { get; set; }
 
         public UpdateExpression<TTable> Set<TObj>(Expression<Func<TTable, TObj>> selector, TObj value)
         {
@@ -41,7 +41,11 @@ namespace Hyperboliq
             return this;
         }
 
-        public UpdateExpression<TTable> Where(Expression<Func<TTable, bool>> predicate) => And(predicate);
+        public UpdateExpression<TTable> Where(Expression<Func<TTable, bool>> predicate)
+        {
+            WhereExpression = NewWhereExpression(predicate, TableReferenceFromType<TTable>());
+            return this;
+        }
 
 
         public UpdateExpression<TTable> And(Expression<Func<TTable, bool>> predicate)
@@ -66,8 +70,15 @@ namespace Hyperboliq
             var stream = GenerateStream(
                 new[] {
                     StreamInput.NewUpdateSet(Head),
-                    StreamInput.NewWhere(WhereExpression),
                 });
+
+            if(WhereExpression != null)
+            {
+                stream = ListModule.Concat(new[] {
+                    stream,
+                    new FSharpList<SqlNode>(SqlNode.NewWhere(WhereExpression), FSharpList<SqlNode>.Empty),
+                });
+            }
 
             return stream;
         }

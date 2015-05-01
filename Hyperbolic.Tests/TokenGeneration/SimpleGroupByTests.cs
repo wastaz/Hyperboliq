@@ -21,9 +21,7 @@ namespace Hyperboliq.Tests
 
             var expected =
                 StreamFrom(
-                    Kw(KeywordNode.Select),
-                    Col<Person>("Name"),
-                    Aggregate(AggregateType.Max, Col<Person>("Age")),
+                    Select(Col<Person>("Name"), Aggregate(AggregateType.Max, Col<Person>("Age"))),
                     Kw(KeywordNode.From),
                     Tbl<Person>(),
                     Kw(KeywordNode.GroupBy),
@@ -43,10 +41,7 @@ namespace Hyperboliq.Tests
 
             var expected =
                 StreamFrom(
-                    Kw(KeywordNode.Select),
-                    Col<Person>("Name"),
-                    Col<Person>("LivesAtHouseId"),
-                    Aggregate(AggregateType.Min, Col<Person>("Age")),
+                    Select(Col<Person>("Name"), Col<Person>("LivesAtHouseId"), Aggregate(AggregateType.Min, Col<Person>("Age"))),
                     Kw(KeywordNode.From),
                     Tbl<Person>(),
                     Kw(KeywordNode.GroupBy),
@@ -60,7 +55,8 @@ namespace Hyperboliq.Tests
         [Fact]
         public void ItShouldBePossibleToGroupByColumnsFromSeveralTables()
         {
-            var expr = Select.Column<Person>(p => new { p.Age }).Column<Car>(c => new { c.Brand, NumberOfPersons = Sql.Count() })
+            var expr = Select.Column<Person>(p => new { p.Age })
+                             .Column<Car>(c => new { c.Brand, NumberOfPersons = Sql.Count() })
                              .From<Person>()
                              .InnerJoin<Person, Car>((p, c) => p.Id == c.DriverId)
                              .GroupBy<Person>(p => p.Age).ThenBy<Car>(c => c.Brand);
@@ -68,10 +64,7 @@ namespace Hyperboliq.Tests
 
             var expected =
                 StreamFrom(
-                    Kw(KeywordNode.Select),
-                    Col<Person>("Age"),
-                    Col<Car>("Brand"),
-                    Aggregate(AggregateType.Count),
+                    Select(Col<Car>("Brand"), Aggregate(AggregateType.Count), Col<Person>("Age")),
                     Kw(KeywordNode.From),
                     Tbl<Person>(),
                     Kw(KeywordNode.NewJoin(JoinType.InnerJoin)),
@@ -124,11 +117,11 @@ namespace Hyperboliq.Tests
 
             var expected =
                 StreamFrom(
-                    Kw(KeywordNode.Select),
-                    Col<Person>("Name"),
-                    Aggregate(AggregateType.Avg, Col<Person>("Age")),
-                    Col<Car>("Brand"),
-                    Aggregate(AggregateType.Min, Col<Car>("Age")),
+                    Select(
+                        Aggregate(AggregateType.Min, Col<Car>("Age")), 
+                        Col<Car>("Brand"), 
+                        Aggregate(AggregateType.Avg, Col<Person>("Age")), 
+                        Col<Person>("Name")),
                     Kw(KeywordNode.From),
                     Tbl<Person>(),
                     Kw(KeywordNode.NewJoin(JoinType.InnerJoin)),

@@ -35,7 +35,12 @@ module Stream =
 
     type ExpressionCombinatorType = And | Or
 
-    type WhereClauseNode = {
+    type SelectExpressionNode = {
+        IsDistinct : bool
+        Values : SqlNode list
+    }
+
+    and WhereClauseNode = {
         Combinator: ExpressionCombinatorType
         Expression: SqlStream
     }
@@ -80,6 +85,7 @@ module Stream =
         | SubExpression of SqlStream
         | Aggregate of AggregateToken
         | OrderingToken of Ordering
+        | Select of SelectExpressionNode
         | Where of WhereExpressionNode
         | InsertHead of InsertStatementHeadToken
         | InsertValue of InsertValueNode list
@@ -92,7 +98,6 @@ module Stream =
         | Parameter of ParameterToken
 
     and SqlStream = SqlNode list
-
 
     type ISqlStreamTransformable =
         abstract member ToSqlStream : unit -> SqlStream

@@ -101,8 +101,7 @@ namespace Hyperboliq.Tests.TokenGeneration
                             "Age", 
                             SubExp(
                                 StreamFrom(
-                                    Kw(KeywordNode.Select),
-                                    Aggregate(AggregateType.Max, Col<Car>("Age")),
+                                    Select(Aggregate(AggregateType.Max, Col<Car>("Age"))),
                                     Kw(KeywordNode.From),
                                     Tbl<Car>())))));
             result.ShouldEqual(expected);
@@ -136,8 +135,9 @@ namespace Hyperboliq.Tests.TokenGeneration
                     UpdHead<Person>(Ust<Person>("Age", 42)),
                     Where(
                         BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Kalle'")),
-                        Or(BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Pelle'"))),
-                        And(BinExp(Col<Person>("Age"), BinaryOperation.LessThan, Const(18)))));
+                        And(BinExp(Col<Person>("Age"), BinaryOperation.LessThan, Const(18))),
+                        Or(BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Pelle'")))
+                        ));
             result.ShouldEqual(expected);
         }
     }

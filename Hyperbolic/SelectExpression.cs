@@ -11,13 +11,13 @@ namespace Hyperboliq
 {
     public class SelectExpression : ISqlQuery, ISqlStreamTransformable
     {
-        internal ExpressionParts.SelectExpression SelectExpr { get; private set; } = NewSelectExpression();
+        internal SelectExpressionNode SelectExpr { get; private set; } = NewSelectExpression();
 
         internal FromExpression FromExpression { get; private set; } = NewFromExpression();
 
         internal JoinExpression JoinExpression { get; private set; } = NewJoinExpression();
 
-        internal WhereExpression WhereExpression { get; private set; } = NewWhereExpression();
+        internal WhereExpressionNode WhereExpression { get; private set; }
 
         internal GroupByExpression GroupByExpression { get; private set; } = NewGroupByExpression();
 
@@ -67,13 +67,14 @@ namespace Hyperboliq
 
         public SelectExpression Where<TTableType>(Expression<Func<TTableType, bool>> predicate) {
             CurrentCompositeExpressionMode = CompositeExpressionMode.Where;
-            return And(predicate);
+            WhereExpression = NewWhereExpression(predicate, TableReferenceFromType<TTableType>());
+            return this;
         }
-
 
         public SelectExpression Where<TFirstTable, TSecondTable>(Expression<Func<TFirstTable, TSecondTable, bool>> predicate) {
             CurrentCompositeExpressionMode = CompositeExpressionMode.Where;
-            return And(predicate);
+            WhereExpression = NewWhereExpression(predicate, TableReferenceFromType<TFirstTable>(), TableReferenceFromType<TSecondTable>());
+            return this;
         }
 
         public SelectExpression And<TTableType>(Expression<Func<TTableType, bool>> predicate)
@@ -220,17 +221,32 @@ namespace Hyperboliq
 
         public FSharpList<SqlNode> ToSqlStream()
         {
-            var stream = GenerateStream(
+            var selectPart = new FSharpList<SqlNode>(SqlNode.NewSelect(SelectExpr), FSharpList<SqlNode>.Empty);
+
+            FSharpList<SqlNode> wherePart = null;
+            if(WhereExpression != null)
+            {
+                wherePart = new FSharpList<SqlNode>(SqlNode.NewWhere(WhereExpression), FSharpList<SqlNode>.Empty);
+            }
+
+            var fromJoinStream = GenerateStream(
                 new[] {
-                    StreamInput.NewSelect(SelectExpr),
                     StreamInput.NewFrom(FromExpression),
                     StreamInput.NewJoin(JoinExpression),
-                    StreamInput.NewWhere(WhereExpression),
+                });
+            var groupOrderStream = GenerateStream(
+                new[] {
                     StreamInput.NewGroupBy(GroupByExpression),
                     StreamInput.NewOrderBy(OrderByExpression),
                 });
 
-            return stream;
+            return ListModule.Concat(
+                new[] {
+                    selectPart,
+                    fromJoinStream,
+                    wherePart ?? FSharpList<SqlNode>.Empty,
+                    groupOrderStream
+                });
         }
 
         public string ToSql(ISqlDialect dialect)

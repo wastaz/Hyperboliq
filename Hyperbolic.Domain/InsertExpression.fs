@@ -65,4 +65,4 @@ module InsertExpressionPart =
 
         PropertyToConstant value 
         |> ApplyOnProperties (value.GetType()) (fun p -> idxMap.[p.Name])
-        |> (fun constants -> { valuesExpr with Values = constants :: valuesExpr.Values })
+        |> (fun constants -> { valuesExpr with InsertValuesExpression.Values = constants :: valuesExpr.Values })
