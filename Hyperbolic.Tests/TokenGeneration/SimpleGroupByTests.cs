@@ -24,8 +24,7 @@ namespace Hyperboliq.Tests
                     Select(Col<Person>("Name"), Aggregate(AggregateType.Max, Col<Person>("Age"))),
                     Kw(KeywordNode.From),
                     Tbl<Person>(),
-                    Kw(KeywordNode.GroupBy),
-                    Col<Person>("Name")
+                    GroupBy(Col<Person>("Name"))
                     );
 
             result.ShouldEqual(expected);
@@ -44,9 +43,7 @@ namespace Hyperboliq.Tests
                     Select(Col<Person>("Name"), Col<Person>("LivesAtHouseId"), Aggregate(AggregateType.Min, Col<Person>("Age"))),
                     Kw(KeywordNode.From),
                     Tbl<Person>(),
-                    Kw(KeywordNode.GroupBy),
-                    Col<Person>("Name"),
-                    Col<Person>("LivesAtHouseId")
+                    GroupBy(Col<Person>("Name"), Col<Person>("LivesAtHouseId"))
                     );
 
             result.ShouldEqual(expected);
@@ -71,9 +68,40 @@ namespace Hyperboliq.Tests
                     Tbl<Car>(),
                     Kw(KeywordNode.On),
                     BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId")),
-                    Kw(KeywordNode.GroupBy),
-                    Col<Person>("Age"),
-                    Col<Car>("Brand")
+                    GroupBy(Col<Person>("Age"), Col<Car>("Brand"))
+                    );
+
+            result.ShouldEqual(expected);
+        }
+
+        [Fact]
+        public void ItShouldBePossibleToGroupByColumnsFromMultipleTables()
+        {
+            var expr = Select.Column<Person>(p => new { p.Name, AverageAge = Sql.Avg(p.Age) })
+                             .Column<Car>(c => new { c.Brand, MaxAge = Sql.Min(c.Age) })
+                             .From<Person>()
+                             .InnerJoin<Person, Car>((p, c) => p.Id == c.DriverId)
+                             .GroupBy<Person>(p => p.Name)
+                             .ThenBy<Car>(c => c.Brand);
+            var result = expr.ToSqlStream();
+
+            var expected =
+                StreamFrom(
+                    Select(
+                        Col<Car>("Brand"),
+                        Aggregate(AggregateType.Min, Col<Car>("Age")),
+                        Col<Person>("Name"),
+                        Aggregate(AggregateType.Avg, Col<Person>("Age"))),
+                    Kw(KeywordNode.From),
+                    Tbl<Person>(),
+                    Kw(KeywordNode.NewJoin(JoinType.InnerJoin)),
+                    Tbl<Car>(),
+                    Kw(KeywordNode.On),
+                    BinExp(
+                        Col<Person>("Id"),
+                        BinaryOperation.Equal,
+                        Col<Car>("DriverId")),
+                    GroupBy(Col<Person>("Name"), Col<Car>("Brand"))
                     );
 
             result.ShouldEqual(expected);
@@ -90,14 +118,12 @@ namespace Hyperboliq.Tests
 
             var expected =
                 StreamFrom(
-                    Kw(KeywordNode.Select),
-                    Col<Person>("Name"),
-                    Aggregate(AggregateType.Avg, Col<Person>("Age")),
+                    Select(Col<Person>("Name"), Aggregate(AggregateType.Avg, Col<Person>("Age"))),
                     Kw(KeywordNode.From),
                     Tbl<Person>(),
-                    Kw(KeywordNode.GroupBy),
-                    Col<Person>("Name"),
-                    Where(BinExp(Aggregate(AggregateType.Avg, Col<Person>("Age")), BinaryOperation.GreaterThan, Const(42)))
+                    GroupBy(
+                        new[] { Col<Person>("Name") }, 
+                        And(BinExp(Aggregate(AggregateType.Avg, Col<Person>("Age")), BinaryOperation.GreaterThan, Const(42))))
                     );
 
             result.ShouldEqual(expected);
@@ -118,10 +144,10 @@ namespace Hyperboliq.Tests
             var expected =
                 StreamFrom(
                     Select(
-                        Aggregate(AggregateType.Min, Col<Car>("Age")), 
-                        Col<Car>("Brand"), 
-                        Aggregate(AggregateType.Avg, Col<Person>("Age")), 
-                        Col<Person>("Name")),
+                        Col<Car>("Brand"),
+                        Aggregate(AggregateType.Min, Col<Car>("Age")),
+                        Col<Person>("Name"),
+                        Aggregate(AggregateType.Avg, Col<Person>("Age"))),
                     Kw(KeywordNode.From),
                     Tbl<Person>(),
                     Kw(KeywordNode.NewJoin(JoinType.InnerJoin)),
@@ -131,20 +157,19 @@ namespace Hyperboliq.Tests
                         Col<Person>("Id"), 
                         BinaryOperation.Equal, 
                         Col<Car>("DriverId")),
-                    Kw(KeywordNode.GroupBy),
-                    Col<Person>("Name"),
-                    Col<Car>("Brand"),
-                    Where(
-                        BinExp(
-                            Aggregate(AggregateType.Avg, Col<Person>("Age")),
-                            BinaryOperation.GreaterThan, 
-                            Const(42)),
+                    GroupBy(
+                        new[] { Col<Person>("Name"), Col<Car>("Brand") },
                         And(
                             BinExp(
                                 Aggregate(AggregateType.Min, Col<Car>("Age")),
+                                BinaryOperation.GreaterThan,
+                                Const(2))),
+                        And(
+                            BinExp(
+                                Aggregate(AggregateType.Avg, Col<Person>("Age")),
                                 BinaryOperation.GreaterThan, 
-                                Const(2))
-                            )));
+                                Const(42)))
+                        ));
 
             result.ShouldEqual(expected);
         }

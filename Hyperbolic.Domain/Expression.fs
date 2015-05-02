@@ -107,14 +107,6 @@ module ExpressionParts =
     let AddOrderingClause (expr : OrderByExpression) clause =
         { expr with Clauses = clause :: expr.Clauses }
 
-    type ExpressionJoinType = And | Or
-    type WhereClause =
-        {
-            JoinType : ExpressionJoinType
-            Expression : System.Linq.Expressions.Expression
-            Tables : ITableReference list
-        }
-
     let NewWhereExpression expr ([<System.ParamArray>] tables : ITableReference array) : WhereExpressionNode = { 
         Start = ExpressionVisitor.Visit expr tables
         AdditionalClauses = []
@@ -125,31 +117,26 @@ module ExpressionParts =
         { whereExpr with AdditionalClauses = clause :: whereExpr.AdditionalClauses }
 
     let AddWhereAndClause whereExpr expr ([<System.ParamArray>] tables : ITableReference array) = 
-        CreateWhereClause ExpressionCombinatorType.And whereExpr expr tables
+        CreateWhereClause And whereExpr expr tables
 
     let AddWhereOrClause whereExpr expr ([<System.ParamArray>] tables : ITableReference array) = 
-        CreateWhereClause ExpressionCombinatorType.Or whereExpr expr tables
+        CreateWhereClause Or whereExpr expr tables
 
-    type GroupByClause = 
-        {
-            Table : ITableReference
-            Expression: System.Linq.Expressions.Expression
-        }
-
-    type GroupByExpression = 
-        {
-            Clauses : GroupByClause list
-            Having : WhereClause list
-        }
-
-    let NewGroupByExpression () = { GroupByExpression.Clauses = []; GroupByExpression.Having = [] }
+    let NewGroupByExpression () = { 
+        Clauses = []
+        Having = [] 
+    }
 
     let internal AddHavingClause groupByExpr joinType expr ([<System.ParamArray>] tables : ITableReference array) =
-        { groupByExpr with GroupByExpression.Having = { WhereClause.JoinType = joinType; Expression = expr; Tables = List.ofArray tables; } :: groupByExpr.Having }
+        let clause = { WhereClauseNode.Combinator = joinType; Expression = ExpressionVisitor.Visit expr tables }
+        { groupByExpr with GroupByExpressionNode.Having = clause :: groupByExpr.Having }
 
-    let AddHavingAndClause groupByExpr expr ([<System.ParamArray>] tables : ITableReference array) = AddHavingClause groupByExpr And expr tables
+    let AddHavingAndClause groupByExpr expr ([<System.ParamArray>] tables : ITableReference array) = 
+        AddHavingClause groupByExpr And expr tables
 
-    let AddHavingOrClause groupByExpr expr ([<System.ParamArray>] tables : ITableReference array) = AddHavingClause groupByExpr Or expr tables
+    let AddHavingOrClause groupByExpr expr ([<System.ParamArray>] tables : ITableReference array) = 
+        AddHavingClause groupByExpr Or expr tables
 
-    let AddGroupByClause expr clause = 
-        { expr with GroupByExpression.Clauses = clause :: expr.Clauses }
+    let AddGroupByClause groupByExpr expr ([<System.ParamArray>] tables : ITableReference array) = 
+        let cols = ExpressionVisitor.Visit expr tables
+        { groupByExpr with GroupByExpressionNode.Clauses = groupByExpr.Clauses @ cols }

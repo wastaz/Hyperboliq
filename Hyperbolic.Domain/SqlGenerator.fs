@@ -48,7 +48,7 @@ module SqlGenerator =
         | Join(RightJoin) -> "RIGHT JOIN"
         | Join(FullJoin) -> "FULL JOIN"
         | OrderBy -> "ORDER BY"
-        | GroupBy -> "GROUP BY"
+        | KeywordNode.GroupBy -> "GROUP BY"
         | Having -> "HAVING"
         | Update -> "UPDATE"
         | Set -> "SET"

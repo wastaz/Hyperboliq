@@ -19,7 +19,7 @@ namespace Hyperboliq
 
         internal WhereExpressionNode WhereExpression { get; private set; }
 
-        internal GroupByExpression GroupByExpression { get; private set; } = NewGroupByExpression();
+        internal GroupByExpressionNode GroupByExpression { get; private set; }
 
         internal OrderByExpression OrderByExpression { get; private set; } = NewOrderByExpression();
 
@@ -193,7 +193,11 @@ namespace Hyperboliq
 
         public SelectExpression GroupBy<TTableType>(Expression<Func<TTableType, object>> groupByExpr)
         {
-            GroupByExpression = AddGroupByClause(GroupByExpression, new GroupByClause(TableReferenceFromType<TTableType>(), groupByExpr));
+            if(GroupByExpression == null)
+            {
+                GroupByExpression = NewGroupByExpression();
+            }
+            GroupByExpression = AddGroupByClause(GroupByExpression, groupByExpr, TableReferenceFromType<TTableType>());
             return this;
         }
 
@@ -228,15 +232,19 @@ namespace Hyperboliq
             {
                 wherePart = new FSharpList<SqlNode>(SqlNode.NewWhere(WhereExpression), FSharpList<SqlNode>.Empty);
             }
+            FSharpList<SqlNode> groupPart = null;
+            if(GroupByExpression != null)
+            {
+                groupPart = new FSharpList<SqlNode>(SqlNode.NewGroupBy(GroupByExpression), FSharpList<SqlNode>.Empty);
+            }
 
             var fromJoinStream = GenerateStream(
                 new[] {
                     StreamInput.NewFrom(FromExpression),
                     StreamInput.NewJoin(JoinExpression),
                 });
-            var groupOrderStream = GenerateStream(
+            var orderStream = GenerateStream(
                 new[] {
-                    StreamInput.NewGroupBy(GroupByExpression),
                     StreamInput.NewOrderBy(OrderByExpression),
                 });
 
@@ -245,7 +253,8 @@ namespace Hyperboliq
                     selectPart,
                     fromJoinStream,
                     wherePart ?? FSharpList<SqlNode>.Empty,
-                    groupOrderStream
+                    groupPart ?? FSharpList<SqlNode>.Empty,
+                    orderStream
                 });
         }
 

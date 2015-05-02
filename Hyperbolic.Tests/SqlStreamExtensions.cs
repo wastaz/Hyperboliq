@@ -167,6 +167,16 @@ namespace Hyperboliq.Tests
             return new WhereClauseNode(ExpressionCombinatorType.Or, new FSharpList<SqlNode>(stream, FSharpList<SqlNode>.Empty));
         }
 
+        public static SqlNode GroupBy(params SqlNode[] clauses)
+        {
+            return SqlNode.NewGroupBy(new GroupByExpressionNode(ListModule.OfArray(clauses), FSharpList<WhereClauseNode>.Empty));
+        }
+
+        public static SqlNode GroupBy(IEnumerable<SqlNode> clauses, params WhereClauseNode[] having)
+        {
+            return SqlNode.NewGroupBy(new GroupByExpressionNode(ListModule.OfSeq(clauses), ListModule.OfArray(having)));
+        }
+
         public static void ShouldEqual(this IEnumerable<SqlNode> self, IEnumerable<SqlNode> expected)
         {
             self.Should().HaveSameCount(expected);

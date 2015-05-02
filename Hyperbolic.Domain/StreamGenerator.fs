@@ -14,7 +14,6 @@ module StreamGenerator =
         | UpdateSet of UpdateExpressionPart.UpdateExpression
         | Join of JoinExpression
         | From of FromExpression
-        | GroupBy of GroupByExpression
         | OrderBy of OrderByExpression
 
     let HandleFrom ({ Tables = tbls } : FromExpression) : SqlStream =
@@ -49,22 +48,6 @@ module StreamGenerator =
             |> List.rev
             |> List.map FlattenOrderByClause
             |> (fun y -> Keyword(KeywordNode.OrderBy) :: y)
-    
-    let HandleGroupByExpression ({ Clauses = groupByClauses; Having = havingClauses } : GroupByExpression) : SqlStream =
-        let HandleHavingPart (having : WhereClause list) : SqlStream =
-            match having with
-            | [] -> []
-            | _ -> failwith "Fix!" //HandleWhere ({ WhereExpression.Clauses = having })
-        let HandleGroupByPart (groupby : GroupByClause list) : SqlStream =
-            match groupby with
-            | [] -> []
-            | _ ->
-                groupby
-                |> List.rev
-                |> List.map (fun c -> ExpressionVisitor.Visit c.Expression [ c.Table ])
-                |> List.concat
-                |> (fun x -> Keyword(KeywordNode.GroupBy) :: x)
-        [ (HandleGroupByPart groupByClauses); (HandleHavingPart havingClauses) ] |> List.concat
 
     let HandleInsertIntoExpression ({ Table = tbl; Columns = cols } : InsertIntoExpression) : SqlStream =
         Keyword(KeywordNode.InsertInto) :: [ InsertHead({ Table = TableToken(tbl); Columns = cols }) ]
@@ -85,7 +68,6 @@ module StreamGenerator =
         | UpdateSet expr -> HandleUpdateSet expr
         | Join expr -> HandleJoin expr
         | From expr -> HandleFrom expr
-        | GroupBy expr -> HandleGroupByExpression expr
         | OrderBy expr -> HandleOrderBy expr
 
     let GenerateStream parts =
