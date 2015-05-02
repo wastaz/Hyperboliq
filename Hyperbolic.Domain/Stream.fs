@@ -35,8 +35,17 @@ module Stream =
 
     type ExpressionCombinatorType = And | Or
 
-    
-    type SelectExpressionNode = {
+    type OrderByClauseNode = {
+        Direction : Direction
+        NullsOrdering : NullsOrdering
+        Selector : SqlStream
+    }
+
+    and OrderByExpressionNode = {
+        Clauses : OrderByClauseNode list
+    }
+
+    and SelectExpressionNode = {
         IsDistinct : bool
         Values : SqlNode list
     }
@@ -94,6 +103,7 @@ module Stream =
         | Select of SelectExpressionNode
         | Where of WhereExpressionNode
         | GroupBy of GroupByExpressionNode
+        | OrderBy of OrderByExpressionNode
         | InsertHead of InsertStatementHeadToken
         | InsertValue of InsertValueNode list
         | UpdateStatementHead of UpdateStatementHeadToken

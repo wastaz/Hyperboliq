@@ -13,6 +13,5 @@ module StreamGenerator =
     | UpdateSet of UpdateExpressionPart.UpdateExpression
     | Join of JoinExpression
     | From of FromExpression
-    | OrderBy of OrderByExpression
 
     val GenerateStream : StreamInput seq -> SqlStream

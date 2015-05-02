@@ -25,8 +25,8 @@ namespace Hyperboliq.Tests
                     Select(Col<Person>("*")),
                     Kw(KeywordNode.From),
                     Tbl<Person>(),
-                    Kw(KeywordNode.OrderBy),
-                    Ord(Col<Person>("Age"), Direction.Ascending)
+                    OrderBy(
+                        OrderClause(Col<Person>("Age"), Direction.Ascending))
                     );
 
             result.ShouldEqual(expected);
@@ -45,8 +45,8 @@ namespace Hyperboliq.Tests
                     Select(Col<Person>("*")),
                     Kw(KeywordNode.From),
                     Tbl<Person>(),
-                    Kw(KeywordNode.OrderBy),
-                    Ord(Col<Person>("Age"), Direction.Descending)
+                    OrderBy(
+                        OrderClause(Col<Person>("Age"), Direction.Descending))
                     );
 
             result.ShouldEqual(expected);
@@ -71,9 +71,9 @@ namespace Hyperboliq.Tests
                     Tbl<Car>(),
                     Kw(KeywordNode.On),
                     BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId")),
-                    Kw(KeywordNode.OrderBy),
-                    Ord(Col<Person>("Age"), Direction.Ascending),
-                    Ord(Col<Car>("Brand"), Direction.Descending)
+                    OrderBy(
+                        OrderClause(Col<Car>("Brand"), Direction.Descending),
+                        OrderClause(Col<Person>("Age"), Direction.Ascending))
                     );
 
             result.ShouldEqual(expected);

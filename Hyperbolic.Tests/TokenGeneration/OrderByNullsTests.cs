@@ -25,8 +25,8 @@ namespace Hyperboliq.Tests
                     Select(Col<Person>("*")),
                     Kw(KeywordNode.From),
                     Tbl<Person>(),
-                    Kw(KeywordNode.OrderBy),
-                    Ord(Col<Person>("Age"), Direction.Ascending, NullsOrdering.NullsFirst)
+                    OrderBy(
+                        OrderClause(Col<Person>("Age"), Direction.Ascending, NullsOrdering.NullsFirst))
                     );
 
             result.ShouldEqual(expected);
@@ -45,8 +45,8 @@ namespace Hyperboliq.Tests
                     Select(Col<Person>("*")),
                     Kw(KeywordNode.From),
                     Tbl<Person>(),
-                    Kw(KeywordNode.OrderBy),
-                    Ord(Col<Person>("Age"), Direction.Ascending, NullsOrdering.NullsLast)
+                    OrderBy(
+                        OrderClause(Col<Person>("Age"), Direction.Ascending, NullsOrdering.NullsLast))
                     );
 
             result.ShouldEqual(expected);
@@ -66,9 +66,9 @@ namespace Hyperboliq.Tests
                     Select(Col<Person>("*")),
                     Kw(KeywordNode.From),
                     Tbl<Person>(),
-                    Kw(KeywordNode.OrderBy),
-                    Ord(Col<Person>("Age"), Direction.Ascending, NullsOrdering.NullsLast),
-                    Ord(Col<Person>("Name"), Direction.Descending, NullsOrdering.NullsFirst)
+                    OrderBy(
+                        OrderClause(Col<Person>("Name"), Direction.Descending, NullsOrdering.NullsFirst),
+                        OrderClause(Col<Person>("Age"), Direction.Ascending, NullsOrdering.NullsLast))
                     );
 
             result.ShouldEqual(expected);

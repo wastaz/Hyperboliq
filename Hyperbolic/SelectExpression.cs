@@ -21,7 +21,7 @@ namespace Hyperboliq
 
         internal GroupByExpressionNode GroupByExpression { get; private set; }
 
-        internal OrderByExpression OrderByExpression { get; private set; } = NewOrderByExpression();
+        internal OrderByExpressionNode OrderByExpression { get; private set; }
 
         internal enum CompositeExpressionMode
         {
@@ -209,14 +209,17 @@ namespace Hyperboliq
 
         public SelectExpression OrderBy<TTableType>(Expression<Func<TTableType, object>> orderExpr, Direction direction, NullsOrdering nullsOrdering = null)
         {
+            if(OrderByExpression == null)
+            {
+                OrderByExpression = NewOrderByExpression();
+            }
             OrderByExpression =
                 AddOrderingClause(
                     OrderByExpression,
-                    new OrderByClause(
-                        TableReferenceFromType<TTableType>(), 
-                        direction, 
-                        nullsOrdering ?? NullsOrdering.NullsUndefined,
-                        orderExpr));
+                    TableReferenceFromType<TTableType>(), 
+                    direction, 
+                    nullsOrdering ?? NullsOrdering.NullsUndefined,
+                    orderExpr);
             return this;
         }
 
@@ -237,15 +240,16 @@ namespace Hyperboliq
             {
                 groupPart = new FSharpList<SqlNode>(SqlNode.NewGroupBy(GroupByExpression), FSharpList<SqlNode>.Empty);
             }
+            FSharpList<SqlNode> orderPart = null;
+            if(OrderByExpression != null)
+            {
+                orderPart = new FSharpList<SqlNode>(SqlNode.NewOrderBy(OrderByExpression), FSharpList<SqlNode>.Empty);
+            }
 
             var fromJoinStream = GenerateStream(
                 new[] {
                     StreamInput.NewFrom(FromExpression),
                     StreamInput.NewJoin(JoinExpression),
-                });
-            var orderStream = GenerateStream(
-                new[] {
-                    StreamInput.NewOrderBy(OrderByExpression),
                 });
 
             return ListModule.Concat(
@@ -254,7 +258,7 @@ namespace Hyperboliq
                     fromJoinStream,
                     wherePart ?? FSharpList<SqlNode>.Empty,
                     groupPart ?? FSharpList<SqlNode>.Empty,
-                    orderStream
+                    orderPart ?? FSharpList<SqlNode>.Empty,
                 });
         }
 

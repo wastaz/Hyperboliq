@@ -135,6 +135,19 @@ namespace Hyperboliq.Tests
             return SqlNode.NewSubExpression(ListModule.OfSeq(stream));
         }
 
+        public static OrderByClauseNode OrderClause(SqlNode col, Direction direction, NullsOrdering nullsOrdering = null)
+        {
+            return new OrderByClauseNode(
+                direction, 
+                nullsOrdering ?? NullsOrdering.NullsUndefined, 
+                new FSharpList<SqlNode>(col, FSharpList<SqlNode>.Empty));
+        }
+
+        public static SqlNode OrderBy(params OrderByClauseNode[] clauses)
+        {
+            return SqlNode.NewOrderBy(new OrderByExpressionNode(ListModule.OfArray(clauses)));
+        }
+
         public static SqlNode Ord(SqlNode col, Direction direction, NullsOrdering nullsOrdering = null)
         {
             var no = nullsOrdering == null ? NullsOrdering.NullsUndefined : nullsOrdering;

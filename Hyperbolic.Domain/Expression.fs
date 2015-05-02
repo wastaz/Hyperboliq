@@ -89,23 +89,11 @@ module ExpressionParts =
         let stream = ExpressionVisitor.Visit expr [ tableReference ]
         { select with Values = stream @ select.Values }
 
-    type OrderByClause =
-        {
-            Table : ITableReference
-            Direction : Direction
-            NullsOrdering : NullsOrdering
-            Expression : System.Linq.Expressions.Expression
-        }
+    let NewOrderByExpression () = { OrderByExpressionNode.Clauses = [] }
 
-    type OrderByExpression = 
-        {
-            Clauses : OrderByClause list
-        }
-
-    let NewOrderByExpression () = { OrderByExpression.Clauses = [] }
-
-    let AddOrderingClause (expr : OrderByExpression) clause =
-        { expr with Clauses = clause :: expr.Clauses }
+    let AddOrderingClause orderExpr tbl direction nullsorder expr =
+        let clause = { OrderByClauseNode.Direction = direction; NullsOrdering = nullsorder; Selector = ExpressionVisitor.Visit expr [ tbl ] }
+        { orderExpr with OrderByExpressionNode.Clauses = clause :: orderExpr.Clauses }
 
     let NewWhereExpression expr ([<System.ParamArray>] tables : ITableReference array) : WhereExpressionNode = { 
         Start = ExpressionVisitor.Visit expr tables

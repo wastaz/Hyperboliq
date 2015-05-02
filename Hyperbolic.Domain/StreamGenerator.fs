@@ -14,7 +14,6 @@ module StreamGenerator =
         | UpdateSet of UpdateExpressionPart.UpdateExpression
         | Join of JoinExpression
         | From of FromExpression
-        | OrderBy of OrderByExpression
 
     let HandleFrom ({ Tables = tbls } : FromExpression) : SqlStream =
         tbls
@@ -30,24 +29,6 @@ module StreamGenerator =
             |> List.rev
             |> List.map (fun c -> c.Flatten() )
             |> List.concat
-
-    let HandleOrderBy ({ Clauses = orderByClauses } : OrderByExpression) : SqlStream =
-        let FlattenOrderByClause (clause : OrderByClause) =
-            let orderByExpr = ExpressionVisitor.Visit clause.Expression [ clause.Table ]
-            OrderingToken(
-                { 
-                    Selector = orderByExpr  
-                    Direction = clause.Direction
-                    NullsOrdering = clause.NullsOrdering
-                })
-
-        match orderByClauses with
-        | [] -> []
-        | _ ->
-            orderByClauses
-            |> List.rev
-            |> List.map FlattenOrderByClause
-            |> (fun y -> Keyword(KeywordNode.OrderBy) :: y)
 
     let HandleInsertIntoExpression ({ Table = tbl; Columns = cols } : InsertIntoExpression) : SqlStream =
         Keyword(KeywordNode.InsertInto) :: [ InsertHead({ Table = TableToken(tbl); Columns = cols }) ]
@@ -68,7 +49,6 @@ module StreamGenerator =
         | UpdateSet expr -> HandleUpdateSet expr
         | Join expr -> HandleJoin expr
         | From expr -> HandleFrom expr
-        | OrderBy expr -> HandleOrderBy expr
 
     let GenerateStream parts =
         parts
