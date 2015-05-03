@@ -4,22 +4,10 @@ module ExpressionParts =
     open Types
     open Stream
 
-    type FromExpression = 
-        {
-            Tables : ITableReference list
-        }
-    
-    let NewFromExpression () = { FromExpression.Tables = [] }
+    let NewFromExpression () = { Tables = []; Joins = [] }
 
     let AddFromTable fromExpr tbl =
-        { fromExpr with FromExpression.Tables = tbl :: fromExpr.Tables }
-    
-    let FlattenFromExpression fromExpr =
-        let rec internalFlatten expr acc =
-            match expr with
-            | [] -> List.rev acc
-            | head::tail -> Table(TableToken(head)) :: acc
-        internalFlatten fromExpr [ Keyword(KeywordNode.From) ]
+        { fromExpr with Tables = tbl :: fromExpr.Tables }
 
     type JoinClause = 
         { 

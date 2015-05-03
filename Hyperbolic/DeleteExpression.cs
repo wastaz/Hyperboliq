@@ -11,7 +11,7 @@ namespace Hyperboliq
 {
     public class DeleteExpression : ISqlStatement, ISqlStreamTransformable
     {
-        internal FromExpression FromExpression { get; private set; } = NewFromExpression();
+        internal FromExpressionNode FromExpression { get; private set; } = NewFromExpression();
         internal WhereExpressionNode WhereExpression { get; private set; }
 
         public DeleteExpression From<TTableType>()
@@ -63,9 +63,9 @@ namespace Hyperboliq
             var stream = GenerateStream(
                 new[] {
                     StreamInput.Delete,
-                    StreamInput.NewFrom(FromExpression),
-                    
                 });
+            var fromPart = new FSharpList<SqlNode>(SqlNode.NewFrom(FromExpression), FSharpList<SqlNode>.Empty);
+            stream = ListModule.Concat(new[] { stream, fromPart });
             if(WhereExpression != null)
             {
                 stream = ListModule.Concat(new[] {

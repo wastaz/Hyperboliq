@@ -23,8 +23,7 @@ namespace Hyperboliq.Tests
             var expected =
                 StreamFrom(
                     Select(Col<Person>("*")),
-                    Kw(KeywordNode.From),
-                    Tbl<Person>(),
+                    From<Person>(),
                     OrderBy(
                         OrderClause(Col<Person>("Age"), Direction.Ascending, NullsOrdering.NullsFirst))
                     );
@@ -43,8 +42,7 @@ namespace Hyperboliq.Tests
             var expected =
                 StreamFrom(
                     Select(Col<Person>("*")),
-                    Kw(KeywordNode.From),
-                    Tbl<Person>(),
+                    From<Person>(),
                     OrderBy(
                         OrderClause(Col<Person>("Age"), Direction.Ascending, NullsOrdering.NullsLast))
                     );
@@ -64,8 +62,7 @@ namespace Hyperboliq.Tests
             var expected =
                 StreamFrom(
                     Select(Col<Person>("*")),
-                    Kw(KeywordNode.From),
-                    Tbl<Person>(),
+                    From<Person>(),
                     OrderBy(
                         OrderClause(Col<Person>("Name"), Direction.Descending, NullsOrdering.NullsFirst),
                         OrderClause(Col<Person>("Age"), Direction.Ascending, NullsOrdering.NullsLast))

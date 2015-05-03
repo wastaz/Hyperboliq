@@ -13,13 +13,6 @@ module StreamGenerator =
         | InsertValues of InsertValuesExpression
         | UpdateSet of UpdateExpressionPart.UpdateExpression
         | Join of JoinExpression
-        | From of FromExpression
-
-    let HandleFrom ({ Tables = tbls } : FromExpression) : SqlStream =
-        tbls
-        |> List.rev
-        |> List.map (fun tref -> Table(TableToken(tref)))
-        |> (fun y -> Keyword(KeywordNode.From) :: y)
 
     let HandleJoin ({ Clauses = joinClauses } : JoinExpression) : SqlStream =
         match joinClauses with
@@ -48,7 +41,6 @@ module StreamGenerator =
         | InsertValues expr -> HandleInsertValuesExpression expr
         | UpdateSet expr -> HandleUpdateSet expr
         | Join expr -> HandleJoin expr
-        | From expr -> HandleFrom expr
 
     let GenerateStream parts =
         parts

@@ -22,8 +22,7 @@ namespace Hyperboliq.Tests
             var expected =
                 StreamFrom(
                     Select(Col<Person>("Name"), Aggregate(AggregateType.Max, Col<Person>("Age"))),
-                    Kw(KeywordNode.From),
-                    Tbl<Person>(),
+                    From<Person>(),
                     GroupBy(Col<Person>("Name"))
                     );
 
@@ -41,8 +40,7 @@ namespace Hyperboliq.Tests
             var expected =
                 StreamFrom(
                     Select(Col<Person>("Name"), Col<Person>("LivesAtHouseId"), Aggregate(AggregateType.Min, Col<Person>("Age"))),
-                    Kw(KeywordNode.From),
-                    Tbl<Person>(),
+                    From<Person>(),
                     GroupBy(Col<Person>("Name"), Col<Person>("LivesAtHouseId"))
                     );
 
@@ -62,8 +60,7 @@ namespace Hyperboliq.Tests
             var expected =
                 StreamFrom(
                     Select(Col<Car>("Brand"), Aggregate(AggregateType.Count), Col<Person>("Age")),
-                    Kw(KeywordNode.From),
-                    Tbl<Person>(),
+                    From<Person>(),
                     Kw(KeywordNode.NewJoin(JoinType.InnerJoin)),
                     Tbl<Car>(),
                     Kw(KeywordNode.On),
@@ -92,8 +89,7 @@ namespace Hyperboliq.Tests
                         Aggregate(AggregateType.Min, Col<Car>("Age")),
                         Col<Person>("Name"),
                         Aggregate(AggregateType.Avg, Col<Person>("Age"))),
-                    Kw(KeywordNode.From),
-                    Tbl<Person>(),
+                    From<Person>(),
                     Kw(KeywordNode.NewJoin(JoinType.InnerJoin)),
                     Tbl<Car>(),
                     Kw(KeywordNode.On),
@@ -119,8 +115,7 @@ namespace Hyperboliq.Tests
             var expected =
                 StreamFrom(
                     Select(Col<Person>("Name"), Aggregate(AggregateType.Avg, Col<Person>("Age"))),
-                    Kw(KeywordNode.From),
-                    Tbl<Person>(),
+                    From<Person>(),
                     GroupBy(
                         new[] { Col<Person>("Name") }, 
                         And(BinExp(Aggregate(AggregateType.Avg, Col<Person>("Age")), BinaryOperation.GreaterThan, Const(42))))
@@ -148,8 +143,7 @@ namespace Hyperboliq.Tests
                         Aggregate(AggregateType.Min, Col<Car>("Age")),
                         Col<Person>("Name"),
                         Aggregate(AggregateType.Avg, Col<Person>("Age"))),
-                    Kw(KeywordNode.From),
-                    Tbl<Person>(),
+                    From<Person>(),
                     Kw(KeywordNode.NewJoin(JoinType.InnerJoin)),
                     Tbl<Car>(),
                     Kw(KeywordNode.On),

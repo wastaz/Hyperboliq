@@ -19,8 +19,7 @@ namespace Hyperboliq.Tests.TokenGeneration
             var expected =
                 StreamFrom(
                     Kw(KeywordNode.Delete),
-                    Kw(KeywordNode.From),
-                    Tbl<Person>());
+                    From<Person>());
             result.ShouldEqual(expected);
         }
 
@@ -33,8 +32,7 @@ namespace Hyperboliq.Tests.TokenGeneration
             var expected =
                 StreamFrom(
                     Kw(KeywordNode.Delete),
-                    Kw(KeywordNode.From),
-                    Tbl<Person>(),
+                    From<Person>(),
                     Where(BinExp(Col<Person>("Age"), BinaryOperation.GreaterThan, Const(42)))
                     );
             result.ShouldEqual(expected);
@@ -52,8 +50,7 @@ namespace Hyperboliq.Tests.TokenGeneration
             var expected =
                 StreamFrom(
                     Kw(KeywordNode.Delete),
-                    Kw(KeywordNode.From),
-                    Tbl<Person>(),
+                    From<Person>(),
                     Where(
                         BinExp(Col<Person>("Age"), BinaryOperation.GreaterThan, Const(42)),
                         Or(BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Henrik'"))),
@@ -77,16 +74,14 @@ namespace Hyperboliq.Tests.TokenGeneration
             var expected =
                 StreamFrom(
                     Kw(KeywordNode.Delete),
-                    Kw(KeywordNode.From),
-                    Tbl<Car>(),
+                    From<Car>(),
                     Where(
                         BinExp(
                             Col<Car>("DriverId"),
                             BinaryOperation.In,
                             SubExp(StreamFrom(
                                 Select(Col<Person>("Id")),
-                                Kw(KeywordNode.From),
-                                Tbl<Person>(),
+                                From<Person>(),
                                 Where(BinExp(Col<Person>("Age"), BinaryOperation.LessThan, Const(18))))))));
             result.ShouldEqual(expected);
         }

@@ -35,7 +35,19 @@ module Stream =
 
     type ExpressionCombinatorType = And | Or
 
-    type OrderByClauseNode = {
+    type JoinClauseNode = { 
+        SourceTables: ITableReference list
+        TargetTable: ITableReference
+        Type: JoinType
+        Condition: SqlStream
+    }
+
+    and FromExpressionNode = {
+        Tables : ITableReference list
+        Joins : JoinClauseNode list
+    }
+
+    and OrderByClauseNode = {
         Direction : Direction
         NullsOrdering : NullsOrdering
         Selector : SqlStream
@@ -101,6 +113,7 @@ module Stream =
         | Aggregate of AggregateToken
         | OrderingToken of Ordering
         | Select of SelectExpressionNode
+        | From of FromExpressionNode
         | Where of WhereExpressionNode
         | GroupBy of GroupByExpressionNode
         | OrderBy of OrderByExpressionNode

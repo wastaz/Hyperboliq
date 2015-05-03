@@ -19,8 +19,7 @@ namespace Hyperboliq.Tests
             var expected =
                 StreamFrom(
                     Select(Col<Person>("*")),
-                    Kw(KeywordNode.From), 
-                    Tbl<Person>());
+                    From<Person>());
 
             result.ShouldEqual(expected);
         }
@@ -35,8 +34,7 @@ namespace Hyperboliq.Tests
             var expected =
                 StreamFrom(
                     SelectDistinct(Col<Person>("*")),
-                    Kw(KeywordNode.From),
-                    Tbl<Person>());
+                    From<Person>());
 
             result.ShouldEqual(expected);
         }
@@ -51,8 +49,7 @@ namespace Hyperboliq.Tests
             var expected =
                 StreamFrom(
                     Select(Col<Person>("Name"), Col<Person>("Age")),
-                    Kw(KeywordNode.From),
-                    Tbl<Person>());
+                    From<Person>());
 
             result.ShouldEqual(expected);
         }
@@ -68,8 +65,7 @@ namespace Hyperboliq.Tests
             var expected =
                 StreamFrom(
                     SelectDistinct(Col<Person>("Age")),
-                    Kw(KeywordNode.From),
-                    Tbl<Person>());
+                    From<Person>());
 
             result.ShouldEqual(expected);
         }
@@ -82,8 +78,7 @@ namespace Hyperboliq.Tests
             var expected =
                 StreamFrom(
                     Select(Aggregate(AggregateType.Count)), 
-                    Kw(KeywordNode.From),
-                    Tbl<Person>());
+                    From<Person>());
             result.ShouldEqual(expected);
         }
 
@@ -95,8 +90,7 @@ namespace Hyperboliq.Tests
             var expected =
                 StreamFrom(
                     Select(Aggregate(AggregateType.Count)),
-                    Kw(KeywordNode.From),
-                    Tbl<Person>());
+                    From<Person>());
             result.ShouldEqual(expected);
         }
 

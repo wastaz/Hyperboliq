@@ -38,7 +38,7 @@ module SqlGenerator =
         | KeywordNode.Select -> "SELECT"
         | Delete -> "DELETE"
         | Values -> "VALUES"
-        | From -> "FROM"
+        | KeywordNode.From -> "FROM"
         | KeywordNode.Where -> "WHERE"
         | KeywordNode.And -> "AND"
         | KeywordNode.Or -> "OR"

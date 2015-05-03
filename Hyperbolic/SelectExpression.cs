@@ -13,7 +13,7 @@ namespace Hyperboliq
     {
         internal SelectExpressionNode SelectExpr { get; private set; } = NewSelectExpression();
 
-        internal FromExpression FromExpression { get; private set; } = NewFromExpression();
+        internal FromExpressionNode FromExpression { get; private set; } = NewFromExpression();
 
         internal JoinExpression JoinExpression { get; private set; } = NewJoinExpression();
 
@@ -229,7 +229,7 @@ namespace Hyperboliq
         public FSharpList<SqlNode> ToSqlStream()
         {
             var selectPart = new FSharpList<SqlNode>(SqlNode.NewSelect(SelectExpr), FSharpList<SqlNode>.Empty);
-
+            var fromPart = new FSharpList<SqlNode>(SqlNode.NewFrom(FromExpression), FSharpList<SqlNode>.Empty);
             FSharpList<SqlNode> wherePart = null;
             if(WhereExpression != null)
             {
@@ -248,13 +248,13 @@ namespace Hyperboliq
 
             var fromJoinStream = GenerateStream(
                 new[] {
-                    StreamInput.NewFrom(FromExpression),
                     StreamInput.NewJoin(JoinExpression),
                 });
 
             return ListModule.Concat(
                 new[] {
                     selectPart,
+                    fromPart,
                     fromJoinStream,
                     wherePart ?? FSharpList<SqlNode>.Empty,
                     groupPart ?? FSharpList<SqlNode>.Empty,

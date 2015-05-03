@@ -20,8 +20,7 @@ namespace Hyperboliq.Tests
             var expected =
                 StreamFrom(
                     Select(Col<Person>("*")),
-                    Kw(KeywordNode.From),
-                    Tbl<Person>(),
+                    From<Person>(),
                     Where(BinExp(Col<Person>("Age"), BinaryOperation.GreaterThan, Const(42))));
 
             result.ShouldEqual(expected);
@@ -38,8 +37,7 @@ namespace Hyperboliq.Tests
             var expected =
                 StreamFrom(
                     Select(Col<Person>("*")),
-                    Kw(KeywordNode.From),
-                    Tbl<Person>(),
+                    From<Person>(),
                     Where(
                         BinExp(
                             BinExp(Col<Person>("Age"), BinaryOperation.GreaterThan, Const(42)),
@@ -66,8 +64,7 @@ namespace Hyperboliq.Tests
             var expected =
                 StreamFrom(
                     Select(Col<Person>("*")),
-                    Kw(KeywordNode.From),
-                    Tbl<Person>(),
+                    From<Person>(),
                     Where(
                         BinExp(Col<Person>("Age"), BinaryOperation.LessThan, Const(42)),
                         Or(BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Karl'"))),
@@ -91,8 +88,7 @@ namespace Hyperboliq.Tests
             var expected =
                 StreamFrom(
                     Select(Col<Car>("*"), Col<Person>("*")),
-                    Kw(KeywordNode.From),
-                    Tbl<Person>(),
+                    From<Person>(),
                     Kw(KeywordNode.NewJoin(JoinType.InnerJoin)),
                     Tbl<Car>(),
                     Kw(KeywordNode.On),
@@ -116,8 +112,7 @@ namespace Hyperboliq.Tests
             var expected =
                 StreamFrom(
                     Select(Col<Car>("*"), Col<Person>("*")),
-                    Kw(KeywordNode.From),
-                    Tbl<Person>(),
+                    From<Person>(),
                     Kw(KeywordNode.NewJoin(JoinType.InnerJoin)),
                     Tbl<Car>(),
                     Kw(KeywordNode.On),
@@ -140,8 +135,7 @@ namespace Hyperboliq.Tests
             var expected =
                 StreamFrom(
                     Select(Col<Car>("*"), Col<Person>("*")),
-                    Kw(KeywordNode.From),
-                    Tbl<Person>(),
+                    From<Person>(),
                     Kw(KeywordNode.NewJoin(JoinType.InnerJoin)),
                     Tbl<Car>(),
                     Kw(KeywordNode.On),

@@ -102,8 +102,7 @@ namespace Hyperboliq.Tests.TokenGeneration
                             SubExp(
                                 StreamFrom(
                                     Select(Aggregate(AggregateType.Max, Col<Car>("Age"))),
-                                    Kw(KeywordNode.From),
-                                    Tbl<Car>())))));
+                                    From<Car>())))));
             result.ShouldEqual(expected);
         }
 

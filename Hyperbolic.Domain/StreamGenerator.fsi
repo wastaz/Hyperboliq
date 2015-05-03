@@ -12,6 +12,5 @@ module StreamGenerator =
     | InsertValues of InsertValuesExpression
     | UpdateSet of UpdateExpressionPart.UpdateExpression
     | Join of JoinExpression
-    | From of FromExpression
 
     val GenerateStream : StreamInput seq -> SqlStream

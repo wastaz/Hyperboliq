@@ -164,6 +164,28 @@ namespace Hyperboliq.Tests
             return SqlNode.NewSelect(new SelectExpressionNode(true, ListModule.OfArray(columns)));
         }
 
+        public static SqlNode From(params ITableReference[] tables)
+        {
+            return SqlNode.NewFrom(new FromExpressionNode(ListModule.OfArray(tables), FSharpList<JoinClauseNode>.Empty));
+        }
+
+        public static SqlNode From<TTable>(params JoinClauseNode[] joins)
+        {
+            return SqlNode.NewFrom(
+                new FromExpressionNode(
+                    new FSharpList<ITableReference>(TableReferenceFromType<TTable>(), FSharpList<ITableReference>.Empty),
+                    ListModule.OfArray(joins)));
+        }
+
+        public static JoinClauseNode Join<TSource, TTarget>(JoinType type, SqlNode joinExpr)
+        {
+            return new JoinClauseNode(
+                new FSharpList<ITableReference>(TableReferenceFromType<TSource>(), FSharpList<ITableReference>.Empty),
+                TableReferenceFromType<TTarget>(),
+                type,
+                new FSharpList<SqlNode>(joinExpr, FSharpList<SqlNode>.Empty));
+        }
+
         public static SqlNode Where(SqlNode start, params WhereClauseNode[] additionalClauses)
         {
             return SqlNode.NewWhere(
