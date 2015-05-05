@@ -15,8 +15,6 @@ namespace Hyperboliq
 
         internal FromExpressionNode FromExpression { get; private set; } = NewFromExpression();
 
-        internal JoinExpression JoinExpression { get; private set; } = NewJoinExpression();
-
         internal WhereExpressionNode WhereExpression { get; private set; }
 
         internal GroupByExpressionNode GroupByExpression { get; private set; }
@@ -171,10 +169,10 @@ namespace Hyperboliq
             Expression<Func<TFirstSourceTable, TSecondSourceTable, TTargetTable, bool>> joinExpr
             )
         {
-            JoinExpression =
+            FromExpression =
                 AddJoinClause(
-                    JoinExpression,
-                    new JoinClause(ListModule.OfArray(new ITableReference[] { source1, source2 }), target, type, joinExpr));
+                    FromExpression,
+                    CreateJoinClause(type, joinExpr, target, source1, source2));
             return this;
         }
 
@@ -184,10 +182,10 @@ namespace Hyperboliq
             Domain.Stream.JoinType type, 
             Expression<Func<TSourceTable, TTargetTable, bool>> condition)
         {
-            JoinExpression =
+            FromExpression =
                 AddJoinClause(
-                    JoinExpression,
-                    new JoinClause(ListModule.OfArray(new ITableReference[] { source }), target, type, condition));
+                    FromExpression,
+                    CreateJoinClause(type, condition, target, source));
             return this;
         }
 
@@ -246,16 +244,10 @@ namespace Hyperboliq
                 orderPart = new FSharpList<SqlNode>(SqlNode.NewOrderBy(OrderByExpression), FSharpList<SqlNode>.Empty);
             }
 
-            var fromJoinStream = GenerateStream(
-                new[] {
-                    StreamInput.NewJoin(JoinExpression),
-                });
-
             return ListModule.Concat(
                 new[] {
                     selectPart,
                     fromPart,
-                    fromJoinStream,
                     wherePart ?? FSharpList<SqlNode>.Empty,
                     groupPart ?? FSharpList<SqlNode>.Empty,
                     orderPart ?? FSharpList<SqlNode>.Empty,

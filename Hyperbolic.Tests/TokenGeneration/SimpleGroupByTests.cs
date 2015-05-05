@@ -60,11 +60,8 @@ namespace Hyperboliq.Tests
             var expected =
                 StreamFrom(
                     Select(Col<Car>("Brand"), Aggregate(AggregateType.Count), Col<Person>("Age")),
-                    From<Person>(),
-                    Kw(KeywordNode.NewJoin(JoinType.InnerJoin)),
-                    Tbl<Car>(),
-                    Kw(KeywordNode.On),
-                    BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId")),
+                    From<Person>(
+                        Join<Person, Car>(JoinType.InnerJoin, BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId")))),
                     GroupBy(Col<Person>("Age"), Col<Car>("Brand"))
                     );
 
@@ -89,14 +86,8 @@ namespace Hyperboliq.Tests
                         Aggregate(AggregateType.Min, Col<Car>("Age")),
                         Col<Person>("Name"),
                         Aggregate(AggregateType.Avg, Col<Person>("Age"))),
-                    From<Person>(),
-                    Kw(KeywordNode.NewJoin(JoinType.InnerJoin)),
-                    Tbl<Car>(),
-                    Kw(KeywordNode.On),
-                    BinExp(
-                        Col<Person>("Id"),
-                        BinaryOperation.Equal,
-                        Col<Car>("DriverId")),
+                    From<Person>(
+                        Join<Person, Car>(JoinType.InnerJoin, BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId")))),
                     GroupBy(Col<Person>("Name"), Col<Car>("Brand"))
                     );
 
@@ -143,14 +134,8 @@ namespace Hyperboliq.Tests
                         Aggregate(AggregateType.Min, Col<Car>("Age")),
                         Col<Person>("Name"),
                         Aggregate(AggregateType.Avg, Col<Person>("Age"))),
-                    From<Person>(),
-                    Kw(KeywordNode.NewJoin(JoinType.InnerJoin)),
-                    Tbl<Car>(),
-                    Kw(KeywordNode.On),
-                    BinExp(
-                        Col<Person>("Id"), 
-                        BinaryOperation.Equal, 
-                        Col<Car>("DriverId")),
+                    From<Person>(
+                        Join<Person, Car>(JoinType.InnerJoin, BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId")))),
                     GroupBy(
                         new[] { Col<Person>("Name"), Col<Car>("Brand") },
                         And(
@@ -161,7 +146,7 @@ namespace Hyperboliq.Tests
                         And(
                             BinExp(
                                 Aggregate(AggregateType.Avg, Col<Person>("Age")),
-                                BinaryOperation.GreaterThan, 
+                                BinaryOperation.GreaterThan,
                                 Const(42)))
                         ));
 

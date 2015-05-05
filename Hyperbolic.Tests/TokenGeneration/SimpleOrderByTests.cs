@@ -63,11 +63,8 @@ namespace Hyperboliq.Tests
             var expected =
                 StreamFrom(
                     Select(Col<Car>("*"), Col<Person>("*")),
-                    From<Person>(),
-                    Kw(KeywordNode.NewJoin(JoinType.InnerJoin)),
-                    Tbl<Car>(),
-                    Kw(KeywordNode.On),
-                    BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId")),
+                    From<Person>(
+                        Join<Person, Car>(JoinType.InnerJoin, BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId")))),
                     OrderBy(
                         OrderClause(Col<Car>("Brand"), Direction.Descending),
                         OrderClause(Col<Person>("Age"), Direction.Ascending))

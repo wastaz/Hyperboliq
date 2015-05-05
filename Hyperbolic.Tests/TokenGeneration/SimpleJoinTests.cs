@@ -14,12 +14,8 @@ namespace Hyperboliq.Tests
         {
             return StreamFrom(
                 Select(Col<Car>("*"), Col<Person>("*")),
-                From<Person>(),
-                Kw(KeywordNode.NewJoin(joinKeyword)),
-                Tbl<Car>(),
-                Kw(KeywordNode.On),
-                BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId"))
-                );
+                From<Person>(
+                    Join<Person, Car>(joinKeyword, BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId")))));
         }
 
         [Fact]
@@ -87,16 +83,9 @@ namespace Hyperboliq.Tests
             var expected =
                 StreamFrom(
                     Select(Col<House>("*"), Col<Car>("*"), Col<Person>("*")),
-                    From<House>(),
-                    Kw(KeywordNode.NewJoin(JoinType.InnerJoin)),
-                    Tbl<Person>(),
-                    Kw(KeywordNode.On),
-                    BinExp(Col<House>("Id"), BinaryOperation.Equal, Col<Person>("LivesAtHouseId")),
-                    Kw(KeywordNode.NewJoin(JoinType.LeftJoin)),
-                    Tbl<Car>(),
-                    Kw(KeywordNode.On),
-                    BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId"))
-                    );
+                    From<House>(
+                        Join<Person, Car>(JoinType.LeftJoin, BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId"))),
+                        Join<House, Person>(JoinType.InnerJoin, BinExp(Col<House>("Id"), BinaryOperation.Equal, Col<Person>("LivesAtHouseId")))));
 
             result.ShouldEqual(expected);
         }

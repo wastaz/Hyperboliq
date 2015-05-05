@@ -169,6 +169,14 @@ namespace Hyperboliq.Tests
             return SqlNode.NewFrom(new FromExpressionNode(ListModule.OfArray(tables), FSharpList<JoinClauseNode>.Empty));
         }
 
+        public static SqlNode From(ITableReference table, params JoinClauseNode[] joins)
+        {
+            return SqlNode.NewFrom(
+                new FromExpressionNode(
+                    new FSharpList<ITableReference>(table, FSharpList<ITableReference>.Empty),
+                    ListModule.OfArray(joins)));
+        }
+
         public static SqlNode From<TTable>(params JoinClauseNode[] joins)
         {
             return SqlNode.NewFrom(
@@ -182,6 +190,23 @@ namespace Hyperboliq.Tests
             return new JoinClauseNode(
                 new FSharpList<ITableReference>(TableReferenceFromType<TSource>(), FSharpList<ITableReference>.Empty),
                 TableReferenceFromType<TTarget>(),
+                type,
+                new FSharpList<SqlNode>(joinExpr, FSharpList<SqlNode>.Empty));
+        }
+        public static JoinClauseNode Join<TSource1, TSource2, TTarget>(JoinType type, SqlNode joinExpr)
+        {
+            return new JoinClauseNode(
+                ListModule.OfArray(new ITableReference[] { TableReferenceFromType<TSource1>(), TableReferenceFromType<TSource2>() } ),
+                TableReferenceFromType<TTarget>(),
+                type,
+                new FSharpList<SqlNode>(joinExpr, FSharpList<SqlNode>.Empty));
+        }
+
+        public static JoinClauseNode Join(ITableReference source, ITableReference target, JoinType type, SqlNode joinExpr)
+        {
+            return new JoinClauseNode(
+                new FSharpList<ITableReference>(source, FSharpList<ITableReference>.Empty),
+                target,
                 type,
                 new FSharpList<SqlNode>(joinExpr, FSharpList<SqlNode>.Empty));
         }

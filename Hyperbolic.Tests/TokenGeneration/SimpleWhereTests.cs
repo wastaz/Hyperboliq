@@ -88,11 +88,8 @@ namespace Hyperboliq.Tests
             var expected =
                 StreamFrom(
                     Select(Col<Car>("*"), Col<Person>("*")),
-                    From<Person>(),
-                    Kw(KeywordNode.NewJoin(JoinType.InnerJoin)),
-                    Tbl<Car>(),
-                    Kw(KeywordNode.On),
-                    BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId")),
+                    From<Person>(
+                        Join<Person, Car>(JoinType.InnerJoin, BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId")))),
                     Where(
                         BinExp(Col<Person>("Age"), BinaryOperation.GreaterThan, Const(42)),
                         And(BinExp(Col<Car>("Brand"), BinaryOperation.Equal, Const("'SAAB'"))))
@@ -112,11 +109,8 @@ namespace Hyperboliq.Tests
             var expected =
                 StreamFrom(
                     Select(Col<Car>("*"), Col<Person>("*")),
-                    From<Person>(),
-                    Kw(KeywordNode.NewJoin(JoinType.InnerJoin)),
-                    Tbl<Car>(),
-                    Kw(KeywordNode.On),
-                    BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId")),
+                    From<Person>(
+                        Join<Person, Car>(JoinType.InnerJoin, BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId")))),
                     Where(BinExp(Col<Person>("Age"), BinaryOperation.GreaterThan, Col<Car>("DriverId"))));
             result.ShouldEqual(expected);
         }
@@ -135,11 +129,8 @@ namespace Hyperboliq.Tests
             var expected =
                 StreamFrom(
                     Select(Col<Car>("*"), Col<Person>("*")),
-                    From<Person>(),
-                    Kw(KeywordNode.NewJoin(JoinType.InnerJoin)),
-                    Tbl<Car>(),
-                    Kw(KeywordNode.On),
-                    BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId")),
+                    From<Person>(
+                        Join<Person, Car>(JoinType.InnerJoin, BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId")))),
                     Where(
                         BinExp(Col<Person>("Age"), BinaryOperation.GreaterThan, Const(42)),
                         Or(BinExp(Col<Person>("Name"), BinaryOperation.Equal, Col<Car>("Brand"))),

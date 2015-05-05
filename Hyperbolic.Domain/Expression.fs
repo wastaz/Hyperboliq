@@ -9,57 +9,18 @@ module ExpressionParts =
     let AddFromTable fromExpr tbl =
         { fromExpr with Tables = tbl :: fromExpr.Tables }
 
-    type JoinClause = 
-        { 
-            SourceTables: ITableReference list
-            TargetTable: ITableReference
-            Type: JoinType
-            Condition: System.Linq.Expressions.Expression
-        }
-        member x.Flatten() =
-            Keyword(Join(x.Type)) :: 
-            Table(TableToken(x.TargetTable)) :: 
-            Keyword(KeywordNode.On) :: 
-            (ExpressionVisitor.Visit x.Condition (x.SourceTables @ [ x.TargetTable ]))
+    let AddJoinClause fromExpr joinClause =
+        { fromExpr with Joins = joinClause :: fromExpr.Joins }
 
-
-    type JoinExpression = 
+    let CreateJoinClause joinType condition targetTable ([<System.ParamArray>] sourceTables : ITableReference array) =
+        let srcList = List.ofArray sourceTables
+        let envList = srcList @ [ targetTable ]
         {
-            Clauses: JoinClause list
-        }
-    
-    let NewJoinExpression () = { Clauses = [] }
-
-    let CreateJoinClause2<'a, 'b> joinType condition =
-        {
-            SourceTables = [ TableReferenceFromType<'a> ]
-            TargetTable = TableReferenceFromType<'b>
+            SourceTables = srcList
+            TargetTable = targetTable
             Type = joinType
-            Condition = condition
+            Condition = ExpressionVisitor.Visit condition envList
         }
-
-    let CreateJoinClause3<'a, 'b, 'c> joinType condition =
-        {
-            SourceTables = [ TableReferenceFromType<'a>; TableReferenceFromType<'b> ]
-            TargetTable = TableReferenceFromType<'c>
-            Type = joinType
-            Condition = condition
-        }
-
-    let AddJoinClause expr clause =
-        { Clauses = clause :: expr.Clauses }
-
-    let internal keywordForJoinType joinType =
-        match joinType with
-        | InnerJoin -> "INNER JOIN"
-        | LeftJoin -> "LEFT JOIN"
-        | RightJoin -> "RIGHT JOIN"
-        | FullJoin -> "FULL JOIN"
-
-    let FlattenJoinExpression (joinExpr : JoinExpression) =
-        joinExpr.Clauses 
-        |> List.map (fun (clause : JoinClause) -> clause.Flatten())
-        |> List.concat
 
     let NewSelectExpression () =
         { 

@@ -12,16 +12,6 @@ module StreamGenerator =
         | InsertInto of InsertIntoExpression
         | InsertValues of InsertValuesExpression
         | UpdateSet of UpdateExpressionPart.UpdateExpression
-        | Join of JoinExpression
-
-    let HandleJoin ({ Clauses = joinClauses } : JoinExpression) : SqlStream =
-        match joinClauses with
-        | [] -> []
-        | _ -> 
-            joinClauses
-            |> List.rev
-            |> List.map (fun c -> c.Flatten() )
-            |> List.concat
 
     let HandleInsertIntoExpression ({ Table = tbl; Columns = cols } : InsertIntoExpression) : SqlStream =
         Keyword(KeywordNode.InsertInto) :: [ InsertHead({ Table = TableToken(tbl); Columns = cols }) ]
@@ -40,7 +30,6 @@ module StreamGenerator =
         | InsertInto expr -> HandleInsertIntoExpression expr
         | InsertValues expr -> HandleInsertValuesExpression expr
         | UpdateSet expr -> HandleUpdateSet expr
-        | Join expr -> HandleJoin expr
 
     let GenerateStream parts =
         parts

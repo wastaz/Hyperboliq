@@ -24,12 +24,9 @@ namespace Hyperboliq.Tests
             var expected =
                 StreamFrom(
                     Select(Col(parent, "Name"), Col(child, "Name")),
-                    From(child),
-                    Kw(KeywordNode.NewJoin(JoinType.InnerJoin)),
-                    Tbl(parent),
-                    Kw(KeywordNode.On),
-                    BinExp(Col(child, "ParentId"), BinaryOperation.Equal, Col(parent, "Id"))
-                    );
+                    From(
+                        child,
+                        Join(child, parent, JoinType.InnerJoin, BinExp(Col(child, "ParentId"), BinaryOperation.Equal, Col(parent, "Id")))));
             result.ShouldEqual(expected);
         }
 
@@ -45,19 +42,16 @@ namespace Hyperboliq.Tests
             var expected =
                 StreamFrom(
                     Select(Col<Car>("*")),
-                    From<House>(),
-                    Kw(KeywordNode.NewJoin(JoinType.InnerJoin)),
-                    Tbl<Person>(),
-                    Kw(KeywordNode.On),
-                    BinExp(Col<House>("Id"), BinaryOperation.Equal, Col<Person>("LivesAtHouseId")),
-                    Kw(KeywordNode.NewJoin(JoinType.InnerJoin)),
-                    Tbl<Car>(),
-                    Kw(KeywordNode.On),
-                    BinExp(
-                        BinExp(Col<Car>("Brand"), BinaryOperation.Equal, Col<House>("Address")),
-                        BinaryOperation.And,
-                        BinExp(Col<Person>("LivesAtHouseId"), BinaryOperation.Equal, Col<House>("Id")))
-                    );
+                    From<House>(
+                        Join<House, Person, Car>(
+                            JoinType.InnerJoin, 
+                            BinExp(
+                                BinExp(Col<Car>("Brand"), BinaryOperation.Equal, Col<House>("Address")),
+                                BinaryOperation.And,
+                                BinExp(Col<Person>("LivesAtHouseId"), BinaryOperation.Equal, Col<House>("Id")))),
+                        Join<House, Person>(
+                            JoinType.InnerJoin,
+                            BinExp(Col<House>("Id"), BinaryOperation.Equal, Col<Person>("LivesAtHouseId")))));
             result.ShouldEqual(expected);
         }
 
