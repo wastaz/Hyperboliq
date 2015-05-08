@@ -46,7 +46,7 @@ module ExpressionVisitor =
     let VisitConstant (exp : ConstantExpression) =
         match exp.Value with
         | null -> [ SqlNode.NullValue ]
-        | :? ISqlStreamTransformable as ss -> ss.ToSqlStream()
+        | :? SelectExpression as se -> [ SubExpression(se) ]
         | :? string as s-> [ SqlNode.Constant(ConstantNode(sprintf "'%s'" s))]
         | x ->  [ SqlNode.Constant(ConstantNode(x.ToString())) ]
 
@@ -56,7 +56,8 @@ module ExpressionVisitor =
             match result with
             | null -> Some [ SqlNode.NullValue ]
             | :? SqlStream as ss -> Some ss
-            | :? ISqlStreamTransformable as ss -> Some (ss.ToSqlStream())
+            | :? ISelectExpressionTransformable as ss -> Some [ SubExpression(ss.ToSelectExpression()) ]
+            | :? SelectExpression as ss -> Some [ SubExpression(ss) ]
             | _ -> Some [ SqlNode.Constant(ConstantNode(result.ToString())) ]
         with
             | _ -> Option.None
@@ -64,8 +65,8 @@ module ExpressionVisitor =
     let rec VisitSqlMethodCall (exp : MethodCallExpression) context = 
         let args = VisitExpressionList <| List.ofArray (exp.Arguments.ToArray()) <| context
         match exp.Method.Name, args with
-        | "In", [ lhs; rhs ] -> [ SqlNode.BinaryExpression({ Lhs = lhs; Rhs = [ SubExpression(rhs) ]; Operation = BinaryOperation.In }) ]
-        | "SubExpr", [ expr ] -> [ SubExpression(expr) ]
+        | "In", [ lhs; rhs ] -> [ SqlNode.BinaryExpression({ Lhs = lhs; Rhs = rhs; Operation = BinaryOperation.In }) ]
+        | "SubExpr", [ expr ] -> expr
         | "Max", [ expr ] -> [ Aggregate(Max, expr) ]
         | "Min", [ expr ] -> [ Aggregate(Min, expr) ]
         | "Avg", [ expr ] -> [ Aggregate(Avg, expr) ]

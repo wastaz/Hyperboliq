@@ -68,22 +68,17 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItShouldBePossibleToDeleteWithASubQuery()
         {
             var stream =
-                StreamFrom(
-                    Kw(KeywordNode.Delete),
-                    Kw(KeywordNode.From),
-                    Tbl<Car>(),
-                    Kw(KeywordNode.Where),
-                    BinExp(
-                        Col<Car>("DriverId"),
-                        BinaryOperation.In,
-                        SubExp(StreamFrom(
-                            Kw(KeywordNode.Select),
-                            Col<Person>("Id"),
-                            Kw(KeywordNode.From),
-                            Tbl<Person>(),
-                            Kw(KeywordNode.Where),
-                            BinExp(Col<Person>("Age"), BinaryOperation.LessThan, Const(18))))));
-            var result = SqlifySeq(AnsiSql.Dialect, stream);
+                DeleteNode(
+                    From<Car>(),
+                    Where(
+                        BinExp(
+                            Col<Car>("DriverId"),
+                            BinaryOperation.In,
+                            SubExp(
+                                Select(Col<Person>("Id")),
+                                From<Person>(),
+                                Where(BinExp(Col<Person>("Age"), BinaryOperation.LessThan, Const(18)))))));
+            var result = SqlifyExpression(AnsiSql.Dialect, stream);
 
             result.Should().Be(
                 "DELETE FROM Car CarRef " +

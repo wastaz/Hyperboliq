@@ -14,14 +14,14 @@ namespace Hyperboliq.Tests.TokenGeneration
         public void ItShouldBePossibleToPerformAGlobalUpdate()
         {
             var expr = Update<Person>.Set(p => p.Name, "Kalle");
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
+                UpdateNode(
                     UpdHead<Person>(
                         Ust<Person>("Name", "'Kalle'")));
 
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
 
         [Fact]
@@ -29,15 +29,15 @@ namespace Hyperboliq.Tests.TokenGeneration
         {
             var expr = Update<Person>.Set(p => p.Name, "Kalle")
                                      .Set(p => p.Age, 42);
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
+                UpdateNode(
                     UpdHead<Person>(
-                        Ust<Person>("Name", "'Kalle'"),
-                        Ust<Person>("Age", 42)));
+                        Ust<Person>("Age", 42),
+                        Ust<Person>("Name", "'Kalle'")));
 
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
 
         [Fact]
@@ -45,15 +45,15 @@ namespace Hyperboliq.Tests.TokenGeneration
         {
             var expr = Update<Person>.Set(p => new { p.Name, p.Age }, 
                                           new { Name = "Kalle", Age = 42});
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
+                UpdateNode(
                     UpdHead<Person>(
-                        Ust<Person>("Age", 42),
-                        Ust<Person>("Name", "'Kalle'")));
+                        Ust<Person>("Name", "'Kalle'"),
+                        Ust<Person>("Age", 42)));
 
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
 
 
@@ -61,14 +61,14 @@ namespace Hyperboliq.Tests.TokenGeneration
         public void ItShouldBePossibleToUpdateInPlace()
         {
             var expr = Update<Person>.Set(p => p.Age, p => p.Age + 1);
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
+                UpdateNode(
                     UpdHead<Person>(
                         Ust<Person>("Age", BinExp(Col<Person>("Age"), BinaryOperation.Add, Const(1)))));
 
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
 
         [Fact]
@@ -76,15 +76,16 @@ namespace Hyperboliq.Tests.TokenGeneration
         {
             var expr = Update<Person>.Set(p => new { p.Name, p.Age },
                                           p => new { Name = "Kalle" + p.Name, Age = p.Age - 2 });
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
+                UpdateNode(
                     UpdHead<Person>(
-                        Ust<Person>("Age", BinExp(Col<Person>("Age"), BinaryOperation.Subtract, Const(2))),
-                        Ust<Person>("Name", BinExp(Const("'Kalle'"), BinaryOperation.Add, Col<Person>("Name")))));
+                        Ust<Person>("Name", BinExp(Const("'Kalle'"), BinaryOperation.Add, Col<Person>("Name"))),
+                        Ust<Person>("Age", BinExp(Col<Person>("Age"), BinaryOperation.Subtract, Const(2)))
+                    ));
 
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
 
         [Fact]
@@ -92,18 +93,17 @@ namespace Hyperboliq.Tests.TokenGeneration
         {
             var expr = Update<Person>.Set(p => p.Age,
                                           Select.Column<Car>(c => Sql.Max(c.Age)).From<Car>());
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
+                UpdateNode(
                     UpdHead<Person>(
                         Ust<Person>(
                             "Age", 
                             SubExp(
-                                StreamFrom(
-                                    Select(Aggregate(AggregateType.Max, Col<Car>("Age"))),
-                                    From<Car>())))));
-            result.ShouldEqual(expected);
+                                Select(Aggregate(AggregateType.Max, Col<Car>("Age"))),
+                                From<Car>()))));
+            Assert.Equal(expected, result);
         }
 
         [Fact]
@@ -111,13 +111,13 @@ namespace Hyperboliq.Tests.TokenGeneration
         {
             var expr = Update<Person>.Set(p => p.Age, 42)
                                      .Where(p => p.Name == "Kalle");
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
+                UpdateNode(
                     UpdHead<Person>(Ust<Person>("Age", 42)),
                     Where(BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Kalle'"))));
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
 
         [Fact]
@@ -127,17 +127,17 @@ namespace Hyperboliq.Tests.TokenGeneration
                                      .Where(p => p.Name == "Kalle")
                                      .Or(p => p.Name == "Pelle")
                                      .And(p => p.Age < 18);
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
+                UpdateNode(
                     UpdHead<Person>(Ust<Person>("Age", 42)),
                     Where(
                         BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Kalle'")),
                         And(BinExp(Col<Person>("Age"), BinaryOperation.LessThan, Const(18))),
                         Or(BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Pelle'")))
                         ));
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
     }
 }

@@ -10,7 +10,7 @@ module Stream =
     type TableToken = TableToken of ITableReference
 
     type InsertStatementHeadToken = {
-        Table : TableToken
+        Table : ITableReference
         Columns : ColumnToken list
     }
 
@@ -109,7 +109,7 @@ module Stream =
         | Column of ColumnToken
         | Parameter of ParameterToken
         | BinaryExpression of BinaryExpressionNode
-        | SubExpression of SqlStream
+        | SubExpression of SelectExpression
         | Aggregate of AggregateToken
         | OrderingToken of Ordering
         | Select of SelectExpressionNode
@@ -127,10 +127,48 @@ module Stream =
         | Column of ColumnToken
         | Parameter of ParameterToken
 
-    and SqlStream = SqlNode list
+    and InsertValueToken = { Values : InsertValueNode list }
 
-    type ISqlStreamTransformable =
-        abstract member ToSqlStream : unit -> SqlStream
+    and SqlStream = SqlNode list
+    
+    and SelectExpression =
+        {
+            Select : SelectExpressionNode
+            From : FromExpressionNode
+            Where : WhereExpressionNode option
+            GroupBy : GroupByExpressionNode option
+            OrderBy : OrderByExpressionNode option
+        }
+
+    type InsertExpression =
+        {
+            InsertInto : InsertStatementHeadToken
+            InsertValues : InsertValueToken list
+        }
+
+    type DeleteExpression =
+        {
+            From : FromExpressionNode
+            Where : WhereExpressionNode option
+        }
+
+    type UpdateExpression =
+        {
+            UpdateSet : UpdateStatementHeadToken
+            Where : WhereExpressionNode option
+        }
+
+    type SqlExpression =
+        | Select of SelectExpression
+        | Insert of InsertExpression
+        | Delete of DeleteExpression
+        | Update of UpdateExpression
+
+    type ISelectExpressionTransformable =
+        abstract member ToSelectExpression : unit -> SelectExpression
+
+    type ISqlExpressionTransformable =
+        abstract member ToSqlExpression : unit -> SqlExpression
 
     type Sql private () =
         static member SubExpr<'a> (e : ISqlQuery) = Unchecked.defaultof<'a>

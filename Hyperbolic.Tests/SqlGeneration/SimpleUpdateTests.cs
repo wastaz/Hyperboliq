@@ -15,11 +15,11 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItShouldBePossibleToPerformAGlobalUpdate()
         {
             var stream =
-                StreamFrom(
+                UpdateNode(
                     UpdHead<Person>(
                         Ust<Person>("Name", "'Kalle'")));
 
-            var result = SqlifySeq(AnsiSql.Dialect, stream);
+            var result = SqlifyExpression(AnsiSql.Dialect, stream);
             result.Should().Be("UPDATE Person SET Name = 'Kalle'");
         }
 
@@ -27,12 +27,12 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItShouldBePossibleToSetMultipleValues()
         {
             var stream =
-              StreamFrom(
+              UpdateNode(
                   UpdHead<Person>(
                       Ust<Person>("Name", "'Kalle'"),
                       Ust<Person>("Age", 42)));
 
-            var result = SqlifySeq(AnsiSql.Dialect, stream);
+            var result = SqlifyExpression(AnsiSql.Dialect, stream);
             result.Should().Be("UPDATE Person SET Name = 'Kalle', Age = 42");
         }
 
@@ -41,11 +41,11 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItShouldBePossibleToUpdateInPlace()
         {
             var stream =
-              StreamFrom(
+              UpdateNode(
                   UpdHead<Person>(
                       Ust<Person>("Age", BinExp(Col<Person>("Age"), BinaryOperation.Add, Const(1)))));
             
-            var result = SqlifySeq(AnsiSql.Dialect, stream);
+            var result = SqlifyExpression(AnsiSql.Dialect, stream);
             result.Should().Be("UPDATE Person SET Age = Age + 1");
         }
 
@@ -53,12 +53,12 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItShouldBePossibleToUpdateMultipleInPlace()
         {
             var stream =
-               StreamFrom(
+               UpdateNode(
                    UpdHead<Person>(
                        Ust<Person>("Age", BinExp(Col<Person>("Age"), BinaryOperation.Subtract, Const(2))),
                        Ust<Person>("Name", BinExp(Const("'Kalle'"), BinaryOperation.Add, Col<Person>("Name")))));
             
-            var result = SqlifySeq(AnsiSql.Dialect, stream);
+            var result = SqlifyExpression(AnsiSql.Dialect, stream);
             result.Should().Be("UPDATE Person SET Age = Age - 2, Name = 'Kalle' + Name");
         }
 
@@ -66,18 +66,15 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItShouldBePossibleToUpdateValuesToASubExpression()
         {
             var stream =
-                StreamFrom(
+                UpdateNode(
                     UpdHead<Person>(
                         Ust<Person>(
                             "Age",
                             SubExp(
-                                StreamFrom(
-                                    Kw(KeywordNode.Select),
-                                    Aggregate(AggregateType.Max, Col<Car>("Age")),
-                                    Kw(KeywordNode.From),
-                                    Tbl<Car>())))));
+                                Select(Aggregate(AggregateType.Max, Col<Car>("Age"))),
+                                From<Car>()))));
             
-            var result = SqlifySeq(AnsiSql.Dialect, stream);
+            var result = SqlifyExpression(AnsiSql.Dialect, stream);
             result.Should().Be("UPDATE Person SET Age = (SELECT MAX(CarRef.Age) FROM Car CarRef)");
         }
 
@@ -85,12 +82,11 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItShouldBePossibleToPerformAConditionalUpdate()
         {
             var stream =
-                StreamFrom(
+                UpdateNode(
                     UpdHead<Person>(Ust<Person>("Age", 42)),
-                    Kw(KeywordNode.Where),
-                    BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Kalle'")));
+                    Where(BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Kalle'"))));
 
-            var result = SqlifySeq(AnsiSql.Dialect, stream);
+            var result = SqlifyExpression(AnsiSql.Dialect, stream);
             result.Should().Be("UPDATE Person SET Age = 42 WHERE Name = 'Kalle'");
         }
 
@@ -98,16 +94,14 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItShouldBePossibleToHaveMultipleConditionsOnTheUpdate()
         {
             var stream =
-                StreamFrom(
+                UpdateNode(
                     UpdHead<Person>(Ust<Person>("Age", 42)),
-                    Kw(KeywordNode.Where),
-                    BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Kalle'")),
-                    Kw(KeywordNode.Or),
-                    BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Pelle'")),
-                    Kw(KeywordNode.And),
-                    BinExp(Col<Person>("Age"), BinaryOperation.LessThan, Const(18)));
+                    Where(
+                        BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Kalle'")),
+                        Or(BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Pelle'"))),
+                        And(BinExp(Col<Person>("Age"), BinaryOperation.LessThan, Const(18)))));
 
-            var result = SqlifySeq(AnsiSql.Dialect, stream);
+            var result = SqlifyExpression(AnsiSql.Dialect, stream);
             result.Should().Be("UPDATE Person SET Age = 42 WHERE Name = 'Kalle' OR Name = 'Pelle' AND Age < 18");
         }
     }

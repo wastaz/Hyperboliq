@@ -78,13 +78,13 @@ namespace Hyperboliq.Tests
             return SqlNode.NullValue;
         }
 
-        public static SqlNode InsHead<TTableType>(params string[] colNames)
+        public static InsertStatementHeadToken InsHead<TTableType>(params string[] colNames)
         {
-            return SqlNode.NewInsertHead(
-                    new InsertStatementHeadToken(
-                        TableToken.NewTableToken(TableReferenceFromType<TTableType>()),
-                        ListModule.OfSeq(
-                            colNames.Select(n => new Tuple<string, ITableReference>(n, TableReferenceFromType<TTableType>())))));
+            return 
+                new InsertStatementHeadToken(
+                    TableReferenceFromType<TTableType>(),
+                    ListModule.OfSeq(
+                        colNames.Select(n => new Tuple<string, ITableReference>(n, TableReferenceFromType<TTableType>()))));
         }
 
         private static UpdateSetToken CreateUpdateSetToken<TTableType>(string colDef, FSharpList<SqlNode> stream)
@@ -102,17 +102,17 @@ namespace Hyperboliq.Tests
             return CreateUpdateSetToken<TTableType>(colDef, new FSharpList<SqlNode>(node, FSharpList<SqlNode>.Empty));
         }
 
-        public static SqlNode UpdHead<TTableType>(params UpdateSetToken[] setExprs)
+        public static UpdateStatementHeadToken UpdHead<TTableType>(params UpdateSetToken[] setExprs)
         {
-            return SqlNode.NewUpdateStatementHead(
+            return 
                 new UpdateStatementHeadToken(
                     TableReferenceFromType<TTableType>(),
-                    ListModule.OfArray(setExprs)));
+                    ListModule.OfArray(setExprs));
         }
 
-        public static SqlNode InsVal(params InsertValueNode[] nodes)
+        public static InsertValueToken InsVal(params InsertValueNode[] nodes)
         {
-            return SqlNode.NewInsertValue(ListModule.OfArray(nodes));
+            return new InsertValueToken(ListModule.OfArray(nodes));
         }
 
         public static InsertValueNode InsConst(object constant)
@@ -130,22 +130,33 @@ namespace Hyperboliq.Tests
             return InsertValueNode.NewColumn(new Tuple<string, ITableReference>(columnDef, TableReferenceFromType<TTableType>()));
         }
 
-        public static SqlNode SubExp(IEnumerable<SqlNode> stream)
+        public static SqlNode SubExp(
+            SelectExpressionNode select,
+            FromExpressionNode from,
+            WhereExpressionNode where = null,
+            GroupByExpressionNode groupBy = null,
+            OrderByExpressionNode orderBy = null)
         {
-            return SqlNode.NewSubExpression(ListModule.OfSeq(stream));
+            return SqlNode.NewSubExpression(
+                new SelectExpression(
+                    select,
+                    from,
+                    OptionModule.OfObj(where),
+                    OptionModule.OfObj(groupBy),
+                    OptionModule.OfObj(orderBy)));
         }
 
         public static OrderByClauseNode OrderClause(SqlNode col, Direction direction, NullsOrdering nullsOrdering = null)
         {
             return new OrderByClauseNode(
-                direction, 
-                nullsOrdering ?? NullsOrdering.NullsUndefined, 
+                direction,
+                nullsOrdering ?? NullsOrdering.NullsUndefined,
                 new FSharpList<SqlNode>(col, FSharpList<SqlNode>.Empty));
         }
 
-        public static SqlNode OrderBy(params OrderByClauseNode[] clauses)
+        public static OrderByExpressionNode OrderBy(params OrderByClauseNode[] clauses)
         {
-            return SqlNode.NewOrderBy(new OrderByExpressionNode(ListModule.OfArray(clauses)));
+            return new OrderByExpressionNode(ListModule.OfArray(clauses));
         }
 
         public static SqlNode Ord(SqlNode col, Direction direction, NullsOrdering nullsOrdering = null)
@@ -154,35 +165,35 @@ namespace Hyperboliq.Tests
             return SqlNode.NewOrderingToken(new Ordering(new FSharpList<SqlNode>(col, FSharpList<SqlNode>.Empty), direction, no));
         }
 
-        public static SqlNode Select(params SqlNode[] columns)
+        public static SelectExpressionNode Select(params SqlNode[] columns)
         {
-            return SqlNode.NewSelect(new SelectExpressionNode(false, ListModule.OfArray(columns)));
+            return new SelectExpressionNode(false, ListModule.OfArray(columns));
         }
 
-        public static SqlNode SelectDistinct(params SqlNode[] columns)
+        public static SelectExpressionNode SelectDistinct(params SqlNode[] columns)
         {
-            return SqlNode.NewSelect(new SelectExpressionNode(true, ListModule.OfArray(columns)));
+            return new SelectExpressionNode(true, ListModule.OfArray(columns));
         }
 
-        public static SqlNode From(params ITableReference[] tables)
+        public static FromExpressionNode From(params ITableReference[] tables)
         {
-            return SqlNode.NewFrom(new FromExpressionNode(ListModule.OfArray(tables), FSharpList<JoinClauseNode>.Empty));
+            return new FromExpressionNode(ListModule.OfArray(tables), FSharpList<JoinClauseNode>.Empty);
         }
 
-        public static SqlNode From(ITableReference table, params JoinClauseNode[] joins)
+        public static FromExpressionNode From(ITableReference table, params JoinClauseNode[] joins)
         {
-            return SqlNode.NewFrom(
+            return
                 new FromExpressionNode(
                     new FSharpList<ITableReference>(table, FSharpList<ITableReference>.Empty),
-                    ListModule.OfArray(joins)));
+                    ListModule.OfArray(joins));
         }
 
-        public static SqlNode From<TTable>(params JoinClauseNode[] joins)
+        public static FromExpressionNode From<TTable>(params JoinClauseNode[] joins)
         {
-            return SqlNode.NewFrom(
+            return
                 new FromExpressionNode(
                     new FSharpList<ITableReference>(TableReferenceFromType<TTable>(), FSharpList<ITableReference>.Empty),
-                    ListModule.OfArray(joins)));
+                    ListModule.OfArray(joins));
         }
 
         public static JoinClauseNode Join<TSource, TTarget>(JoinType type, SqlNode joinExpr)
@@ -196,8 +207,17 @@ namespace Hyperboliq.Tests
         public static JoinClauseNode Join<TSource1, TSource2, TTarget>(JoinType type, SqlNode joinExpr)
         {
             return new JoinClauseNode(
-                ListModule.OfArray(new ITableReference[] { TableReferenceFromType<TSource1>(), TableReferenceFromType<TSource2>() } ),
+                ListModule.OfArray(new ITableReference[] { TableReferenceFromType<TSource1>(), TableReferenceFromType<TSource2>() }),
                 TableReferenceFromType<TTarget>(),
+                type,
+                new FSharpList<SqlNode>(joinExpr, FSharpList<SqlNode>.Empty));
+        }
+
+        public static JoinClauseNode Join(ITableReference source1, ITableReference source2, ITableReference target, JoinType type, SqlNode joinExpr)
+        {
+            return new JoinClauseNode(
+                ListModule.OfArray(new[] { source1, source2 }),
+                target,
                 type,
                 new FSharpList<SqlNode>(joinExpr, FSharpList<SqlNode>.Empty));
         }
@@ -211,10 +231,10 @@ namespace Hyperboliq.Tests
                 new FSharpList<SqlNode>(joinExpr, FSharpList<SqlNode>.Empty));
         }
 
-        public static SqlNode Where(SqlNode start, params WhereClauseNode[] additionalClauses)
+        public static WhereExpressionNode Where(SqlNode start, params WhereClauseNode[] additionalClauses)
         {
-            return SqlNode.NewWhere(
-                new WhereExpressionNode(new FSharpList<SqlNode>(start, FSharpList<SqlNode>.Empty), ListModule.OfArray(additionalClauses)));
+            return
+                new WhereExpressionNode(new FSharpList<SqlNode>(start, FSharpList<SqlNode>.Empty), ListModule.OfArray(additionalClauses));
         }
 
         public static WhereClauseNode And(SqlNode stream)
@@ -227,14 +247,52 @@ namespace Hyperboliq.Tests
             return new WhereClauseNode(ExpressionCombinatorType.Or, new FSharpList<SqlNode>(stream, FSharpList<SqlNode>.Empty));
         }
 
-        public static SqlNode GroupBy(params SqlNode[] clauses)
+        public static GroupByExpressionNode GroupBy(params SqlNode[] clauses)
         {
-            return SqlNode.NewGroupBy(new GroupByExpressionNode(ListModule.OfArray(clauses), FSharpList<WhereClauseNode>.Empty));
+            return new GroupByExpressionNode(ListModule.OfArray(clauses), FSharpList<WhereClauseNode>.Empty);
         }
 
-        public static SqlNode GroupBy(IEnumerable<SqlNode> clauses, params WhereClauseNode[] having)
+        public static GroupByExpressionNode GroupBy(IEnumerable<SqlNode> clauses, params WhereClauseNode[] having)
         {
-            return SqlNode.NewGroupBy(new GroupByExpressionNode(ListModule.OfSeq(clauses), ListModule.OfArray(having)));
+            return new GroupByExpressionNode(ListModule.OfSeq(clauses), ListModule.OfArray(having));
+        }
+
+        public static SqlExpression SelectNode(
+            SelectExpressionNode select,
+            FromExpressionNode from,
+            WhereExpressionNode where = null,
+            GroupByExpressionNode groupBy = null,
+            OrderByExpressionNode orderBy = null)
+        {
+            return SqlExpression.NewSelect(
+                new SelectExpression(
+                    select,
+                    from,
+                    OptionModule.OfObj(where),
+                    OptionModule.OfObj(groupBy),
+                    OptionModule.OfObj(orderBy)));
+        }
+
+        public static SqlExpression DeleteNode(FromExpressionNode from, WhereExpressionNode where = null)
+        {
+            return SqlExpression.NewDelete(
+                new DeleteExpression(from, OptionModule.OfObj(where)));
+        }
+
+        public static SqlExpression UpdateNode(UpdateStatementHeadToken head, WhereExpressionNode where = null)
+        {
+            return SqlExpression.NewUpdate(
+                new UpdateExpression(
+                    head,
+                    OptionModule.OfObj(where)));
+        }
+
+        public static SqlExpression InsertNode(InsertStatementHeadToken head, params InsertValueToken[] values)
+        {
+            return SqlExpression.NewInsert(
+                new InsertExpression(
+                    head,
+                    ListModule.OfArray(values)));
         }
 
         public static void ShouldEqual(this IEnumerable<SqlNode> self, IEnumerable<SqlNode> expected)

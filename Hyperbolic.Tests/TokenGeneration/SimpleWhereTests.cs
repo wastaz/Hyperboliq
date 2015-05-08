@@ -15,15 +15,15 @@ namespace Hyperboliq.Tests
             var expr = Select.Star<Person>()
                              .From<Person>()
                              .Where<Person>(p => p.Age > 42);
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
+                SelectNode(
                     Select(Col<Person>("*")),
                     From<Person>(),
                     Where(BinExp(Col<Person>("Age"), BinaryOperation.GreaterThan, Const(42))));
 
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
 
         [Fact]
@@ -32,10 +32,10 @@ namespace Hyperboliq.Tests
             var expr = Select.Star<Person>()
                              .From<Person>()
                              .Where<Person>(p => p.Age > 42 || (p.Age < 10 && p.Name == "Karl"));
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
+                SelectNode(
                     Select(Col<Person>("*")),
                     From<Person>(),
                     Where(
@@ -48,7 +48,7 @@ namespace Hyperboliq.Tests
                                 BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Karl'"))
                             )
                     )));
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
 
         [Fact]
@@ -59,10 +59,10 @@ namespace Hyperboliq.Tests
                              .Where<Person>(p => p.Age < 42)
                              .And<Person>(p => p.Age > 12)
                              .Or<Person>(p => p.Name == "Karl");
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
+                SelectNode(
                     Select(Col<Person>("*")),
                     From<Person>(),
                     Where(
@@ -71,7 +71,7 @@ namespace Hyperboliq.Tests
                         And(BinExp(Col<Person>("Age"), BinaryOperation.GreaterThan, Const(12)))
                     ));
 
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
 
 
@@ -83,10 +83,10 @@ namespace Hyperboliq.Tests
                              .InnerJoin<Person, Car>((p, c) => p.Id == c.DriverId)
                              .Where<Person>(p => p.Age > 42)
                              .And<Car>(c => c.Brand == "SAAB");
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
+                SelectNode(
                     Select(Col<Car>("*"), Col<Person>("*")),
                     From<Person>(
                         Join<Person, Car>(JoinType.InnerJoin, BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId")))),
@@ -94,7 +94,7 @@ namespace Hyperboliq.Tests
                         BinExp(Col<Person>("Age"), BinaryOperation.GreaterThan, Const(42)),
                         And(BinExp(Col<Car>("Brand"), BinaryOperation.Equal, Const("'SAAB'"))))
                     );
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
 
         [Fact]
@@ -104,15 +104,15 @@ namespace Hyperboliq.Tests
                              .From<Person>()
                              .InnerJoin<Person, Car>((p, c) => p.Id == c.DriverId)
                              .Where<Person, Car>((p, c) => p.Age > c.DriverId);
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
+                SelectNode(
                     Select(Col<Car>("*"), Col<Person>("*")),
                     From<Person>(
                         Join<Person, Car>(JoinType.InnerJoin, BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId")))),
                     Where(BinExp(Col<Person>("Age"), BinaryOperation.GreaterThan, Col<Car>("DriverId"))));
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
 
         [Fact]
@@ -124,10 +124,10 @@ namespace Hyperboliq.Tests
                              .Where<Person>(p => p.Age > 42)
                              .And<Person, Car>((p, c) => p.Age > c.Age)
                              .Or<Person, Car>((p, c) => p.Name == c.Brand);
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
+                SelectNode(
                     Select(Col<Car>("*"), Col<Person>("*")),
                     From<Person>(
                         Join<Person, Car>(JoinType.InnerJoin, BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId")))),
@@ -137,7 +137,7 @@ namespace Hyperboliq.Tests
                         And(BinExp(Col<Person>("Age"), BinaryOperation.GreaterThan, Col<Car>("Age")))
                         ));
 
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
     }
 }

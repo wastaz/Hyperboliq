@@ -1,22 +1,24 @@
-﻿using Microsoft.FSharp.Collections;
-using static Hyperboliq.Domain.Stream;
+﻿using static Hyperboliq.Domain.Stream;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
+using static Hyperboliq.Domain.Types;
+using static Hyperboliq.Domain.ExpressionParts;
+using static Hyperboliq.Domain.SelectExpressionParts;
+using Hyperboliq.Domain;
 
 namespace Hyperboliq
 {
-    public class GroupBy : ISqlStreamTransformable
+    public class GroupBy : ISqlExpressionTransformable, ISqlTransformable
     {
         private SelectExpression expr;
         internal GroupBy(SelectExpression expr) { this.expr = expr; }
 
         public GroupBy ThenBy<TTableType>(Expression<Func<TTableType, object>> groupByExpr)
         {
-            expr.GroupBy(groupByExpr);
+            expr =
+                WithGroupClause(
+                    expr,
+                    AddOrCreateGroupByClause(expr.GroupBy, groupByExpr, TableReferenceFromType<TTableType>()));
             return this;
         }
 
@@ -30,6 +32,8 @@ namespace Hyperboliq
             return new Having(expr).And(predicate);
         }
 
-        public FSharpList<SqlNode> ToSqlStream() { return expr.ToSqlStream(); }
+        public SqlExpression ToSqlExpression() => SqlExpression.NewSelect(expr);
+
+        public string ToSql(ISqlDialect dialect) => SqlGenerator.SqlifyExpression(dialect, ToSqlExpression());
     }
 }

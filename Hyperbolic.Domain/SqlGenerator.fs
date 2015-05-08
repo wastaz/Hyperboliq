@@ -36,7 +36,7 @@ module SqlGenerator =
         match kw with
         | InsertInto -> "INSERT INTO"
         | KeywordNode.Select -> "SELECT"
-        | Delete -> "DELETE"
+        | KeywordNode.Delete -> "DELETE"
         | Values -> "VALUES"
         | KeywordNode.From -> "FROM"
         | KeywordNode.Where -> "WHERE"
@@ -50,7 +50,7 @@ module SqlGenerator =
         | KeywordNode.OrderBy -> "ORDER BY"
         | KeywordNode.GroupBy -> "GROUP BY"
         | Having -> "HAVING"
-        | Update -> "UPDATE"
+        | KeywordNode.Update -> "UPDATE"
         | Set -> "SET"
         | _ -> failwith "Not implemented"
 
@@ -128,7 +128,7 @@ module SqlGenerator =
         | InsertValueNode.Column(c), _ -> "Column"
         | InsertValueNode.Parameter(p), _ -> "Parameter"
 
-    let HandleInsertHead dialect ({ Table = TableToken(tbl); Columns = cols } : InsertStatementHeadToken) peek =
+    let HandleInsertHead dialect ({ Table = tbl; Columns = cols } : InsertStatementHeadToken) peek =
         let GetColumnName ((c, _) : ColumnToken) = c
         cols
         |> List.map GetColumnName
@@ -180,8 +180,8 @@ module SqlGenerator =
         |> (fun l -> System.String.Join(", ", (Array.ofList l)))
         |> sprintf "UPDATE %s SET %s" stmtHead.Table.Table.Name
 
-    and HandleSubExpression dialect (stream : SqlStream) =
-        Sqlify dialect.Dialect stream |> sprintf "(%s)"
+    and HandleSubExpression dialect expr =
+        SqlifyExpression dialect.Dialect (Select(expr)) |> sprintf "(%s)"
 
     and HandleOrderingToken dialect ({ Selector = selector; Direction = direction; NullsOrdering = nullsOrder } : Ordering) peekToken =
         Sqlify dialect.Dialect selector
@@ -234,6 +234,9 @@ module SqlGenerator =
             | _ -> false
         InternalSqlify { Dialect = dialect; SkipTableReferences = initialSkipTableReferences } stream
     
+    and SqlifyExpression (dialect : ISqlDialect) (expr : SqlExpression) =
+        ""
+
     let SqlifySeq (dialect : ISqlDialect) (stream : SqlNode seq) =
         List.ofSeq stream
         |> Sqlify dialect

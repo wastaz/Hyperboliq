@@ -1,11 +1,14 @@
-﻿using Microsoft.FSharp.Collections;
-using System;
+﻿using System;
 using System.Linq.Expressions;
 using static Hyperboliq.Domain.Stream;
+using static Hyperboliq.Domain.Types;
+using static Hyperboliq.Domain.ExpressionParts;
+using static Hyperboliq.Domain.SelectExpressionParts;
+using Hyperboliq.Domain;
 
 namespace Hyperboliq
 {
-    public class OrderBy : ISqlStreamTransformable
+    public class OrderBy : ISqlExpressionTransformable, ISqlTransformable
     {
         private SelectExpression expr;
 
@@ -13,10 +16,20 @@ namespace Hyperboliq
 
         public OrderBy ThenBy<TTableType>(Expression<Func<TTableType, object>> orderExpr, Direction direction = null, NullsOrdering nullsOrdering = null)
         {
-            expr.OrderBy(orderExpr, direction ?? Direction.Ascending, nullsOrdering ?? NullsOrdering.NullsUndefined);
+            expr =
+                WithOrderClause(
+                    expr,
+                    AddOrCreateOrderingClause(
+                        expr.OrderBy,
+                        TableReferenceFromType<TTableType>(), 
+                        direction ?? Direction.Ascending, 
+                        nullsOrdering ?? NullsOrdering.NullsUndefined,
+                        orderExpr));
             return this;
         }
 
-        public FSharpList<SqlNode> ToSqlStream() { return expr.ToSqlStream(); }
+        public SqlExpression ToSqlExpression() => SqlExpression.NewSelect(expr);
+
+        public string ToSql(ISqlDialect dialect) => SqlGenerator.SqlifyExpression(dialect, ToSqlExpression());
     }
 }

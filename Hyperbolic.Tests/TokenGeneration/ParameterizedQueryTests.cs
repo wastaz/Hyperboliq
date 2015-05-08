@@ -15,14 +15,15 @@ namespace Hyperboliq.Tests
             var expr = Select.Star<Person>()
                              .From<Person>()
                              .Where<Person>(p => p.Age < new ExpressionParameter<int>("age"));
-            var result = expr.ToSqlStream();
-            var expected = StreamFrom(
-                Select(Col<Person>("*")),
-                From<Person>(),
-                Where(BinExp(Col<Person>("Age"), BinaryOperation.LessThan, Param("age")))
-                );
+            var result = expr.ToSqlExpression();
+            var expected =
+                SelectNode(
+                    Select(Col<Person>("*")),
+                    From<Person>(),
+                    Where(BinExp(Col<Person>("Age"), BinaryOperation.LessThan, Param("age")))
+                    );
 
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
 
         [Fact]
@@ -32,15 +33,15 @@ namespace Hyperboliq.Tests
             var expr = Select.Star<Person>()
                              .From<Person>()
                              .Where<Person>(p => p.Age > ageParam);
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
+                SelectNode(
                     Select(Col<Person>("*")),
                     From<Person>(),
                     Where(BinExp(Col<Person>("Age"), BinaryOperation.GreaterThan, Param("age"))));
 
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
 
         [Fact]
@@ -51,10 +52,10 @@ namespace Hyperboliq.Tests
                              .From<Person>()
                              .Where<Person>(p => p.Age > ageParam && ageParam < 90)
                              .Or<Person>(p => p.Age < ageParam);
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
+                SelectNode(
                     Select(Col<Person>("*")),
                     From<Person>(),
                     Where(
@@ -64,7 +65,7 @@ namespace Hyperboliq.Tests
                             BinExp(Param("age"), BinaryOperation.LessThan, Const(90))
                             ),
                         Or(BinExp(Col<Person>("Age"), BinaryOperation.LessThan, Param("age")))));
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
     }
 }

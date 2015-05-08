@@ -25,13 +25,9 @@ namespace Hyperboliq.Tests.SqlGeneration
                         Col<Person>("Age"),
                         BinaryOperation.GreaterThan,
                         SubExp(
-                            StreamFrom(
-                                Kw(KeywordNode.Select),
-                                Col<Car>("Age"),
-                                Kw(KeywordNode.From),
-                                Tbl<Car>(),
-                                Kw(KeywordNode.Where),
-                                BinExp(Col<Car>("Id"), BinaryOperation.Equal, Const(42))))));
+                            Select(Col<Car>("Age")),
+                            From<Car>(),
+                            Where(BinExp(Col<Car>("Id"), BinaryOperation.Equal, Const(42))))));
             var result = SqlifySeq(AnsiSql.Dialect, stream);
             result.Should().Be(@"SELECT PersonRef.* FROM Person PersonRef WHERE PersonRef.Age > (SELECT CarRef.Age FROM Car CarRef WHERE CarRef.Id = 42)");
         }
@@ -51,11 +47,8 @@ namespace Hyperboliq.Tests.SqlGeneration
                         Col<Person>("Id"),
                         BinaryOperation.In,
                         SubExp(
-                            StreamFrom(
-                                Kw(KeywordNode.Select),
-                                Col<Car>("DriverId"),
-                                Kw(KeywordNode.From),
-                                Tbl<Car>()))));
+                            Select(Col<Car>("DriverId")),
+                            From<Car>())));
             var result = SqlifySeq(AnsiSql.Dialect, stream);
             result.Should().Be(@"SELECT PersonRef.* FROM Person PersonRef WHERE PersonRef.Id IN (SELECT CarRef.DriverId FROM Car CarRef)");
         }

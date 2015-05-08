@@ -18,17 +18,17 @@ namespace Hyperboliq.Tests
             var expr = Select.Star<Person>()
                              .From<Person>()
                              .OrderBy<Person>(p => p.Age, Direction.Ascending, NullsOrdering.NullsFirst);
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
+                SelectNode(
                     Select(Col<Person>("*")),
                     From<Person>(),
-                    OrderBy(
+                    orderBy: OrderBy(
                         OrderClause(Col<Person>("Age"), Direction.Ascending, NullsOrdering.NullsFirst))
                     );
 
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
 
         [Fact]
@@ -37,17 +37,17 @@ namespace Hyperboliq.Tests
             var expr = Select.Star<Person>()
                              .From<Person>()
                              .OrderBy<Person>(p => p.Age, Direction.Ascending, NullsOrdering.NullsLast);
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
+                SelectNode(
                     Select(Col<Person>("*")),
                     From<Person>(),
-                    OrderBy(
+                    orderBy: OrderBy(
                         OrderClause(Col<Person>("Age"), Direction.Ascending, NullsOrdering.NullsLast))
                     );
 
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
 
         [Fact]
@@ -57,18 +57,18 @@ namespace Hyperboliq.Tests
                              .From<Person>()
                              .OrderBy<Person>(p => p.Age, Direction.Ascending, NullsOrdering.NullsLast)
                              .ThenBy<Person>(p => p.Name, Direction.Descending, NullsOrdering.NullsFirst);
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
+                SelectNode(
                     Select(Col<Person>("*")),
                     From<Person>(),
-                    OrderBy(
+                    orderBy: OrderBy(
                         OrderClause(Col<Person>("Name"), Direction.Descending, NullsOrdering.NullsFirst),
                         OrderClause(Col<Person>("Age"), Direction.Ascending, NullsOrdering.NullsLast))
                     );
 
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
     }
 }

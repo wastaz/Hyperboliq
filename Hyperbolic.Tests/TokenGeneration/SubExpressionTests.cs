@@ -17,10 +17,10 @@ namespace Hyperboliq.Tests
                              .Where<Person>(p => p.Age > Sql.SubExpr<int>(Select.Column<Car>(c => c.Age)
                                                                                 .From<Car>()
                                                                                 .Where<Car>(c => c.Id == 42)));
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
+                SelectNode(
                     Select(Col<Person>("*")),
                     From<Person>(),
                     Where(
@@ -28,11 +28,11 @@ namespace Hyperboliq.Tests
                             Col<Person>("Age"),
                             BinaryOperation.GreaterThan,
                             SubExp(
-                                StreamFrom(
-                                    Select(Col<Car>("Age")),
-                                    From<Car>(),
-                                    Where(BinExp(Col<Car>("Id"), BinaryOperation.Equal, Const(42))))))));
-            result.ShouldEqual(expected);
+                                Select(Col<Car>("Age")),
+                                From<Car>(),
+                                Where(BinExp(Col<Car>("Id"), BinaryOperation.Equal, Const(42)))))));
+
+            Assert.Equal(expected, result);
         }
 
         [Fact]
@@ -42,10 +42,10 @@ namespace Hyperboliq.Tests
                 Select.Star<Person>()
                       .From<Person>()
                       .Where<Person>(p => Sql.In(p.Id, Select.Column<Car>(c => c.DriverId).From<Car>()));
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
+                SelectNode(
                     Select(Col<Person>("*")),
                     From<Person>(),
                     Where(
@@ -53,10 +53,10 @@ namespace Hyperboliq.Tests
                             Col<Person>("Id"),
                             BinaryOperation.In,
                             SubExp(
-                                StreamFrom(
-                                    Select(Col<Car>("DriverId")),
-                                    From<Car>())))));
-            result.ShouldEqual(expected);
+                                Select(Col<Car>("DriverId")),
+                                From<Car>()))));
+
+            Assert.Equal(expected, result);
         }
     }
 }

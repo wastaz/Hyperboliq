@@ -3,19 +3,19 @@
 module UpdateExpressionPart =
     open Types
     open Stream
-
+    (*
     type UpdateSetExpression = 
         {
             Column : ColumnToken
             Value : SqlStream
-        }
+        }*)
 
-    type UpdateExpression = 
+    (*type UpdateExpression = 
         {
             Table : ITableReference
             SetExpressions : UpdateSetExpression list
         }
-
+        *)
     let NewUpdateExpression tbl =
         { 
             Table = tbl
@@ -32,7 +32,7 @@ module UpdateExpressionPart =
     let private ToValue (v : obj) =
         match v with
             | null -> [ SqlNode.NullValue ]
-            | :? ISqlStreamTransformable as ss -> [ SqlNode.SubExpression(ss.ToSqlStream()) ]
+            | :? SelectExpression as ss -> [ SqlNode.SubExpression(ss) ]
             | :? string as s-> [ SqlNode.Constant(ConstantNode(sprintf "'%s'" s))]
             | x ->  [ SqlNode.Constant(ConstantNode(x.ToString())) ]
 
@@ -53,20 +53,41 @@ module UpdateExpressionPart =
         v.GetType().GetProperties()
         |> Array.sortByDescending (fun p -> p.Name)
         |> Array.toList
-
+        
     let AddMultipleValueSetExpression expr colSelector values =
         let cols = ColumnsByName expr.Table colSelector
         let properties = PropertiesByName values
         List.zip cols properties
         |> List.map (fun (c, p) -> { Column = c; Value = ToValue (p.GetValue(values)) })
-        |> (fun v -> { expr with UpdateExpression.SetExpressions = List.concat [ v; expr.SetExpressions ] })
+        |> (fun v -> { expr with SetExpressions = List.concat [ v; expr.SetExpressions ] })
+        
 
     let AddSingleValueSetExpression expr colSelector value =
-        { expr with UpdateExpression.SetExpressions = (ToSetExpression expr.Table colSelector value) :: expr.SetExpressions }
+        { expr with SetExpressions = (ToSetExpression expr.Table colSelector value) :: expr.SetExpressions }
 
-    let AddValueExpression expr colSelector valueSelector =
-        let cols = ColumnsByName expr.Table colSelector
-        let values = ExpressionVisitor.Visit valueSelector [ expr.Table ]
+    let AddObjectSetExpression<'a, 'b> expr (colSelector : System.Linq.Expressions.Expression<System.Func<'a, 'b>>) (objVal : 'b) =
+        if(typeof<'b>.IsValueType || typeof<'b> = typeof<System.String>) then
+            AddSingleValueSetExpression expr colSelector objVal
+        else
+            AddMultipleValueSetExpression expr colSelector objVal
+
+    let AddValueExpression head colSelector valueSelector =
+        let cols = ColumnsByName head.Table colSelector
+        let values = ExpressionVisitor.Visit valueSelector [ head.Table ]
         List.zip cols values
         |> List.map (fun (c, v) -> {Column = c; Value = [ v ]})
-        |> (fun v -> { expr with UpdateExpression.SetExpressions = List.concat [ v; expr.SetExpressions ] })
+        |> (fun v -> { head with SetExpressions = List.concat [ v; head.SetExpressions ] })
+        
+
+    let NewUpdateHead tbl : UpdateStatementHeadToken = 
+        {
+            Table = tbl
+            SetExpressions = []
+        }
+
+
+    let WithWhereClause updateExpr where =
+        { updateExpr with UpdateExpression.Where = Some(where) }
+
+    let WithHead updateExpr head =
+        { updateExpr with UpdateExpression.UpdateSet = head }

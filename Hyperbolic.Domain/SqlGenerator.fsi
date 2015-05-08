@@ -6,3 +6,4 @@ module SqlGenerator =
 
     val Sqlify : ISqlDialect -> SqlStream -> string
     val SqlifySeq : ISqlDialect -> SqlNode seq -> string
+    val SqlifyExpression : ISqlDialect -> SqlExpression -> string

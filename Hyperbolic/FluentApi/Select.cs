@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Linq.Expressions;
+using static Hyperboliq.Domain.Types;
+using static Hyperboliq.Domain.Stream;
+using static Hyperboliq.Domain.ExpressionParts;
 
 namespace Hyperboliq
 {
@@ -7,19 +10,24 @@ namespace Hyperboliq
 
     public class SelectImpl
     {
-        private SelectExpression expr;
-        internal SelectImpl() { expr = new SelectExpression(); }
-        internal SelectImpl(SelectExpression expr) { this.expr = expr; }
+        private SelectExpressionNode expr = NewSelectExpression();
+        internal SelectImpl() { }
 
         public SelectImpl Star<TTableType>()
         {
-            expr.SelectAll<TTableType>();
+            expr = SelectAllColumns(expr, TableReferenceFromType<TTableType>());
             return this;
         }
 
         public SelectImpl Column<TTableType>(Expression<Func<TTableType, object>> selector)
         {
-            expr.Select(selector);
+            expr = SelectColumns(expr, selector, TableReferenceFromType<TTableType>());
+            return this;
+        }
+
+        public SelectImpl Column<TTableType>(ITableReference<TTableType> table, Expression<Func<TTableType, object>> selector)
+        {
+            expr = SelectColumns(expr, selector, table);
             return this;
         }
 
@@ -27,14 +35,19 @@ namespace Hyperboliq
         {
             get
             {
-                expr.Distinct();
+                expr = MakeDistinct(expr);
                 return this;
             }
         }
 
+        public SelectFrom<TTableType> From<TTableType>(ITableReference<TTableType> table)
+        {
+            return new SelectFrom<TTableType>(table, expr);
+        }
+
         public SelectFrom<TTableType> From<TTableType>()
         {
-            return new SelectFrom<TTableType>(expr);
+            return From(TableReferenceFromType<TTableType>());
         }
     }
 
@@ -47,12 +60,18 @@ namespace Hyperboliq
 
         public static SelectImpl Star<TTableType>()
         {
-            return new SelectImpl(new SelectExpression().SelectAll<TTableType>());
+            return new SelectImpl().Star<TTableType>();
         }
 
         public static SelectImpl Column<TTableType>(Expression<Func<TTableType, object>> selector)
         {
-            return new SelectImpl(new SelectExpression().Select<TTableType>(selector));
+            return new SelectImpl().Column<TTableType>(selector);
         }
+
+        public static SelectImpl Column<TTableType>(ITableReference<TTableType> table, Expression<Func<TTableType, object>> selector)
+        {
+            return new SelectImpl().Column(table, selector);
+        }
+            
     }
 }

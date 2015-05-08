@@ -16,21 +16,20 @@ namespace Hyperboliq.Tests.TokenGeneration
             var expr = Insert.Into<Person>()
                              .AllColumns
                              .Value(val);
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
-            var expected = StreamFrom(
-                Kw(KeywordNode.InsertInto),
-                InsHead<Person>("Age", "Id", "LivesAtHouseId", "Name", "ParentId"),
-                Kw(KeywordNode.Values),
-                InsVal(
-                    InsConst(42),
-                    InsConst(2),
-                    InsConst(5),
-                    InsConst("'Kalle'"),
-                    InsConst(0))
+            var expected = 
+                InsertNode(
+                    InsHead<Person>("Age", "Id", "LivesAtHouseId", "Name", "ParentId"),
+                    InsVal(
+                        InsConst(42),
+                        InsConst(2),
+                        InsConst(5),
+                        InsConst("'Kalle'"),
+                        InsConst(0))
                 );
 
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
 
         [Fact]
@@ -40,18 +39,16 @@ namespace Hyperboliq.Tests.TokenGeneration
             var expr = Insert.Into<Person>()
                              .Columns(p => new { p.Name, p.Age })
                              .Value(val);
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
-            var expected = StreamFrom(
-                Kw(KeywordNode.InsertInto),
-                InsHead<Person>("Name", "Age"),
-                Kw(KeywordNode.Values),
-                InsVal(
-                    InsConst("'Kalle'"),
-                    InsConst(42))
-                );
+            var expected = 
+                InsertNode(
+                    InsHead<Person>("Name", "Age"),
+                    InsVal(
+                        InsConst("'Kalle'"),
+                        InsConst(42)));
 
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
 
         [Fact]
@@ -62,29 +59,27 @@ namespace Hyperboliq.Tests.TokenGeneration
             var expr = Insert.Into<Person>()
                              .AllColumns
                              .Values(val1, val2);
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
-                    Kw(KeywordNode.InsertInto),
+                InsertNode(
                     InsHead<Person>("Age", "Id", "LivesAtHouseId", "Name", "ParentId"),
-                    Kw(KeywordNode.Values),
-                    InsVal(
-                        InsConst(42),
-                        InsConst(2),
-                        InsConst(5),
-                        InsConst("'Kalle'"),
-                        InsConst(0)),
                     InsVal(
                         InsConst(12),
                         InsConst(3),
                         InsConst(3),
                         InsConst("'Pelle'"),
                         InsConst(2)
-                        )
+                        ),
+                    InsVal(
+                        InsConst(42),
+                        InsConst(2),
+                        InsConst(5),
+                        InsConst("'Kalle'"),
+                        InsConst(0))
                     );
 
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
     }
 }

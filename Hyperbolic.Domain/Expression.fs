@@ -32,19 +32,25 @@ module ExpressionParts =
         { select with IsDistinct = true }
 
     let SelectAllColumns select tableReference =
-        { select with Values = SqlNode.Column("*", tableReference) :: select.Values }
+        { select with SelectExpressionNode.Values = SqlNode.Column("*", tableReference) :: select.Values }
 
     let SelectColumns select expr tableReference =
         let stream = ExpressionVisitor.Visit expr [ tableReference ]
-        { select with Values = stream @ select.Values }
+        { select with SelectExpressionNode.Values = stream @ select.Values }
 
-    let NewOrderByExpression () = { OrderByExpressionNode.Clauses = [] }
+    let private NewOrderByExpression () = { OrderByExpressionNode.Clauses = [] }
 
-    let AddOrderingClause orderExpr tbl direction nullsorder expr =
+    let private AddOrderingClause tbl direction nullsorder expr orderExpr  =
         let clause = { OrderByClauseNode.Direction = direction; NullsOrdering = nullsorder; Selector = ExpressionVisitor.Visit expr [ tbl ] }
         { orderExpr with OrderByExpressionNode.Clauses = clause :: orderExpr.Clauses }
 
-    let NewWhereExpression expr ([<System.ParamArray>] tables : ITableReference array) : WhereExpressionNode = { 
+    let AddOrCreateOrderingClause orderExpr tbl direction nullsorder expr =
+        match orderExpr with
+        | Some(o) -> o
+        | None -> NewOrderByExpression ()
+        |> AddOrderingClause tbl direction nullsorder expr
+
+    let private NewWhereExpression expr ([<System.ParamArray>] tables : ITableReference array) : WhereExpressionNode = { 
         Start = ExpressionVisitor.Visit expr tables
         AdditionalClauses = []
     }
@@ -53,11 +59,21 @@ module ExpressionParts =
         let clause = { Combinator = cmbType; Expression = ExpressionVisitor.Visit expr tables }
         { whereExpr with AdditionalClauses = clause :: whereExpr.AdditionalClauses }
 
-    let AddWhereAndClause whereExpr expr ([<System.ParamArray>] tables : ITableReference array) = 
+    let private AddWhereAndClause whereExpr expr ([<System.ParamArray>] tables : ITableReference array) = 
         CreateWhereClause And whereExpr expr tables
 
-    let AddWhereOrClause whereExpr expr ([<System.ParamArray>] tables : ITableReference array) = 
+    let private AddWhereOrClause whereExpr expr ([<System.ParamArray>] tables : ITableReference array) = 
         CreateWhereClause Or whereExpr expr tables
+
+    let AddOrCreateWhereAndClause whereExpr expr ([<System.ParamArray>] tables : ITableReference array) =
+        match whereExpr with
+        | Some(w) -> AddWhereAndClause w expr tables
+        | None -> NewWhereExpression expr tables
+
+    let AddOrCreateWhereOrClause whereExpr expr ([<System.ParamArray>] tables : ITableReference array) =
+        match whereExpr with
+        | Some(w) -> AddWhereOrClause w expr tables
+        | None -> NewWhereExpression expr tables
 
     let NewGroupByExpression () = { 
         Clauses = []
@@ -69,11 +85,21 @@ module ExpressionParts =
         { groupByExpr with GroupByExpressionNode.Having = clause :: groupByExpr.Having }
 
     let AddHavingAndClause groupByExpr expr ([<System.ParamArray>] tables : ITableReference array) = 
-        AddHavingClause groupByExpr And expr tables
+        match groupByExpr with
+        | Some(g) -> AddHavingClause g And expr tables
+        | None -> AddHavingClause (NewGroupByExpression ()) And expr tables
 
     let AddHavingOrClause groupByExpr expr ([<System.ParamArray>] tables : ITableReference array) = 
-        AddHavingClause groupByExpr Or expr tables
+        match groupByExpr with
+        | Some(g) -> AddHavingClause g Or expr tables
+        | None -> AddHavingClause (NewGroupByExpression ()) Or expr tables 
 
-    let AddGroupByClause groupByExpr expr ([<System.ParamArray>] tables : ITableReference array) = 
+    let private AddGroupByClause expr tables groupByExpr = 
         let cols = ExpressionVisitor.Visit expr tables
         { groupByExpr with GroupByExpressionNode.Clauses = groupByExpr.Clauses @ cols }
+
+    let AddOrCreateGroupByClause groupByExpr expr ([<System.ParamArray>] tables : ITableReference array) =
+        match groupByExpr with
+        | Some(g) -> g
+        | None -> NewGroupByExpression ()
+        |> AddGroupByClause expr tables

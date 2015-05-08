@@ -17,16 +17,16 @@ namespace Hyperboliq.Tests
             var expr = Select.Column<Person>(p => new { p.Name, MaxAge = Sql.Max(p.Age) })
                              .From<Person>()
                              .GroupBy<Person>(p => p.Name);
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
+                SelectNode(
                     Select(Col<Person>("Name"), Aggregate(AggregateType.Max, Col<Person>("Age"))),
                     From<Person>(),
-                    GroupBy(Col<Person>("Name"))
+                    groupBy: GroupBy(Col<Person>("Name"))
                     );
 
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
 
         [Fact]
@@ -35,16 +35,16 @@ namespace Hyperboliq.Tests
             var expr = Select.Column<Person>(p => new { p.Name, p.LivesAtHouseId, MinAge = Sql.Min(p.Age) })
                              .From<Person>()
                              .GroupBy<Person>(p => new { p.Name, p.LivesAtHouseId });
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
+                SelectNode(
                     Select(Col<Person>("Name"), Col<Person>("LivesAtHouseId"), Aggregate(AggregateType.Min, Col<Person>("Age"))),
                     From<Person>(),
-                    GroupBy(Col<Person>("Name"), Col<Person>("LivesAtHouseId"))
+                    groupBy: GroupBy(Col<Person>("Name"), Col<Person>("LivesAtHouseId"))
                     );
 
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
 
         [Fact]
@@ -55,17 +55,17 @@ namespace Hyperboliq.Tests
                              .From<Person>()
                              .InnerJoin<Person, Car>((p, c) => p.Id == c.DriverId)
                              .GroupBy<Person>(p => p.Age).ThenBy<Car>(c => c.Brand);
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
+                SelectNode(
                     Select(Col<Car>("Brand"), Aggregate(AggregateType.Count), Col<Person>("Age")),
                     From<Person>(
                         Join<Person, Car>(JoinType.InnerJoin, BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId")))),
-                    GroupBy(Col<Person>("Age"), Col<Car>("Brand"))
+                    groupBy: GroupBy(Col<Person>("Age"), Col<Car>("Brand"))
                     );
 
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
 
         [Fact]
@@ -77,10 +77,10 @@ namespace Hyperboliq.Tests
                              .InnerJoin<Person, Car>((p, c) => p.Id == c.DriverId)
                              .GroupBy<Person>(p => p.Name)
                              .ThenBy<Car>(c => c.Brand);
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
+                SelectNode(
                     Select(
                         Col<Car>("Brand"),
                         Aggregate(AggregateType.Min, Col<Car>("Age")),
@@ -88,10 +88,10 @@ namespace Hyperboliq.Tests
                         Aggregate(AggregateType.Avg, Col<Person>("Age"))),
                     From<Person>(
                         Join<Person, Car>(JoinType.InnerJoin, BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId")))),
-                    GroupBy(Col<Person>("Name"), Col<Car>("Brand"))
+                    groupBy: GroupBy(Col<Person>("Name"), Col<Car>("Brand"))
                     );
 
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
 
         [Fact]
@@ -101,18 +101,18 @@ namespace Hyperboliq.Tests
                              .From<Person>()
                              .GroupBy<Person>(p => p.Name)
                              .Having<Person>(p => Sql.Avg(p.Age) > 42);
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
+                SelectNode(
                     Select(Col<Person>("Name"), Aggregate(AggregateType.Avg, Col<Person>("Age"))),
                     From<Person>(),
-                    GroupBy(
+                    groupBy: GroupBy(
                         new[] { Col<Person>("Name") }, 
                         And(BinExp(Aggregate(AggregateType.Avg, Col<Person>("Age")), BinaryOperation.GreaterThan, Const(42))))
                     );
 
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
 
         [Fact]
@@ -125,10 +125,10 @@ namespace Hyperboliq.Tests
                              .GroupBy<Person>(p => p.Name).ThenBy<Car>(c => c.Brand)
                              .Having<Person>(p => Sql.Avg(p.Age) > 42)
                              .And<Car>(c => Sql.Min(c.Age) > 2);
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
+                SelectNode(
                     Select(
                         Col<Car>("Brand"),
                         Aggregate(AggregateType.Min, Col<Car>("Age")),
@@ -136,7 +136,7 @@ namespace Hyperboliq.Tests
                         Aggregate(AggregateType.Avg, Col<Person>("Age"))),
                     From<Person>(
                         Join<Person, Car>(JoinType.InnerJoin, BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId")))),
-                    GroupBy(
+                    groupBy: GroupBy(
                         new[] { Col<Person>("Name"), Col<Car>("Brand") },
                         And(
                             BinExp(
@@ -150,7 +150,7 @@ namespace Hyperboliq.Tests
                                 Const(42)))
                         ));
 
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
     }
 }

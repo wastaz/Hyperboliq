@@ -14,14 +14,14 @@ namespace Hyperboliq.Tests
         {
             var expr = Select.Star<Person>()
                              .From<Person>();
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
+                SelectNode(
                     Select(Col<Person>("*")),
                     From<Person>());
 
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
 
         [Fact]
@@ -29,14 +29,14 @@ namespace Hyperboliq.Tests
         {
             var expr = Select.Distinct.Star<Person>()
                              .From<Person>();
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
+                SelectNode(
                     SelectDistinct(Col<Person>("*")),
                     From<Person>());
 
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
 
         [Fact]
@@ -44,14 +44,14 @@ namespace Hyperboliq.Tests
         {
             var expr = Select.Column<Person>(p => new { p.Name, p.Age })
                              .From<Person>();
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
+                SelectNode(
                     Select(Col<Person>("Name"), Col<Person>("Age")),
                     From<Person>());
 
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
 
         [Fact]
@@ -59,39 +59,39 @@ namespace Hyperboliq.Tests
         {
             var expr = Select.Distinct.Column<Person>(p => p.Age)
                              .From<Person>();
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
 
             var expected =
-                StreamFrom(
+                SelectNode(
                     SelectDistinct(Col<Person>("Age")),
                     From<Person>());
 
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
 
         [Fact]
         public void ItShouldBePossibleToSelectTheNumberOfRowsFromATable()
         {
             var expr = Select.Column<Person>(p => Sql.Count()).From<Person>();
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
             var expected =
-                StreamFrom(
+                SelectNode(
                     Select(Aggregate(AggregateType.Count)), 
                     From<Person>());
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
 
         [Fact]
         public void ItShouldBePossibleToSelectTheNumberOfRowsFromATableAndNameTheColumn()
         {
             var expr = Select.Column<Person>(p => new { NumberOfPersons = Sql.Count() }).From<Person>();
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
             var expected =
-                StreamFrom(
+                SelectNode(
                     Select(Aggregate(AggregateType.Count)),
                     From<Person>());
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
 
     }
