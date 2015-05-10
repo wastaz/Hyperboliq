@@ -49,10 +49,17 @@ module InsertExpressionPart =
         
     
     let AddColumns (insertExpr : InsertStatementHeadToken) columnSelector =
-        ExpressionVisitor.Visit columnSelector [ insertExpr.Table ]
-        |> List.map (fun token -> match token with | SqlNode.Column(c) -> Some(c) | _ -> None)
-        |> List.choose id
-        |> fun cols -> { insertExpr with Columns = cols }
+        let values = ExpressionVisitor.Visit columnSelector [ insertExpr.Table ]
+        match values with
+        | None -> insertExpr
+        | Some(ValueList(valueList)) ->
+            valueList
+            |> List.map (fun token -> match token with | ValueNode.Column(c) -> Some(c) | _ -> None)
+            |> List.choose id
+            |> fun cols -> { insertExpr with Columns = cols }
+        | Some(ValueNode.Column(col)) ->
+            { insertExpr with Columns = [ col ]}
+        | _ -> insertExpr
 
     let AddAllColumns (insertExpr : InsertStatementHeadToken) =
         ApplyOnProperties (List.ofArray (insertExpr.Table.Table.GetProperties())) PropertySortByName (fun p -> (p.Name, insertExpr.Table))

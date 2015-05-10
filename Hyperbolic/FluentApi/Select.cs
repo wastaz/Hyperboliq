@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using static Hyperboliq.Domain.Types;
 using static Hyperboliq.Domain.Stream;
 using static Hyperboliq.Domain.ExpressionParts;
+using Microsoft.FSharp.Core;
 
 namespace Hyperboliq
 {
@@ -11,10 +12,12 @@ namespace Hyperboliq
     public class SelectImpl
     {
         private SelectExpressionNode expr = NewSelectExpression();
-        internal SelectImpl() { }
+
+        internal SelectImpl() {}
 
         public SelectImpl Star<TTableType>()
         {
+            
             expr = SelectAllColumns(expr, TableReferenceFromType<TTableType>());
             return this;
         }

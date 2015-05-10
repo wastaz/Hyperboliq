@@ -3,19 +3,7 @@
 module UpdateExpressionPart =
     open Types
     open Stream
-    (*
-    type UpdateSetExpression = 
-        {
-            Column : ColumnToken
-            Value : SqlStream
-        }*)
 
-    (*type UpdateExpression = 
-        {
-            Table : ITableReference
-            SetExpressions : UpdateSetExpression list
-        }
-        *)
     let NewUpdateExpression tbl =
         { 
             Table = tbl
@@ -24,17 +12,21 @@ module UpdateExpressionPart =
 
     let private ToColumnTokens tbl colSelector = 
         let tokens = ExpressionVisitor.Visit colSelector [ tbl ]
-        tokens
-        |> Seq.map (fun t -> match t with | SqlNode.Column(c) -> Some(c) | _ -> None)
-        |> Seq.choose id
-        |> Seq.toList
+        match tokens with
+        | None -> []
+        | Some(ValueNode.Column(c)) -> [ c ]
+        | Some(ValueList(valueList)) ->  
+            valueList
+            |> List.map (fun t -> match t with | ValueNode.Column(c) -> Some(c) | _ -> None)
+            |> List.choose id
+        | Some(_) -> []
 
-    let private ToValue (v : obj) =
+    let private ToValue (v : obj) : ValueNode =
         match v with
-            | null -> [ SqlNode.NullValue ]
-            | :? SelectExpression as ss -> [ SqlNode.SubExpression(ss) ]
-            | :? string as s-> [ SqlNode.Constant(ConstantNode(sprintf "'%s'" s))]
-            | x ->  [ SqlNode.Constant(ConstantNode(x.ToString())) ]
+            | null -> ValueNode.NullValue
+            | :? SelectExpression as ss -> ValueNode.SubExpression(ss)
+            | :? string as s-> ValueNode.Constant(ConstantNode(sprintf "'%s'" s))
+            | x ->  ValueNode.Constant(ConstantNode(x.ToString()))
 
     let private ToSetExpression tbl colSelector (value : obj) =
         { 
@@ -74,9 +66,14 @@ module UpdateExpressionPart =
     let AddValueExpression head colSelector valueSelector =
         let cols = ColumnsByName head.Table colSelector
         let values = ExpressionVisitor.Visit valueSelector [ head.Table ]
-        List.zip cols values
-        |> List.map (fun (c, v) -> {Column = c; Value = [ v ]})
-        |> (fun v -> { head with SetExpressions = List.concat [ v; head.SetExpressions ] })
+        match values with
+        | None -> head
+        | Some(ValueList(valueList)) ->
+            List.zip cols valueList
+            |> List.map (fun (c, v) -> { Column = c; Value = v })
+            |> (fun v -> { head with SetExpressions = v @ head.SetExpressions })
+        | Some(value) ->
+            { head with SetExpressions = { Column = (List.head cols); Value = value } :: head.SetExpressions }
         
 
     let NewUpdateHead tbl : UpdateStatementHeadToken = 

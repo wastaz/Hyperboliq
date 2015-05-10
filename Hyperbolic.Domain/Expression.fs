@@ -23,26 +23,41 @@ module ExpressionParts =
         }
 
     let NewSelectExpression () =
-        { 
-            IsDistinct = false
-            Values = []
-        }
+        { IsDistinct = false; Values = [] }
 
     let MakeDistinct select =
         { select with IsDistinct = true }
 
     let SelectAllColumns select tableReference =
-        { select with SelectExpressionNode.Values = SqlNode.Column("*", tableReference) :: select.Values }
+        { select with SelectExpressionNode.Values = ValueNode.Column("*", tableReference) :: select.Values }
 
     let SelectColumns select expr tableReference =
         let stream = ExpressionVisitor.Visit expr [ tableReference ]
-        { select with SelectExpressionNode.Values = stream @ select.Values }
+        match stream with
+        | None -> select
+        | Some(ValueList(v)) -> { select with SelectExpressionNode.Values = v @ select.Values }
+        | Some(v) -> { select with Values = v :: select.Values }
+
+    (*
+    let AddOrCreateColumnsSelectExpression expr selector tableRef =
+        let values = ExpressionVisitor.Visit selector [ tableRef ]
+        match expr, values with
+        | _, None -> failwith "Must provide value"
+        | None, Some(ValueList(v)) -> { IsDistinct = false; Values = v }
+        | None, Some(v) -> { IsDistinct = false; Values = [ v ] }
+        | Some(e), Some(ValueList(v)) -> { e with Values = v @ e.Values }
+        | Some(e), Some(v) -> { e with Values = v :: e.Values}
+    *)
 
     let private NewOrderByExpression () = { OrderByExpressionNode.Clauses = [] }
 
     let private AddOrderingClause tbl direction nullsorder expr orderExpr  =
-        let clause = { OrderByClauseNode.Direction = direction; NullsOrdering = nullsorder; Selector = ExpressionVisitor.Visit expr [ tbl ] }
-        { orderExpr with OrderByExpressionNode.Clauses = clause :: orderExpr.Clauses }
+        let selector = ExpressionVisitor.Visit expr [ tbl ]
+        match selector with
+        | None -> orderExpr
+        | Some(v) -> 
+            let clause = { OrderByClauseNode.Direction = direction; NullsOrdering = nullsorder; Selector = v }
+            { orderExpr with OrderByExpressionNode.Clauses = clause :: orderExpr.Clauses }
 
     let AddOrCreateOrderingClause orderExpr tbl direction nullsorder expr =
         match orderExpr with
@@ -50,14 +65,23 @@ module ExpressionParts =
         | None -> NewOrderByExpression ()
         |> AddOrderingClause tbl direction nullsorder expr
 
-    let private NewWhereExpression expr ([<System.ParamArray>] tables : ITableReference array) : WhereExpressionNode = { 
-        Start = ExpressionVisitor.Visit expr tables
-        AdditionalClauses = []
-    }
+    let private NewWhereExpression expr ([<System.ParamArray>] tables : ITableReference array) : WhereExpressionNode =
+        let startValue = ExpressionVisitor.Visit expr tables
+        match startValue with
+        | None -> failwith "Must provide value"
+        | Some(v) ->
+            { 
+                Start = v
+                AdditionalClauses = []
+            }
 
     let private CreateWhereClause cmbType whereExpr expr ([<System.ParamArray>] tables : ITableReference array) =
-        let clause = { Combinator = cmbType; Expression = ExpressionVisitor.Visit expr tables }
-        { whereExpr with AdditionalClauses = clause :: whereExpr.AdditionalClauses }
+        let startValue = ExpressionVisitor.Visit expr tables
+        match startValue with
+        | None -> failwith "Must provide value"
+        | Some(v) -> 
+            let clause = { Combinator = cmbType; Expression = v }
+            { whereExpr with AdditionalClauses = clause :: whereExpr.AdditionalClauses }
 
     let private AddWhereAndClause whereExpr expr ([<System.ParamArray>] tables : ITableReference array) = 
         CreateWhereClause And whereExpr expr tables
@@ -81,8 +105,12 @@ module ExpressionParts =
     }
 
     let internal AddHavingClause groupByExpr joinType expr ([<System.ParamArray>] tables : ITableReference array) =
-        let clause = { WhereClauseNode.Combinator = joinType; Expression = ExpressionVisitor.Visit expr tables }
-        { groupByExpr with GroupByExpressionNode.Having = clause :: groupByExpr.Having }
+        let value = ExpressionVisitor.Visit expr tables 
+        match value with
+        | None -> failwith "Must provide value"
+        | Some(v) ->
+            let clause = { WhereClauseNode.Combinator = joinType; Expression = v }
+            { groupByExpr with GroupByExpressionNode.Having = clause :: groupByExpr.Having }
 
     let AddHavingAndClause groupByExpr expr ([<System.ParamArray>] tables : ITableReference array) = 
         match groupByExpr with
@@ -96,7 +124,12 @@ module ExpressionParts =
 
     let private AddGroupByClause expr tables groupByExpr = 
         let cols = ExpressionVisitor.Visit expr tables
-        { groupByExpr with GroupByExpressionNode.Clauses = groupByExpr.Clauses @ cols }
+        match cols with
+        | None -> groupByExpr
+        | Some(ValueList(v)) ->
+            { groupByExpr with GroupByExpressionNode.Clauses = groupByExpr.Clauses @ v }
+        | Some(v) -> 
+            { groupByExpr with GroupByExpressionNode.Clauses = groupByExpr.Clauses @ [ v ] }
 
     let AddOrCreateGroupByClause groupByExpr expr ([<System.ParamArray>] tables : ITableReference array) =
         match groupByExpr with

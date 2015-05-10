@@ -8,6 +8,7 @@ using Hyperboliq.Dialects;
 
 namespace Hyperboliq.Tests.Sqllite
 {
+    /*
     [Trait("Sqlite", "Quoting")]
     public class SqlLite_ColumnQuotingTests
     {
@@ -15,16 +16,15 @@ namespace Hyperboliq.Tests.Sqllite
         public void ItShouldProperlyQuoteColumnNames()
         {
             var stream =
-                StreamFrom(
-                    Kw(KeywordNode.Select),
-                    Col<Person>("Name"),
-                    Col<Person>("Age"),
-                    Col<Person>("Id"),
-                    Kw(KeywordNode.From),
-                    Tbl<Person>());
+                SelectNode(
+                    Select(
+                        Col<Person>("Name"),
+                        Col<Person>("Age"),
+                        Col<Person>("Id")),
+                    From<Person>());
 
-            var result = SqlifySeq(SqlLite.Dialect, stream);
+            var result = SqlifyExpression(SqlLite.Dialect, stream);
             result.Should().Be(@"SELECT PersonRef.""Name"", PersonRef.""Age"", PersonRef.""Id"" FROM Person PersonRef");
         }
-    }
+    }*/
 }

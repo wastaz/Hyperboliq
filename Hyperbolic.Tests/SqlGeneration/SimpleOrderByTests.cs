@@ -9,6 +9,7 @@ using FluentAssertions;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
+    /*
     [Trait("SqlGeneration", "OrderBy")]
     public class SqlGeneration_SimpleOrderByTests
     {
@@ -68,5 +69,5 @@ namespace Hyperboliq.Tests.SqlGeneration
                 "INNER JOIN Car CarRef ON PersonRef.Id = CarRef.DriverId " +
                 "ORDER BY PersonRef.Age ASC, CarRef.Brand DESC");
         }
-    }
+    }*/
 }

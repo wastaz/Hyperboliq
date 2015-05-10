@@ -9,6 +9,7 @@ using static Hyperboliq.Domain.SqlGenerator;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
+    /*
     [Trait("SqlGeneration", "GroupBy")]
     public class SqlGeneration_SimpleGroupByTests
     {
@@ -146,4 +147,5 @@ namespace Hyperboliq.Tests.SqlGeneration
                 "AND MIN(CarRef.Age) > 2");
         }
     }
+    */
 }

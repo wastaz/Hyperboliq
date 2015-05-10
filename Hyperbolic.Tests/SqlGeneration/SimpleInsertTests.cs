@@ -7,6 +7,7 @@ using static Hyperboliq.Domain.Types;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
+    /*
     [Trait("SqlGeneration", "Insert")]
     public class SqlGeneration_SimpleInsertTests
     {
@@ -67,5 +68,5 @@ namespace Hyperboliq.Tests.SqlGeneration
                 "INSERT INTO Person (Age, Id, LivesAtHouseId, Name, ParentId) " +
                 "VALUES (42, 2, 5, 'Kalle', 0), (12, 3, 3, 'Pelle', 2)");
         }
-    }
+    }*/
 }

@@ -14,6 +14,7 @@ using static Hyperboliq.Domain.Types;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
+    /*
     [Trait("SqlGeneration", "OrderBy")]
     public class SqlGeneration_OrderByNullsTests
     {
@@ -69,5 +70,5 @@ namespace Hyperboliq.Tests.SqlGeneration
             var result = SqlifySeq(AnsiSql.Dialect, stream);
             result.Should().Be("SELECT PersonRef.* FROM Person PersonRef ORDER BY PersonRef.Age ASC NULLS LAST, PersonRef.Name DESC NULLS FIRST");
         }
-    }
+    }*/
 }

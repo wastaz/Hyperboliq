@@ -3,7 +3,7 @@
 module SqlGenerator =
     open Types
     open Stream
-
+(*
     type GeneratorSettings = {
         Dialect : ISqlDialect
         SkipTableReferences : bool
@@ -240,3 +240,9 @@ module SqlGenerator =
     let SqlifySeq (dialect : ISqlDialect) (stream : SqlNode seq) =
         List.ofSeq stream
         |> Sqlify dialect
+        *)
+
+
+    let Sqlify (dialect : ISqlDialect) (stream : SqlStream) = ""
+    let SqlifySeq (dialect : ISqlDialect) (stream : SqlNode seq) = ""
+    let SqlifyExpression (dialect : ISqlDialect) (expr : SqlExpression) = ""

@@ -3,6 +3,7 @@ using Hyperboliq.Tests.Model;
 using Xunit;
 using static Hyperboliq.Tests.SqlStreamExtensions;
 using static Hyperboliq.Domain.Stream;
+using Microsoft.FSharp.Collections;
 
 namespace Hyperboliq.Tests
 {
@@ -77,7 +78,7 @@ namespace Hyperboliq.Tests
             var result = expr.ToSqlExpression();
             var expected =
                 SelectNode(
-                    Select(Aggregate(AggregateType.Count)), 
+                    Select(Aggregate(AggregateType.Count, ValueNode.NewValueList(FSharpList<ValueNode>.Empty))), 
                     From<Person>());
             Assert.Equal(expected, result);
         }
@@ -89,7 +90,7 @@ namespace Hyperboliq.Tests
             var result = expr.ToSqlExpression();
             var expected =
                 SelectNode(
-                    Select(Aggregate(AggregateType.Count)),
+                    Select(Aggregate(AggregateType.Count, ValueNode.NewValueList(FSharpList<ValueNode>.Empty))),
                     From<Person>());
             Assert.Equal(expected, result);
         }

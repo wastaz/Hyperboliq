@@ -9,6 +9,7 @@ using System.Collections.Generic;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
+    /*
     [Trait("SqlGeneration", "Joins")]
     public class SqlGeneration_SimpleJoinTests
     {
@@ -88,4 +89,5 @@ namespace Hyperboliq.Tests.SqlGeneration
                 "LEFT JOIN Car CarRef ON PersonRef.Id = CarRef.DriverId");
         }
     }
+    */
 }

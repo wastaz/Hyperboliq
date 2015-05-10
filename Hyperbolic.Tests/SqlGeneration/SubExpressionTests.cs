@@ -8,6 +8,7 @@ using FluentAssertions;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
+    /*
     [Trait("SqlGeneration", "Subexpressions")]
     public class SqlGeneration_SubExpressionTests
     {
@@ -53,4 +54,5 @@ namespace Hyperboliq.Tests.SqlGeneration
             result.Should().Be(@"SELECT PersonRef.* FROM Person PersonRef WHERE PersonRef.Id IN (SELECT CarRef.DriverId FROM Car CarRef)");
         }
     }
+    */
 }

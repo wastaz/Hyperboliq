@@ -10,6 +10,7 @@ using static Hyperboliq.Domain.Stream;
 
 namespace Hyperboliq.Tests.Sqllite
 {
+    /*
     [Trait("Sqlite", "Mapping")]
     public class BasicMappingTests
     {
@@ -172,4 +173,5 @@ namespace Hyperboliq.Tests.Sqllite
             }
         }
     }
+    */
 }

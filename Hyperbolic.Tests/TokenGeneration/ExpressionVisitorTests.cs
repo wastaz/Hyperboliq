@@ -7,6 +7,7 @@ using static Hyperboliq.Domain.Stream;
 using static Hyperboliq.Domain.ExpressionVisitor;
 using Xunit;
 using static Hyperboliq.Tests.SqlStreamExtensions;
+using Microsoft.FSharp.Core;
 
 namespace Hyperboliq.Domain.Tests
 {
@@ -15,11 +16,6 @@ namespace Hyperboliq.Domain.Tests
         public static FSharpList<ITableReference> ToContext(this ITableReference[] refs)
         {
             return ListModule.OfArray(refs);
-        }
-
-        public static FSharpList<SqlNode> ToList(this SqlNode self)
-        {
-            return new FSharpList<SqlNode>(self, FSharpList<SqlNode>.Empty);
         }
     }
 
@@ -36,10 +32,9 @@ namespace Hyperboliq.Domain.Tests
                 new[] { tableRef }.ToContext()
                 );
 
-            var expected =
-                StreamFrom(Col<Person>("Age"));
+            var expected = OptionModule.OfObj(Col<Person>("Age"));
 
-            ev.ShouldEqual(expected);
+            Assert.Equal(expected, ev);
         }
 
         [Fact]
@@ -53,8 +48,10 @@ namespace Hyperboliq.Domain.Tests
                 );
 
             var expected =
-                StreamFrom(Col<Person>("Age"), Col<Person>("Name"));
-            ev.ShouldEqual(expected);
+                OptionModule.OfObj(
+                    ValueNode.NewValueList(
+                        ListModule.OfArray(new[] { Col<Person>("Age"), Col<Person>("Name") })));
+            Assert.Equal(expected, ev);
         }
 
         [Fact]
@@ -68,9 +65,9 @@ namespace Hyperboliq.Domain.Tests
                 );
 
             var expected =
-                StreamFrom(
+                OptionModule.OfObj(
                     BinExp(Col<Person>("Age"), BinaryOperation.GreaterThan, Const(42)));
-            ev.ShouldEqual(expected);
+            Assert.Equal(expected, ev);
         }
 
         [Fact]
@@ -85,9 +82,9 @@ namespace Hyperboliq.Domain.Tests
             var ev = Visit(func, tableRefs.ToContext());
 
             var expected =
-                StreamFrom(
+                OptionModule.OfObj(
                     BinExp(Col(tableRefs[0], "Age"), BinaryOperation.LessThan, Col(tableRefs[1], "Age")));
-            ev.ShouldEqual(expected);
+            Assert.Equal(expected, ev);
         }
 
         [Fact]
@@ -101,7 +98,7 @@ namespace Hyperboliq.Domain.Tests
             var ev = Visit(func, tableRefs.ToContext());
 
             var expected =
-                StreamFrom(
+                OptionModule.OfObj(
                     BinExp(
                         BinExp(Col<Person>("Age"), BinaryOperation.GreaterThan, Const(42)),
                         BinaryOperation.And,
@@ -110,7 +107,7 @@ namespace Hyperboliq.Domain.Tests
                             BinaryOperation.Or,
                             BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Anna'")))));
 
-            ev.ShouldEqual(expected);
+            Assert.Equal(expected, ev);
         }
 
         [Fact]
@@ -125,9 +122,8 @@ namespace Hyperboliq.Domain.Tests
             var ev = Visit(func, tableRefs.ToContext());
 
             var expected =
-                StreamFrom(
-                    BinExp(Col<Person>("Age"), BinaryOperation.NotEqual, Param("ageparam")));
-            ev.ShouldEqual(expected);
+                OptionModule.OfObj(BinExp(Col<Person>("Age"), BinaryOperation.NotEqual, Param("ageparam")));
+            Assert.Equal(expected, ev);
         }
     }
 }

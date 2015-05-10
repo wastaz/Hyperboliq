@@ -8,6 +8,7 @@ using FluentAssertions;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
+    /*
     [Trait("SqlGeneration", "OperatorPredecence")]
     public class SqlGeneration_OperatorPredecenceTests
     {
@@ -33,5 +34,5 @@ namespace Hyperboliq.Tests.SqlGeneration
             var result = SqlifySeq(AnsiSql.Dialect, stream);
             result.Should().Be(@"SELECT PersonRef.* FROM Person PersonRef WHERE (PersonRef.Age < 10 OR PersonRef.Name = 'Karl') AND PersonRef.Age > 42");
         }
-    }
+    }*/
 }

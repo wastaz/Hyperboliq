@@ -9,6 +9,7 @@ using static Hyperboliq.Domain.SqlGenerator;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
+    /*
     [Trait("SqlGeneration", "Joins")]
     public class SqlGeneration_AdvancedJoinTests
     {
@@ -34,5 +35,5 @@ namespace Hyperboliq.Tests.SqlGeneration
                 "SELECT child.Name, parent.Name FROM Person child "+
                 "INNER JOIN Person parent ON child.ParentId = parent.Id");
         }
-    }
+    }*/
 }

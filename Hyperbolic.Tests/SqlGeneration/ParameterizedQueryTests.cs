@@ -10,6 +10,7 @@ using static Hyperboliq.Domain.SqlGenerator;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
+    /*
     [Trait("SqlGeneration", "Parameters")]
     public class SqlGeneration_ParameterizedQueryTests
     {
@@ -58,4 +59,5 @@ namespace Hyperboliq.Tests.SqlGeneration
                 "OR PersonRef.Age < @age");
         }
     }
+    */
 }

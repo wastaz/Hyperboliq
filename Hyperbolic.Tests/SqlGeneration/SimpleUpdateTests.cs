@@ -8,6 +8,7 @@ using static Hyperboliq.Domain.SqlGenerator;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
+    /*
     [Trait("SqlGeneration", "Update")]
     public class SimpleUpdateTests
     {
@@ -105,4 +106,5 @@ namespace Hyperboliq.Tests.SqlGeneration
             result.Should().Be("UPDATE Person SET Age = 42 WHERE Name = 'Kalle' OR Name = 'Pelle' AND Age < 18");
         }
     }
+    */
 }

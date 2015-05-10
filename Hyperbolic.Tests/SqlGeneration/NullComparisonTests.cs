@@ -8,6 +8,7 @@ using FluentAssertions;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
+    /*
     [Trait("SqlGeneration", "NullComparisons")]
     public class NullComparisonTests
     {
@@ -75,4 +76,5 @@ namespace Hyperboliq.Tests.SqlGeneration
             result.Should().Be("SELECT PersonRef.* FROM Person PersonRef WHERE PersonRef.Age IS NOT NULL");
         }
     }
+    */
 }

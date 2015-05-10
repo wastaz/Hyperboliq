@@ -39,7 +39,7 @@ module Stream =
         SourceTables: ITableReference list
         TargetTable: ITableReference
         Type: JoinType
-        Condition: SqlStream
+        Condition: ValueNode option
     }
 
     and FromExpressionNode = {
@@ -50,7 +50,7 @@ module Stream =
     and OrderByClauseNode = {
         Direction : Direction
         NullsOrdering : NullsOrdering
-        Selector : SqlStream
+        Selector : ValueNode
     }
 
     and OrderByExpressionNode = {
@@ -59,16 +59,16 @@ module Stream =
 
     and SelectExpressionNode = {
         IsDistinct : bool
-        Values : SqlNode list
+        Values : ValueNode list
     }
 
     and WhereClauseNode = {
         Combinator: ExpressionCombinatorType
-        Expression: SqlStream
+        Expression: ValueNode
     }
 
     and GroupByExpressionNode = {
-        Clauses : SqlNode list
+        Clauses : ValueNode list
         Having : WhereClauseNode list
     }
 
@@ -78,16 +78,26 @@ module Stream =
         NullsOrdering : NullsOrdering
     }
 
-    and AggregateToken = AggregateType * SqlStream
+    and AggregateToken = AggregateType * ValueNode
 
     and BinaryExpressionNode = {
-        Lhs: SqlStream
-        Operation: BinaryOperation
-        Rhs: SqlStream
+        Lhs : ValueNode
+        Operation : BinaryOperation
+        Rhs : ValueNode
     }
 
+    and ValueNode =
+        | NullValue
+        | Constant of ConstantNode
+        | Column of ColumnToken
+        | Parameter of ParameterToken
+        | Aggregate of AggregateToken
+        | SubExpression of SelectExpression
+        | BinaryExpression of BinaryExpressionNode
+        | ValueList of ValueNode list
+
     and WhereExpressionNode = {
-        Start: SqlStream
+        Start: ValueNode
         AdditionalClauses: WhereClauseNode list
     }
 
@@ -98,7 +108,7 @@ module Stream =
 
     and UpdateSetToken = {
         Column : ColumnToken
-        Value : SqlStream
+        Value : ValueNode
     }
 
     and SqlNode =

@@ -8,6 +8,7 @@ using FluentAssertions;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
+    /*
     [Trait("SqlGeneration", "Delete")]
     public class SqlGeneration_SimpleDeleteTests
     {
@@ -88,5 +89,5 @@ namespace Hyperboliq.Tests.SqlGeneration
                     "WHERE PersonRef.Age < 18" +
                 ")");
         }
-    }
+    }*/
 }
