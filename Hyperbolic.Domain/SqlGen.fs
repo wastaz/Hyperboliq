@@ -54,15 +54,26 @@ module SqlGen =
         | Min, s -> sprintf "MIN(%s)" s
         | Max, s -> sprintf "MAX(%s)" s
     *)
+    
+    let HandleConstant (ConstantNode(c) : ConstantNode) = c
 
     let HandleColumn (dialect : ISqlDialect) (column : ColumnToken) =
         match column with
         | "*", t -> sprintf "%s.*" t.ReferenceName
         | c, t -> sprintf "%s.%s" t.ReferenceName (dialect.QuoteColumnName c)
 
-    let HandleBinaryExpression (dialect : ISqlDialect) (exp : BinaryExpressionNode) =
+    let rec HandleValueNode (dialect : ISqlDialect) (vn : ValueNode) =
+        match vn with
+        | ValueNode.Column(c) -> HandleColumn dialect c
+        | ValueNode.Constant(c) -> HandleConstant c
+        | ValueNode.BinaryExpression(be) -> HandleBinaryExpression dialect be
+        | _ -> failwith "Not supported"
+
+    and HandleBinaryExpression (dialect : ISqlDialect) (exp : BinaryExpressionNode) =
         let op = TranslateBinaryOperation exp.Operation
-        op
+        let lhs = HandleValueNode dialect exp.Lhs
+        let rhs = HandleValueNode dialect exp.Rhs
+        sprintf "%s %s %s" lhs op rhs
 
     let HandleSelect (dialect : ISqlDialect) (select : SelectExpressionNode) =
         let HandleValue (dialect : ISqlDialect) value =
@@ -105,6 +116,7 @@ module SqlGen =
             let additionals = 
                 List.map (HandleAdditionalClauses dialect) where.AdditionalClauses
                 |> JoinWithSpace
+                |> fun s -> if s.Length > 0 then " " + s else s
             sprintf "WHERE %s%s" start additionals
 
         match where with
