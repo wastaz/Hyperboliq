@@ -1,14 +1,12 @@
-﻿using Xunit;
+﻿using Hyperboliq.Tests.Model;
+using Xunit;
 using static Hyperboliq.Tests.SqlStreamExtensions;
-using Hyperboliq.Tests.Model;
-using static Hyperboliq.Domain.Stream;
 using static Hyperboliq.Domain.SqlGen;
-using FluentAssertions;
 using static Hyperboliq.Domain.Types;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
-    /*
+    
     [Trait("SqlGeneration", "Select")]
     public class SqlGeneration_SimpleSelectTests
     {
@@ -21,7 +19,7 @@ namespace Hyperboliq.Tests.SqlGeneration
                     From<Person>());
 
             var result = SqlifyExpression(AnsiSql.Dialect, stream);
-            result.Should().Be(@"SELECT PersonRef.* FROM Person PersonRef");
+            Assert.Equal(@"SELECT PersonRef.* FROM Person PersonRef", result);
         }
 
         [Fact]
@@ -36,8 +34,8 @@ namespace Hyperboliq.Tests.SqlGeneration
                     From<Person>());
 
             var result = SqlifyExpression(AnsiSql.Dialect, stream);
-            result.Should().Be(@"SELECT PersonRef.Name, PersonRef.Age, PersonRef.Id FROM Person PersonRef");
+            Assert.Equal(@"SELECT PersonRef.Name, PersonRef.Age, PersonRef.Id FROM Person PersonRef", result);
         }
     }
-    */
+    
 }
