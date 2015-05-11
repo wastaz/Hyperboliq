@@ -170,12 +170,29 @@ module SqlGen =
         match where with
         | Some(w) -> Some(HandleWhereInternal dialect includeTableRef w)
         | None -> None
-    
+
+    and HandleOrderBy (dialect : ISqlDialect) includeTableRef (orderBy : OrderByExpressionNode option) : string option =
+        let HandleClause (clause : OrderByClauseNode) = 
+            let dir = match clause.Direction with
+                      | Ascending -> "ASC"
+                      | Descending -> "DESC"
+            let selector = HandleValueNode dialect clause.Selector
+            sprintf "%s %s" selector dir
+        match orderBy with
+        | None -> None
+        | Some(o) ->
+            o.Clauses
+            |> List.map HandleClause
+            |> JoinWithComma
+            |> sprintf "ORDER BY %s"
+            |> Option.Some
+
     and HandleSelectExpression dialect (select : SelectExpression) =
         [
             Some(HandleSelect dialect select.Select)
             Some(HandleFrom dialect true select.From)
             HandleWhere dialect true select.Where
+            HandleOrderBy dialect true select.OrderBy
         ]
         |> List.choose id
         |> JoinWithSpace
