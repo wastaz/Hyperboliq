@@ -32,6 +32,8 @@ module SqlGen =
 
         | BinaryOperation.In
         | BinaryOperation.Or -> 7
+        
+    let HasLowerPredecence op1 op2 = (ToPredecenceNumber op1) > (ToPredecenceNumber op2)
 
     let TranslateBinaryOperation op =
         match op with
@@ -73,19 +75,25 @@ module SqlGen =
         | _ -> failwith "Not supported"
 
     and HandleBinaryExpression (dialect : ISqlDialect) (exp : BinaryExpressionNode) =
+        let AddParensIfNecessary innerExp sql =
+            match innerExp with
+            | ValueNode.BinaryExpression(n) when HasLowerPredecence n.Operation exp.Operation -> sprintf "(%s)" sql 
+            | _ -> sql
+
         let HandleNull dialect op exp =
             let compareVal = HandleValueNode dialect exp
             match op with
             | Equal -> sprintf "%s IS NULL" compareVal
             | NotEqual -> sprintf "%s IS NOT NULL" compareVal
             | _ -> failwith "Not supported"
+
         match exp.Lhs, exp.Rhs with
         | ValueNode.NullValue, _ -> HandleNull dialect exp.Operation exp.Rhs
         | _, ValueNode.NullValue -> HandleNull dialect exp.Operation exp.Lhs
         | _, _ ->
             let op = TranslateBinaryOperation exp.Operation
-            let lhs = HandleValueNode dialect exp.Lhs
-            let rhs = HandleValueNode dialect exp.Rhs
+            let lhs = HandleValueNode dialect exp.Lhs |> AddParensIfNecessary exp.Lhs
+            let rhs = HandleValueNode dialect exp.Rhs |> AddParensIfNecessary exp.Rhs
             sprintf "%s %s %s" lhs op rhs
 
     let HandleSelect (dialect : ISqlDialect) (select : SelectExpressionNode) =
