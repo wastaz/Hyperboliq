@@ -66,11 +66,14 @@ module SqlGen =
         | "*", t -> sprintf "%s.*" t.ReferenceName
         | c, t -> sprintf "%s.%s" t.ReferenceName (dialect.QuoteColumnName c)
 
+    let HandleParameter (ParameterToken(name) : ParameterToken) = sprintf "@%s" name
+
     let rec HandleValueNode (dialect : ISqlDialect) (vn : ValueNode) =
         match vn with
         | ValueNode.NullValue -> HandleNullValue ()
         | ValueNode.Column(c) -> HandleColumn dialect c
         | ValueNode.Constant(c) -> HandleConstant c
+        | ValueNode.Parameter(p) -> HandleParameter p
         | ValueNode.BinaryExpression(be) -> HandleBinaryExpression dialect be
         | ValueNode.SubExpression(se) -> HandleSelectExpression dialect se |> sprintf "(%s)"
         | _ -> failwith "Not supported"
