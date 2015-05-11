@@ -1,5 +1,4 @@
 ﻿using System;
-using FluentAssertions;
 using System.Collections.Generic;
 using System.Linq;
 using static Hyperboliq.Domain.Types;
@@ -11,16 +10,6 @@ namespace Hyperboliq.Tests
 {
     public static class SqlStreamExtensions
     {
-        public static IEnumerable<SqlNode> StreamFrom(params SqlNode[] tokens)
-        {
-            return tokens;
-        }
-
-        public static SqlNode Kw(KeywordNode kw)
-        {
-            return SqlNode.NewKeyword(kw);
-        }
-
         public static ValueNode Col<TTableType>(string columnDef)
         {
             return ValueNode.NewColumn(new Tuple<string, ITableReference>(columnDef, TableReferenceFromType<TTableType>()));
@@ -35,29 +24,10 @@ namespace Hyperboliq.Tests
         {
             return ValueNode.NewAggregate(new Tuple<AggregateType, ValueNode>(type, parameter));
         }
-
-        public static SqlNode Tbl<TTableType>()
-        {
-            return SqlNode.NewTable(TableToken.NewTableToken(TableReferenceFromType<TTableType>()));
-        }
-
-        public static SqlNode Tbl(ITableReference r) {
-            return SqlNode.NewTable(TableToken.NewTableToken(r));
-        }
-
         public static ValueNode BinExp(ValueNode lhs, BinaryOperation op, ValueNode rhs)
         {
             return ValueNode.NewBinaryExpression(new BinaryExpressionNode(lhs, op, rhs));
         }
-        /*
-        public static SqlNode BinExp(IEnumerable<SqlNode> lhs, BinaryOperation op, IEnumerable<SqlNode> rhs)
-        {
-            return SqlNode.NewBinaryExpression(
-                new BinaryExpressionNode(
-                    ListModule.OfArray(lhs.ToArray()),
-                    op,
-                    ListModule.OfArray(rhs.ToArray())));
-        }*/
 
         public static ValueNode Param(string paramName)
         {
@@ -154,13 +124,7 @@ namespace Hyperboliq.Tests
         {
             return new OrderByExpressionNode(ListModule.OfArray(clauses));
         }
-
-        public static SqlNode Ord(SqlNode col, Direction direction, NullsOrdering nullsOrdering = null)
-        {
-            var no = nullsOrdering == null ? NullsOrdering.NullsUndefined : nullsOrdering;
-            return SqlNode.NewOrderingToken(new Ordering(new FSharpList<SqlNode>(col, FSharpList<SqlNode>.Empty), direction, no));
-        }
-
+        
         public static SelectExpressionNode Select(params ValueNode[] columns)
         {
             return new SelectExpressionNode(false, ListModule.OfArray(columns));
@@ -289,18 +253,6 @@ namespace Hyperboliq.Tests
                 new InsertExpression(
                     head,
                     ListModule.OfArray(values)));
-        }
-
-        public static void ShouldEqual(this IEnumerable<SqlNode> self, IEnumerable<SqlNode> expected)
-        {
-            self.Should().HaveSameCount(expected);
-            var selfList = self.ToList();
-            for (int i = 0; i < self.Count(); ++i)
-            {
-                var source = self.ElementAt(i);
-                var target = expected.ElementAt(i);
-                source.Should().Be(target);
-            }
         }
     }
 }

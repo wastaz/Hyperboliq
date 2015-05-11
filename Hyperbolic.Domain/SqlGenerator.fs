@@ -243,6 +243,6 @@ module SqlGenerator =
         *)
 
 
-    let Sqlify (dialect : ISqlDialect) (stream : SqlStream) = ""
-    let SqlifySeq (dialect : ISqlDialect) (stream : SqlNode seq) = ""
+    let Sqlify (dialect : ISqlDialect) stream = ""
+    let SqlifySeq (dialect : ISqlDialect) stream = ""
     let SqlifyExpression (dialect : ISqlDialect) (expr : SqlExpression) = ""

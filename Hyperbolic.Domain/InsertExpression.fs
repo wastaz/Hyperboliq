@@ -5,17 +5,6 @@ module InsertExpressionPart =
     open Types
     open Stream
 
-    let ToInsertValueNodes stream =
-        let SqlNodeToInsertValue node =
-            match node with
-            | SqlNode.NullValue -> InsertValueNode.NullValue
-            | SqlNode.Column(c) -> InsertValueNode.Column(c)
-            | SqlNode.Constant(c) -> InsertValueNode.Constant(c)
-            | SqlNode.Parameter(p) -> InsertValueNode.Parameter(p)
-            | _ -> failwith "Not implemented"
-        stream 
-        |> List.map SqlNodeToInsertValue
-
     let PropertySortByName (p : System.Reflection.PropertyInfo) = p.Name
     
     let ApplyOnProperties (properties : System.Reflection.PropertyInfo list) sortFn f =

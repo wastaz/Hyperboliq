@@ -72,12 +72,6 @@ module Stream =
         Having : WhereClauseNode list
     }
 
-    and Ordering = {
-        Selector : SqlStream
-        Direction : Direction
-        NullsOrdering : NullsOrdering
-    }
-
     and AggregateToken = AggregateType * ValueNode
 
     and BinaryExpressionNode = {
@@ -110,27 +104,7 @@ module Stream =
         Column : ColumnToken
         Value : ValueNode
     }
-
-    and SqlNode =
-        | NullValue
-        | Keyword of KeywordNode
-        | Constant of ConstantNode
-        | Table of TableToken
-        | Column of ColumnToken
-        | Parameter of ParameterToken
-        | BinaryExpression of BinaryExpressionNode
-        | SubExpression of SelectExpression
-        | Aggregate of AggregateToken
-        | OrderingToken of Ordering
-        | Select of SelectExpressionNode
-        | From of FromExpressionNode
-        | Where of WhereExpressionNode
-        | GroupBy of GroupByExpressionNode
-        | OrderBy of OrderByExpressionNode
-        | InsertHead of InsertStatementHeadToken
-        | InsertValue of InsertValueNode list
-        | UpdateStatementHead of UpdateStatementHeadToken
-
+    
     and InsertValueNode =
         | NullValue
         | Constant of ConstantNode
@@ -138,8 +112,6 @@ module Stream =
         | Parameter of ParameterToken
 
     and InsertValueToken = { Values : InsertValueNode list }
-
-    and SqlStream = SqlNode list
     
     and SelectExpression =
         {
