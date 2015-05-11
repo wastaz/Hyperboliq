@@ -72,6 +72,7 @@ module SqlGen =
         | ValueNode.Column(c) -> HandleColumn dialect c
         | ValueNode.Constant(c) -> HandleConstant c
         | ValueNode.BinaryExpression(be) -> HandleBinaryExpression dialect be
+        | ValueNode.SubExpression(se) -> HandleSelectExpression dialect se |> sprintf "(%s)"
         | _ -> failwith "Not supported"
 
     and HandleBinaryExpression (dialect : ISqlDialect) (exp : BinaryExpressionNode) =
@@ -96,7 +97,7 @@ module SqlGen =
             let rhs = HandleValueNode dialect exp.Rhs |> AddParensIfNecessary exp.Rhs
             sprintf "%s %s %s" lhs op rhs
 
-    let HandleSelect (dialect : ISqlDialect) (select : SelectExpressionNode) =
+    and HandleSelect (dialect : ISqlDialect) (select : SelectExpressionNode) =
         let HandleValue (dialect : ISqlDialect) value =
             match value with
             | ValueNode.Column(c) -> HandleColumn dialect c
@@ -108,7 +109,7 @@ module SqlGen =
         |> JoinWithComma
         |> sprintf "SELECT %s%s" (if select.IsDistinct then "DISTINCT " else "") 
 
-    let HandleFrom includeTableRef (from : FromExpressionNode) =
+    and HandleFrom includeTableRef (from : FromExpressionNode) =
         let HandleTable includeTableRef (t : ITableReference) =
             t.Table.Name + (if includeTableRef then " " + t.ReferenceName else "")
         from.Tables
@@ -116,7 +117,7 @@ module SqlGen =
         |> JoinWithComma
         |> sprintf "FROM %s"
 
-    let HandleWhere (dialect : ISqlDialect) includeTableRef (where : WhereExpressionNode option) =
+    and HandleWhere (dialect : ISqlDialect) includeTableRef (where : WhereExpressionNode option) =
         let HandleValue (dialect : ISqlDialect) (value : ValueNode) =
             match value with
             | ValueNode.BinaryExpression(n) -> HandleBinaryExpression dialect n
@@ -143,8 +144,8 @@ module SqlGen =
         match where with
         | Some(w) -> Some(HandleWhereInternal dialect includeTableRef w)
         | None -> None
-
-    let HandleSelectExpression dialect (select : SelectExpression) =
+    
+    and HandleSelectExpression dialect (select : SelectExpression) =
         [
             Some(HandleSelect dialect select.Select)
             Some(HandleFrom true select.From)
