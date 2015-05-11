@@ -112,13 +112,36 @@ module SqlGen =
         |> JoinWithComma
         |> sprintf "SELECT %s%s" (if select.IsDistinct then "DISTINCT " else "") 
 
-    and HandleFrom includeTableRef (from : FromExpressionNode) =
+    and HandleFrom (dialect : ISqlDialect) includeTableRef (from : FromExpressionNode) =
         let HandleTable includeTableRef (t : ITableReference) =
             t.Table.Name + (if includeTableRef then " " + t.ReferenceName else "")
-        from.Tables
-        |> List.map (HandleTable includeTableRef)
-        |> JoinWithComma
-        |> sprintf "FROM %s"
+        
+        let TranslateJoinType jt =
+            match jt with
+            | JoinType.InnerJoin -> "INNER JOIN"
+            | JoinType.LeftJoin -> "LEFT JOIN"
+            | JoinType.RightJoin -> "RIGHT JOIN"
+            | JoinType.FullJoin -> "FULL JOIN"
+
+        let HandleJoin (jc : JoinClauseNode) =
+            let joinHead = sprintf "%s %s" (TranslateJoinType jc.Type) (HandleTable true jc.TargetTable)
+            match jc.Condition with
+            | None -> joinHead
+            | Some(c) -> sprintf "%s ON %s" joinHead (HandleValueNode dialect c)
+
+        let fromPart = 
+            from.Tables
+            |> List.map (HandleTable includeTableRef)
+            |> JoinWithComma
+            |> sprintf "FROM %s"
+        
+        let joinPart =
+            from.Joins
+            |> List.map HandleJoin
+            |> JoinWithSpace
+
+        if joinPart.Length = 0 then fromPart else JoinWithSpace [ fromPart; joinPart ]
+
 
     and HandleWhere (dialect : ISqlDialect) includeTableRef (where : WhereExpressionNode option) =
         let HandleValue (dialect : ISqlDialect) (value : ValueNode) =
@@ -151,7 +174,7 @@ module SqlGen =
     and HandleSelectExpression dialect (select : SelectExpression) =
         [
             Some(HandleSelect dialect select.Select)
-            Some(HandleFrom true select.From)
+            Some(HandleFrom dialect true select.From)
             HandleWhere dialect true select.Where
         ]
         |> List.choose id
