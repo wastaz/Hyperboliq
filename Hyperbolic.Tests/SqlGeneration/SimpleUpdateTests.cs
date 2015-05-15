@@ -1,14 +1,12 @@
 ﻿using Xunit;
-using FluentAssertions;
 using Hyperboliq.Tests.Model;
 using static Hyperboliq.Domain.Types;
 using static Hyperboliq.Domain.Stream;
 using static Hyperboliq.Tests.SqlStreamExtensions;
-using static Hyperboliq.Domain.SqlGenerator;
+using static Hyperboliq.Domain.SqlGen;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
-    /*
     [Trait("SqlGeneration", "Update")]
     public class SimpleUpdateTests
     {
@@ -21,7 +19,7 @@ namespace Hyperboliq.Tests.SqlGeneration
                         Ust<Person>("Name", "'Kalle'")));
 
             var result = SqlifyExpression(AnsiSql.Dialect, stream);
-            result.Should().Be("UPDATE Person SET Name = 'Kalle'");
+            Assert.Equal("UPDATE Person SET Name = 'Kalle'", result);
         }
 
         [Fact]
@@ -34,7 +32,7 @@ namespace Hyperboliq.Tests.SqlGeneration
                       Ust<Person>("Age", 42)));
 
             var result = SqlifyExpression(AnsiSql.Dialect, stream);
-            result.Should().Be("UPDATE Person SET Name = 'Kalle', Age = 42");
+            Assert.Equal("UPDATE Person SET Name = 'Kalle', Age = 42", result);
         }
 
 
@@ -47,7 +45,7 @@ namespace Hyperboliq.Tests.SqlGeneration
                       Ust<Person>("Age", BinExp(Col<Person>("Age"), BinaryOperation.Add, Const(1)))));
             
             var result = SqlifyExpression(AnsiSql.Dialect, stream);
-            result.Should().Be("UPDATE Person SET Age = Age + 1");
+            Assert.Equal("UPDATE Person SET Age = Age + 1", result);
         }
 
         [Fact]
@@ -60,7 +58,7 @@ namespace Hyperboliq.Tests.SqlGeneration
                        Ust<Person>("Name", BinExp(Const("'Kalle'"), BinaryOperation.Add, Col<Person>("Name")))));
             
             var result = SqlifyExpression(AnsiSql.Dialect, stream);
-            result.Should().Be("UPDATE Person SET Age = Age - 2, Name = 'Kalle' + Name");
+            Assert.Equal("UPDATE Person SET Age = Age - 2, Name = 'Kalle' + Name", result);
         }
 
         [Fact]
@@ -76,7 +74,7 @@ namespace Hyperboliq.Tests.SqlGeneration
                                 From<Car>()))));
             
             var result = SqlifyExpression(AnsiSql.Dialect, stream);
-            result.Should().Be("UPDATE Person SET Age = (SELECT MAX(CarRef.Age) FROM Car CarRef)");
+            Assert.Equal("UPDATE Person SET Age = (SELECT MAX(CarRef.Age) FROM Car CarRef)", result);
         }
 
         [Fact]
@@ -88,7 +86,7 @@ namespace Hyperboliq.Tests.SqlGeneration
                     Where(BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Kalle'"))));
 
             var result = SqlifyExpression(AnsiSql.Dialect, stream);
-            result.Should().Be("UPDATE Person SET Age = 42 WHERE Name = 'Kalle'");
+            Assert.Equal("UPDATE Person SET Age = 42 WHERE Name = 'Kalle'", result);
         }
 
         [Fact]
@@ -103,8 +101,7 @@ namespace Hyperboliq.Tests.SqlGeneration
                         And(BinExp(Col<Person>("Age"), BinaryOperation.LessThan, Const(18)))));
 
             var result = SqlifyExpression(AnsiSql.Dialect, stream);
-            result.Should().Be("UPDATE Person SET Age = 42 WHERE Name = 'Kalle' OR Name = 'Pelle' AND Age < 18");
+            Assert.Equal("UPDATE Person SET Age = 42 WHERE Name = 'Kalle' OR Name = 'Pelle' AND Age < 18", result);
         }
     }
-    */
 }
