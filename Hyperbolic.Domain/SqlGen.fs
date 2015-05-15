@@ -176,8 +176,15 @@ module SqlGen =
             let dir = match clause.Direction with
                       | Ascending -> "ASC"
                       | Descending -> "DESC"
+            let nulls = match clause.NullsOrdering with
+                        | NullsFirst -> Some("NULLS FIRST")
+                        | NullsLast -> Some("NULLS LAST")
+                        | NullsUndefined -> None
             let selector = HandleValueNode dialect clause.Selector
-            sprintf "%s %s" selector dir
+            [ Some(selector); Some(dir); nulls ]
+            |> List.choose id
+            |> JoinWithSpace
+
         match orderBy with
         | None -> None
         | Some(o) ->
