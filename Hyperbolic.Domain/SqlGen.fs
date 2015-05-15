@@ -47,16 +47,22 @@ module SqlGen =
         | Subtract -> "-"
         | _ -> failwith "Not implemented"
 
-    (*
-    // Probably redesign aggregates. Maybe even get rid of sqlstream altogether, wouldn't that be nice?
-    let HandleAggregate (dialect : ISqlDialect) (agg : AggregateToken) =
-        match agg with
-        | Count, s -> "COUNT(*)"
-        | Avg, s -> sprintf "AVG(%s)" s
-        | Min, s -> sprintf "MIN(%s)" s
-        | Max, s -> sprintf "MAX(%s)" s
-    *)
+    let TranslateCombinator combinator =
+        match combinator with
+        | ExpressionCombinatorType.And -> "AND"
+        | ExpressionCombinatorType.Or -> "OR"
     
+    let HandleConditionalClauses (valueHandler : ValueNode -> string) (clauses : WhereClauseNode list) =
+        match clauses with
+        | [] -> ""
+        | [ start ] -> valueHandler start.Expression
+        | start :: rest ->
+            let startVal = valueHandler start.Expression
+            rest
+            |> List.map (fun v -> sprintf "%s %s" (TranslateCombinator v.Combinator) (valueHandler v.Expression))
+            |> JoinWithSpace
+            |> (fun s -> [ startVal; s ] |> JoinWithSpace)
+
     let HandleConstant (ConstantNode(c) : ConstantNode) = c
 
     let HandleNullValue () = "NULL"
@@ -74,9 +80,18 @@ module SqlGen =
         | ValueNode.Column(c) -> HandleColumn dialect c
         | ValueNode.Constant(c) -> HandleConstant c
         | ValueNode.Parameter(p) -> HandleParameter p
+        | ValueNode.Aggregate(a) -> HandleAggregate dialect a
         | ValueNode.BinaryExpression(be) -> HandleBinaryExpression dialect be
         | ValueNode.SubExpression(se) -> HandleSelectExpression dialect se |> sprintf "(%s)"
         | _ -> failwith "Not supported"
+    
+    and HandleAggregate (dialect : ISqlDialect) ((aggregateType, payload) : AggregateToken) =
+        let value = HandleValueNode dialect payload
+        match aggregateType with
+        | Count -> "COUNT(*)"
+        | Avg -> sprintf "AVG(%s)" value
+        | Min -> sprintf "MIN(%s)" value
+        | Max -> sprintf "MAX(%s)" value
 
     and HandleBinaryExpression (dialect : ISqlDialect) (exp : BinaryExpressionNode) =
         let AddParensIfNecessary innerExp sql =
@@ -104,7 +119,7 @@ module SqlGen =
         let HandleValue (dialect : ISqlDialect) value =
             match value with
             | ValueNode.Column(c) -> HandleColumn dialect c
-            //| SqlNode.Aggregate(a) -> HandleAggregate dialect a
+            | ValueNode.Aggregate(a) -> HandleAggregate dialect a
             | _ -> failwith "Not supported"
 
         select.Values 
@@ -149,26 +164,41 @@ module SqlGen =
             | ValueNode.BinaryExpression(n) -> HandleBinaryExpression dialect n
             | _ -> failwith "Not supported"
 
-        let HandleCombinator combinator =
-            match combinator with
-            | And -> "AND"
-            | Or -> "OR"
-
-        let HandleAdditionalClauses (dialect : ISqlDialect) (clause : WhereClauseNode) =
-            let combinator = HandleCombinator clause.Combinator
-            let expression = HandleValue dialect clause.Expression
-            JoinWithSpace [ combinator; expression ]
-
         let HandleWhereInternal (dialect : ISqlDialect) includeTableRef (where : WhereExpressionNode) =
-            let start = HandleValue dialect where.Start
-            let additionals = 
-                List.map (HandleAdditionalClauses dialect) where.AdditionalClauses
-                |> JoinWithSpace
-                |> fun s -> if s.Length > 0 then " " + s else s
-            sprintf "WHERE %s%s" start additionals
+            ({ Combinator = And; Expression = where.Start } :: where.AdditionalClauses)
+            |> HandleConditionalClauses (HandleValue dialect) 
+            |> sprintf "WHERE %s"
 
         match where with
         | Some(w) -> Some(HandleWhereInternal dialect includeTableRef w)
+        | None -> None
+
+    and HandleGroupBy (dialect : ISqlDialect) includeTableRef (groupBy : GroupByExpressionNode option) : string option =
+        let HandleGroupByClause (dialect : ISqlDialect) includeTableRef (col : ValueNode) =
+            match col with
+            | ValueNode.Column(c) -> HandleColumn dialect c
+            | _ -> failwith "Not supported"
+
+        let HandleValueNode (dialect : ISqlDialect) (value : ValueNode) =
+            match value with
+            | ValueNode.BinaryExpression(n) -> HandleBinaryExpression dialect n
+            | _ -> failwith "Not supported"
+
+        let HandleGroupByInternal (dialect : ISqlDialect) includeTableRef (groupBy : GroupByExpressionNode) : string =
+            let groupByPart =
+                groupBy.Clauses
+                |> List.map (HandleGroupByClause dialect includeTableRef)
+                |> JoinWithComma
+                |> sprintf "GROUP BY %s"
+            match groupBy.Having with
+            | [] -> groupByPart
+            | _ -> 
+                groupBy.Having
+                |> HandleConditionalClauses (HandleValueNode dialect)
+                |> sprintf "%s HAVING %s" groupByPart
+
+        match groupBy with
+        | Some(g) -> Some(HandleGroupByInternal dialect includeTableRef g)
         | None -> None
 
     and HandleOrderBy (dialect : ISqlDialect) includeTableRef (orderBy : OrderByExpressionNode option) : string option =
@@ -199,6 +229,7 @@ module SqlGen =
             Some(HandleSelect dialect select.Select)
             Some(HandleFrom dialect true select.From)
             HandleWhere dialect true select.Where
+            HandleGroupBy dialect true select.GroupBy
             HandleOrderBy dialect true select.OrderBy
         ]
         |> List.choose id
