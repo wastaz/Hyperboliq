@@ -295,6 +295,42 @@ module DeleteSqlGen =
         ]
         |> JoinOptionsWithSpace
 
+module InsertSqlGen =
+    open Types
+    open Stream
+
+    let HandleInsertInto dialect (into : InsertStatementHeadToken) =
+        into.Columns
+        |> List.map (HandleColumn false dialect)
+        |> JoinWithComma
+        |> sprintf "INSERT INTO %s (%s)" into.Table.Table.Name
+
+    let HandleValues dialect (values : InsertValueToken list) =
+        let HandleSingleValue (n : InsertValueNode) =
+            match n with
+            | InsertValueNode.Column(c) -> HandleColumn false dialect c
+            | InsertValueNode.Constant(c) -> HandleConstant c
+            | InsertValueNode.NullValue -> HandleNullValue ()
+            | InsertValueNode.Parameter(p) -> HandleParameter p
+
+        let HandleValueNodes (nodes : InsertValueNode list) =
+            nodes
+            |> List.map HandleSingleValue
+            |> JoinWithComma
+            |> sprintf "(%s)"
+
+        values
+        |> List.map (fun v -> HandleValueNodes v.Values)
+        |> JoinWithComma
+        |> sprintf "VALUES %s"
+
+    let HandleInsertExpression dialect (insert : InsertExpression) =
+        [
+            HandleInsertInto dialect insert.InsertInto
+            HandleValues dialect insert.InsertValues
+        ]
+        |> JoinWithSpace
+
 module SqlGen =
     open Types
     open Stream
@@ -302,7 +338,7 @@ module SqlGen =
     let SqlifyExpression dialect expression =
         match expression with
         | Select(select) -> SelectSqlGen.HandleSelectExpression dialect select
-        | Insert(insert) -> ""
+        | Insert(insert) -> InsertSqlGen.HandleInsertExpression dialect insert
         | Delete(delete) -> DeleteSqlGen.HandleDeleteExpression dialect delete
         | Update(update) -> UpdateSqlGen.HandleUpdateExpression dialect update
 
