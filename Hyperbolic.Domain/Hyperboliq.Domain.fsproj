@@ -54,7 +54,6 @@
     <Compile Include="DeleteExpression.fs" />
     <Compile Include="SelectExpression.fs" />
     <Compile Include="Expression.fs" />
-    <Compile Include="SqlGenerator.fs" />
     <Compile Include="SqlGen.fs" />
     <Compile Include="DbConnectionFactory.fs" />
   </ItemGroup>

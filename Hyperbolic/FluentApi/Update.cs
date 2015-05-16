@@ -5,7 +5,7 @@ using Microsoft.FSharp.Core;
 using static Hyperboliq.Domain.Stream;
 using static Hyperboliq.Domain.Types;
 using static Hyperboliq.Domain.ExpressionParts;
-using static Hyperboliq.Domain.SqlGenerator;
+using static Hyperboliq.Domain.SqlGen;
 using static Hyperboliq.Domain.UpdateExpressionPart;
 using Hyperboliq.Domain;
 
@@ -58,7 +58,7 @@ namespace Hyperboliq.FluentApi
 
         public SqlExpression ToSqlExpression() => SqlExpression.NewUpdate(expr);
 
-        public string ToSql(ISqlDialect dialect) => SqlGenerator.SqlifyExpression(dialect, ToSqlExpression());
+        public string ToSql(ISqlDialect dialect) => SqlGen.SqlifyExpression(dialect, ToSqlExpression());
     }
 
     public class UpdateWhere<TTable> : ISqlExpressionTransformable, ISqlTransformable
@@ -92,7 +92,7 @@ namespace Hyperboliq.FluentApi
 
         public SqlExpression ToSqlExpression() => SqlExpression.NewUpdate(expr);
 
-        public string ToSql(ISqlDialect dialect) => SqlGenerator.SqlifyExpression(dialect, ToSqlExpression());
+        public string ToSql(ISqlDialect dialect) => SqlGen.SqlifyExpression(dialect, ToSqlExpression());
     }
 
     public static class Update<TTable>

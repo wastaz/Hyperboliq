@@ -78,7 +78,7 @@ namespace Hyperboliq.Tests
             var result = expr.ToSqlExpression();
             var expected =
                 SelectNode(
-                    Select(Aggregate(AggregateType.Count, ValueNode.NewValueList(FSharpList<ValueNode>.Empty))), 
+                    Select(Aggregate(AggregateType.Count, ValueNode.NullValue)), 
                     From<Person>());
             Assert.Equal(expected, result);
         }
@@ -90,7 +90,7 @@ namespace Hyperboliq.Tests
             var result = expr.ToSqlExpression();
             var expected =
                 SelectNode(
-                    Select(Aggregate(AggregateType.Count, ValueNode.NewValueList(FSharpList<ValueNode>.Empty))),
+                    Select(Aggregate(AggregateType.Count, ValueNode.NullValue)),
                     From<Person>());
             Assert.Equal(expected, result);
         }

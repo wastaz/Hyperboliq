@@ -70,7 +70,7 @@ module ExpressionVisitor =
         | "Max", ValueList([ expr ]) -> ValueNode.Aggregate(Max, expr)
         | "Min", ValueList([ expr ]) -> ValueNode.Aggregate(Min, expr)
         | "Avg", ValueList([ expr ]) -> ValueNode.Aggregate(Avg, expr)
-        | "Count", ValueList(_) -> ValueNode.Aggregate(Count, args )
+        | "Count", ValueList(_) -> ValueNode.Aggregate(Count, ValueNode.NullValue )
         | _ -> failwith "Not implemented"
 
     and VisitMethodCall (exp : MethodCallExpression) context : ValueNode =

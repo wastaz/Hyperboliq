@@ -60,7 +60,7 @@ namespace Hyperboliq.Tests
 
             var expected =
                 SelectNode(
-                    Select(Col<Car>("Brand"), Aggregate(AggregateType.Count, ValueNode.NewValueList(FSharpList<ValueNode>.Empty)), Col<Person>("Age")),
+                    Select(Col<Car>("Brand"), Aggregate(AggregateType.Count, ValueNode.NullValue), Col<Person>("Age")),
                     From<Person>(
                         Join<Person, Car>(JoinType.InnerJoin, BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId")))),
                     groupBy: GroupBy(Col<Person>("Age"), Col<Car>("Brand"))

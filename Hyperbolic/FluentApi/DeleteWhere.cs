@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 using static Hyperboliq.Domain.Stream;
 using static Hyperboliq.Domain.Types;
 using static Hyperboliq.Domain.ExpressionParts;
-using static Hyperboliq.Domain.SqlGenerator;
+using static Hyperboliq.Domain.SqlGen;
 using static Hyperboliq.Domain.DeleteExpressionParts;
 using Hyperboliq.Domain;
 
@@ -55,6 +55,6 @@ namespace Hyperboliq.FluentApi
         }
         public SqlExpression ToSqlExpression() => SqlExpression.NewDelete(expr);
 
-        public string ToSql(ISqlDialect dialect) => SqlGenerator.SqlifyExpression(dialect, ToSqlExpression());
+        public string ToSql(ISqlDialect dialect) => SqlGen.SqlifyExpression(dialect, ToSqlExpression());
     }
 }

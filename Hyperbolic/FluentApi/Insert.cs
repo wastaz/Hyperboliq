@@ -5,7 +5,7 @@ using Microsoft.FSharp.Core;
 using static Hyperboliq.Domain.Stream;
 using static Hyperboliq.Domain.Types;
 using static Hyperboliq.Domain.ExpressionParts;
-using static Hyperboliq.Domain.SqlGenerator;
+using static Hyperboliq.Domain.SqlGen;
 using static Hyperboliq.Domain.InsertExpressionPart;
 using Hyperboliq.Domain;
 

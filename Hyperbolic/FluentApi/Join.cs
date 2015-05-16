@@ -60,7 +60,7 @@ namespace Hyperboliq
 
         public SqlExpression ToSqlExpression() => SqlExpression.NewSelect(expr);
 
-        public string ToSql(ISqlDialect dialect) => SqlGenerator.SqlifyExpression(dialect, ToSqlExpression());
+        public string ToSql(ISqlDialect dialect) => SqlGen.SqlifyExpression(dialect, ToSqlExpression());
 
         private Join PerformTwoTableJoin<TSource, TTarget>(
             JoinType type, 

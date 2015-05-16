@@ -26,7 +26,7 @@ namespace Hyperboliq.FluentApi
 
         public SqlExpression ToSqlExpression() => SqlExpression.NewDelete(expr);
 
-        public string ToSql(ISqlDialect dialect) => SqlGenerator.SqlifyExpression(dialect, ToSqlExpression());
+        public string ToSql(ISqlDialect dialect) => SqlGen.SqlifyExpression(dialect, ToSqlExpression());
     }
 
 }
