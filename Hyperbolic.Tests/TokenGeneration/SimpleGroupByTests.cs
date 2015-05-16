@@ -1,6 +1,5 @@
 ﻿using System;
 using Xunit;
-using FluentAssertions;
 using Hyperboliq.Tests.Model;
 using static Hyperboliq.Tests.SqlStreamExtensions;
 using static Hyperboliq.Domain.Stream;
