@@ -1,14 +1,11 @@
 ﻿using Xunit;
 using static Hyperboliq.Tests.SqlStreamExtensions;
-using static Hyperboliq.Domain.Stream;
 using Hyperboliq.Tests.Model;
-using static Hyperboliq.Domain.SqlGenerator;
-using FluentAssertions;
+using static Hyperboliq.Domain.SqlGen;
 using Hyperboliq.Dialects;
 
 namespace Hyperboliq.Tests.Sqllite
 {
-    /*
     [Trait("Sqlite", "Quoting")]
     public class SqlLite_ColumnQuotingTests
     {
@@ -24,7 +21,7 @@ namespace Hyperboliq.Tests.Sqllite
                     From<Person>());
 
             var result = SqlifyExpression(SqlLite.Dialect, stream);
-            result.Should().Be(@"SELECT PersonRef.""Name"", PersonRef.""Age"", PersonRef.""Id"" FROM Person PersonRef");
+            Assert.Equal(@"SELECT PersonRef.""Name"", PersonRef.""Age"", PersonRef.""Id"" FROM Person PersonRef", result);
         }
-    }*/
+    }
 }
