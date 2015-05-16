@@ -278,6 +278,23 @@ module UpdateSqlGen =
         ]
         |> JoinOptionsWithSpace
 
+module DeleteSqlGen =
+    open Types
+    open Stream
+
+    let HandleFrom dialect (from : FromExpressionNode) =
+        from.Tables
+        |> List.map (fun t -> sprintf "%s %s" t.Table.Name t.ReferenceName)
+        |> JoinWithComma
+        |> sprintf "DELETE FROM %s"
+
+    let HandleDeleteExpression dialect (delete : DeleteExpression) =
+        [
+            Some(HandleFrom dialect delete.From)
+            HandleWhere (HandleBinaryExpression SelectSqlGen.HandleSelectExpression true) dialect delete.Where
+        ]
+        |> JoinOptionsWithSpace
+
 module SqlGen =
     open Types
     open Stream
@@ -286,6 +303,6 @@ module SqlGen =
         match expression with
         | Select(select) -> SelectSqlGen.HandleSelectExpression dialect select
         | Insert(insert) -> ""
-        | Delete(delete) -> ""
+        | Delete(delete) -> DeleteSqlGen.HandleDeleteExpression dialect delete
         | Update(update) -> UpdateSqlGen.HandleUpdateExpression dialect update
 
