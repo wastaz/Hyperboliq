@@ -1,13 +1,12 @@
-﻿using Xunit;
+﻿using Hyperboliq.Tests.Model;
+using Xunit;
 using static Hyperboliq.Tests.SqlStreamExtensions;
-using Hyperboliq.Tests.Model;
-using static Hyperboliq.Domain.Stream;
-using static Hyperboliq.Domain.SqlGenerator;
-using FluentAssertions;
+using static Hyperboliq.Domain.SqlGen;
 using static Hyperboliq.Domain.Types;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
+    
     [Trait("SqlGeneration", "Select")]
     public class SqlGeneration_SimpleSelectTests
     {
@@ -15,30 +14,28 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItShouldBePossibleToSqlifyASimpleSelect()
         {
             var stream =
-                StreamFrom(
-                    Kw(KeywordNode.Select),
-                    Col<Person>("*"),
-                    Kw(KeywordNode.From),
-                    Tbl<Person>());
+                SelectNode(
+                    Select(Col<Person>("*")),
+                    From<Person>());
 
-            var result = SqlifySeq(AnsiSql.Dialect, stream);
-            result.Should().Be(@"SELECT PersonRef.* FROM Person PersonRef");
+            var result = SqlifyExpression(AnsiSql.Dialect, stream);
+            Assert.Equal(@"SELECT PersonRef.* FROM Person PersonRef", result);
         }
 
         [Fact]
         public void ItShouldBePossibleToSqlifyASelectWithManyColumns()
         {
             var stream =
-                StreamFrom(
-                    Kw(KeywordNode.Select),
-                    Col<Person>("Name"),
-                    Col<Person>("Age"),
-                    Col<Person>("Id"),
-                    Kw(KeywordNode.From),
-                    Tbl<Person>());
+                SelectNode(
+                    Select(
+                        Col<Person>("Name"),
+                        Col<Person>("Age"),
+                        Col<Person>("Id")),
+                    From<Person>());
 
-            var result = SqlifySeq(AnsiSql.Dialect, stream);
-            result.Should().Be(@"SELECT PersonRef.Name, PersonRef.Age, PersonRef.Id FROM Person PersonRef");
+            var result = SqlifyExpression(AnsiSql.Dialect, stream);
+            Assert.Equal(@"SELECT PersonRef.Name, PersonRef.Age, PersonRef.Id FROM Person PersonRef", result);
         }
     }
+    
 }

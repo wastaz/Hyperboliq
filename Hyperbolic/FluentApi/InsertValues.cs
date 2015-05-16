@@ -1,21 +1,25 @@
-﻿using Microsoft.FSharp.Collections;
-using static Hyperboliq.Domain.Stream;
+﻿using static Hyperboliq.Domain.Stream;
 using static Hyperboliq.Domain.Types;
+using static Hyperboliq.Domain.SqlGen;
+using static Hyperboliq.Domain.InsertExpressionPart;
 
 namespace Hyperboliq.FluentApi
 {
     public class InsertValues<TTable> : ISqlStatement, ISqlTransformable
     {
-        private readonly InsertExpression<TTable> expr;
+        private InsertExpression expr;
 
-        internal InsertValues(InsertExpression<TTable> expr)
+        internal InsertValues(InsertExpression expr)
         {
             this.expr = expr;
         }
 
         public InsertValues<TTable> Value(TTable instance)
         {
-            expr.Value(instance);
+            expr =
+                WithValues(
+                    expr,
+                    AddInsertValue(expr.InsertInto, expr.InsertValues, instance));
             return this;
         }
 
@@ -28,14 +32,9 @@ namespace Hyperboliq.FluentApi
             return this;
         }
 
-        public string ToSql(ISqlDialect dialect)
-        {
-            return expr.ToSql(dialect);
-        }
+        public SqlExpression ToSqlExpression() => SqlExpression.NewInsert(expr);
 
-        public FSharpList<SqlNode> ToSqlStream()
-        {
-            return expr.ToSqlStream();
-        }
+        public string ToSql(ISqlDialect dialect) => SqlifyExpression(dialect, ToSqlExpression());
+
     }
 }

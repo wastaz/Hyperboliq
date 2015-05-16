@@ -1,9 +1,7 @@
 ﻿using Xunit;
 using Hyperboliq.Tests.Model;
 using static Hyperboliq.Tests.SqlStreamExtensions;
-using static Hyperboliq.Domain.Stream;
-using FluentAssertions;
-using static Hyperboliq.Domain.SqlGenerator;
+using static Hyperboliq.Domain.SqlGen;
 using static Hyperboliq.Domain.Types;
 
 namespace Hyperboliq.Tests.SqlGeneration
@@ -14,46 +12,42 @@ namespace Hyperboliq.Tests.SqlGeneration
         [Fact]
         public void ItShouldBePossibleToDoASimpleInsert()
         {
-            var stream = StreamFrom(
-                Kw(KeywordNode.InsertInto),
-                InsHead<Person>("Age", "Id", "LivesAtHouseId", "Name", "ParentId"),
-                Kw(KeywordNode.Values),
-                InsVal(
-                    InsConst(42),
-                    InsConst(2),
-                    InsConst(5),
-                    InsConst("'Kalle'"),
-                    InsConst(0))
-                );
+            var stream =
+                InsertNode(
+                    InsHead<Person>("Age", "Id", "LivesAtHouseId", "Name", "ParentId"),
+                    InsVal(
+                        InsConst(42),
+                        InsConst(2),
+                        InsConst(5),
+                        InsConst("'Kalle'"),
+                        InsConst(0))
+                    );
 
-            var result = SqlifySeq(AnsiSql.Dialect, stream);
+            var result = SqlifyExpression(AnsiSql.Dialect, stream);
 
-            result.Should().Be("INSERT INTO Person (Age, Id, LivesAtHouseId, Name, ParentId) VALUES (42, 2, 5, 'Kalle', 0)");
+            Assert.Equal("INSERT INTO Person (Age, Id, LivesAtHouseId, Name, ParentId) VALUES (42, 2, 5, 'Kalle', 0)", result);
         }
 
         [Fact]
         public void ItShouldBePossibleToSpecifyColumnsForAnInsert()
         {
-            var stream = StreamFrom(
-                Kw(KeywordNode.InsertInto),
-                InsHead<Person>("Name", "Age"),
-                Kw(KeywordNode.Values),
-                InsVal(
-                    InsConst("'Kalle'"),
-                    InsConst(42))
-                );
-            var result = SqlifySeq(AnsiSql.Dialect, stream);
-            result.Should().Be("INSERT INTO Person (Name, Age) VALUES ('Kalle', 42)");
+            var stream = 
+                InsertNode(
+                    InsHead<Person>("Name", "Age"),
+                    InsVal(
+                        InsConst("'Kalle'"),
+                        InsConst(42))
+                    );
+            var result = SqlifyExpression(AnsiSql.Dialect, stream);
+            Assert.Equal("INSERT INTO Person (Name, Age) VALUES ('Kalle', 42)", result);
         }
 
         [Fact]
         public void ItShouldBePossibleToInsertMultipleValuesInOneStatement()
         {
             var stream =
-                StreamFrom(
-                    Kw(KeywordNode.InsertInto),
+                InsertNode(
                     InsHead<Person>("Age", "Id", "LivesAtHouseId", "Name", "ParentId"),
-                    Kw(KeywordNode.Values),
                     InsVal(
                         InsConst(42),
                         InsConst(2),
@@ -68,11 +62,12 @@ namespace Hyperboliq.Tests.SqlGeneration
                         InsConst(2)
                         )
                     );
-            var result = SqlifySeq(AnsiSql.Dialect, stream);
+            var result = SqlifyExpression(AnsiSql.Dialect, stream);
 
-            result.Should().Be(
+            Assert.Equal(
                 "INSERT INTO Person (Age, Id, LivesAtHouseId, Name, ParentId) " +
-                "VALUES (42, 2, 5, 'Kalle', 0), (12, 3, 3, 'Pelle', 2)");
+                "VALUES (42, 2, 5, 'Kalle', 0), (12, 3, 3, 'Pelle', 2)",
+                result);
         }
     }
 }

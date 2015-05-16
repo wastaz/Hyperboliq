@@ -1,10 +1,7 @@
-﻿using System;
-using Xunit;
-using FluentAssertions;
+﻿using Xunit;
 using Hyperboliq.Tests.Model;
 using static Hyperboliq.Tests.SqlStreamExtensions;
 using static Hyperboliq.Domain.Stream;
-using static Hyperboliq.Domain.ExpressionParts;
 using static Hyperboliq.Domain.Types;
 
 namespace Hyperboliq.Tests
@@ -18,19 +15,15 @@ namespace Hyperboliq.Tests
             var expr = Select.Star<Person>()
                              .From<Person>()
                              .OrderBy<Person>(p => p.Age, Direction.Ascending);
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
-                    Kw(KeywordNode.Select),
-                    Col<Person>("*"),
-                    Kw(KeywordNode.From),
-                    Tbl<Person>(),
-                    Kw(KeywordNode.OrderBy),
-                    Ord(Col<Person>("Age"), Direction.Ascending)
-                    );
+                SelectNode(
+                    Select(Col<Person>("*")),
+                    From<Person>(),
+                    orderBy: OrderBy(OrderClause(Col<Person>("Age"), Direction.Ascending)));
 
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
 
         [Fact]
@@ -39,19 +32,15 @@ namespace Hyperboliq.Tests
             var expr = Select.Star<Person>()
                              .From<Person>()
                              .OrderBy<Person>(p => p.Age, Direction.Descending);
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
-                    Kw(KeywordNode.Select),
-                    Col<Person>("*"),
-                    Kw(KeywordNode.From),
-                    Tbl<Person>(),
-                    Kw(KeywordNode.OrderBy),
-                    Ord(Col<Person>("Age"), Direction.Descending)
-                    );
+                SelectNode(
+                    Select(Col<Person>("*")),
+                    From<Person>(),
+                    orderBy: OrderBy(OrderClause(Col<Person>("Age"), Direction.Descending)));
 
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
 
         [Fact]
@@ -62,25 +51,19 @@ namespace Hyperboliq.Tests
                              .InnerJoin<Person, Car>((p, c) => p.Id == c.DriverId)
                              .OrderBy<Person>(p => p.Age, Direction.Ascending)
                              .ThenBy<Car>(c => c.Brand, Direction.Descending);
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
-                    Kw(KeywordNode.Select),
-                    Col<Person>("*"),
-                    Col<Car>("*"),
-                    Kw(KeywordNode.From),
-                    Tbl<Person>(),
-                    Kw(KeywordNode.NewJoin(JoinType.InnerJoin)),
-                    Tbl<Car>(),
-                    Kw(KeywordNode.On),
-                    BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId")),
-                    Kw(KeywordNode.OrderBy),
-                    Ord(Col<Person>("Age"), Direction.Ascending),
-                    Ord(Col<Car>("Brand"), Direction.Descending)
+                SelectNode(
+                    Select(Col<Car>("*"), Col<Person>("*")),
+                    From<Person>(
+                        Join<Person, Car>(JoinType.InnerJoin, BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId")))),
+                    orderBy: OrderBy(
+                        OrderClause(Col<Car>("Brand"), Direction.Descending),
+                        OrderClause(Col<Person>("Age"), Direction.Ascending))
                     );
 
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
     }
 }

@@ -3,21 +3,46 @@ using System;
 using System.Linq.Expressions;
 using static Hyperboliq.Domain.Stream;
 using static Hyperboliq.Domain.Types;
+using Microsoft.FSharp.Core;
+using Hyperboliq.Domain;
 
 namespace Hyperboliq
 {
-    public class SelectFrom<TTableType> : ISqlQuery, ISqlStreamTransformable
+    public class SelectFrom<TTableType> : ISqlQuery, ISqlExpressionTransformable, ISelectExpressionTransformable
     {
-        private SelectExpression expr;
+        private Domain.Stream.SelectExpression expr;
 
-        internal SelectFrom(SelectExpression expr)
+        internal SelectFrom(ITableReference<TTableType> table, SelectExpressionNode selectNode)
         {
-            this.expr = expr.From<TTableType>();
+            var from = ExpressionParts.AddFromTable(ExpressionParts.NewFromExpression(), table);
+            expr = new SelectExpression(
+                selectNode,
+                from,
+                FSharpOption<WhereExpressionNode>.None,
+                FSharpOption<GroupByExpressionNode>.None,
+                FSharpOption<OrderByExpressionNode>.None);
         }
 
         public Join InnerJoin<TSource, TTarget>(Expression<Func<TSource, TTarget, bool>> joinExpr)
         {
             return new Join(expr).InnerJoin(joinExpr);
+        }
+
+        public Join InnerJoin<TSource, TTarget>(
+            ITableReference<TSource> source, 
+            ITableReference<TTarget> target, 
+            Expression<Func<TSource, TTarget, bool>> joinExpr)
+        {
+            return new Join(expr).InnerJoin(source, target, joinExpr);
+        }
+
+        public Join InnerJoin<TSource1, TSource2, TTarget>(
+            ITableReference<TSource1> source1,
+            ITableReference<TSource2> source2,
+            ITableReference<TTarget> target,
+            Expression<Func<TSource1, TSource2, TTarget, bool>> joinExpr)
+        {
+            return new Join(expr).InnerJoin(source1, source2, target, joinExpr);
         }
 
         public Join InnerJoin<TSource1, TSource2, TTarget>(Expression<Func<TSource1, TSource2, TTarget, bool>> joinExpr)
@@ -45,14 +70,12 @@ namespace Hyperboliq
 
         public SelectWhere Where<TTable>(Expression<Func<TTable, bool>> predicate)
         {
-            var where = new SelectWhere(expr);
-            return where.And(predicate);
+            return new SelectWhere(expr).And(predicate);
         }
 
         public SelectWhere Where<TTable1, TTable2>(Expression<Func<TTable1, TTable2, bool>> predicate)
         {
-            var where = new SelectWhere(expr);
-            return where.And(predicate);
+            return new SelectWhere(expr).And(predicate);
         }
 
         public OrderBy OrderBy<TTable>(Expression<Func<TTable, object>> orderExpr, Direction direction = null, NullsOrdering nullsOrdering = null)
@@ -65,9 +88,11 @@ namespace Hyperboliq
             return new GroupBy(expr).ThenBy(groupByExpr);
         }
 
-        public FSharpList<SqlNode> ToSqlStream() => expr.ToSqlStream();
+        public SelectExpression ToSelectExpression() => expr;
 
-        public string ToSql(ISqlDialect dialect) => expr.ToSql(dialect);
+        public SqlExpression ToSqlExpression() => SqlExpression.NewSelect(expr);
+
+        public string ToSql(ISqlDialect dialect) => SqlGen.SqlifyExpression(dialect, ToSqlExpression());
 
         public static implicit operator SelectExpression(SelectFrom<TTableType> select) => select.expr;
     }

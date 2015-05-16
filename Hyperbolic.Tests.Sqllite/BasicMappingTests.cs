@@ -2,7 +2,6 @@
 using Hyperboliq.FluentApi;
 using Hyperboliq.Tests.Model;
 using System.Linq;
-using FluentAssertions;
 using Hyperboliq.Domain;
 using Hyperboliq.Dialects;
 using static Hyperboliq.Domain.IDbConnectionExtensions;
@@ -30,7 +29,7 @@ namespace Hyperboliq.Tests.Sqllite
                     new Person { Id = 3, Name = "Gustav", Age = 45 });
                 int affected = con.ExecuteNonQuery(insertQuery);
 
-                affected.Should().Be(3);
+                Assert.Equal(3, affected);
             }
         }
 
@@ -51,11 +50,11 @@ namespace Hyperboliq.Tests.Sqllite
                 var selectQuery = Select.Star<Person>().From<Person>();
                 var persons = con.Query<Person>(selectQuery);
 
-                persons.Should().HaveCount(1);
+                Assert.Equal(1, persons.Count());
                 var person = persons.First();
-                person.Name.Should().Be("Kalle");
-                person.Id.Should().Be(1);
-                person.Age.Should().Be(42);
+                Assert.Equal("Kalle", person.Name);
+                Assert.Equal(1, person.Id);
+                Assert.Equal(42, person.Age);
             }
         }
 
@@ -79,7 +78,7 @@ namespace Hyperboliq.Tests.Sqllite
                 var selectQuery = Select.Column<Person>(p => new { Count = Sql.Count(), }).From<Person>();
                 var result = (long)con.ExecuteScalar(selectQuery);
 
-                result.Should().Be(3);
+                Assert.Equal(3, result);
             }
         }
 
@@ -112,11 +111,11 @@ namespace Hyperboliq.Tests.Sqllite
                 var selectQuery = Select.Star<Person>().From<Person>();
                 var persons = con.Query<AliasPerson>(selectQuery);
 
-                persons.Should().HaveCount(1);
+                Assert.Equal(1, persons.Count());
                 var person = persons.First();
-                person.Id.Should().Be(1);
-                person.AliasName.Should().Be("Kalle");
-                person.AliasAge.Should().Be(42);
+                Assert.Equal(1, person.Id);
+                Assert.Equal("Kalle", person.AliasName);
+                Assert.Equal(42, person.AliasAge);
             }
         }
 
@@ -137,7 +136,7 @@ namespace Hyperboliq.Tests.Sqllite
                 var selectQuery = Select.Star<Person>().From<Person>();
                 var persons = con.DynamicQuery(selectQuery);
 
-                persons.Should().HaveCount(1);
+                Assert.Equal(1, persons.Count());
                 dynamic person = persons.First();
                 Assert.Equal(person.Id, 1);
                 Assert.Equal(person.Name, "Kalle");
@@ -164,11 +163,11 @@ namespace Hyperboliq.Tests.Sqllite
                 nameParam.SetValue("Kalle");
                 var persons = con.Query<Person>(selectQuery, nameParam);
 
-                persons.Should().HaveCount(1);
+                Assert.Equal(1, persons.Count());
                 var person = persons.First();
-                person.Id.Should().Be(1);
-                person.Name.Should().Be("Kalle");
-                person.Age.Should().Be(42);
+                Assert.Equal(1, person.Id);
+                Assert.Equal("Kalle", person.Name);
+                Assert.Equal(42, person.Age);
             }
         }
     }

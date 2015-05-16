@@ -28,104 +28,104 @@ module ExpressionVisitor =
         | :? ParameterExpression as pexp -> Some (m.Member.Name, pexp)
         | _ -> None
 
-    let VisitSqlParameter mbrName (exp : ConstantExpression) =
+    let VisitSqlParameter mbrName (exp : ConstantExpression) : ValueNode =
         let flags = System.Reflection.BindingFlags.Instance ||| System.Reflection.BindingFlags.Public ||| System.Reflection.BindingFlags.NonPublic
         let fieldInfo = exp.Value.GetType().GetField(mbrName, flags)
         match fieldInfo.GetValue(exp.Value) with
-        | :? ExpressionParameter as p -> [ SqlNode.Parameter(ParameterToken(p.Name)) ]
+        | :? ExpressionParameter as p -> ValueNode.Parameter(ParameterToken(p.Name))
         | _ -> failwith "Not implemented"
 
-    let VisitMemberAccess (exp : MemberExpression) (context : EvaluationContext) =
+    let VisitMemberAccess (exp : MemberExpression) (context : EvaluationContext) : ValueNode =
         match exp with
         | SqlParameterExpression (mbrName, expr) ->  VisitSqlParameter mbrName expr 
         | ParameterExpression (mbrName, expr) -> 
             let binding = FindBinding context expr.Name
-            [ SqlNode.Column(mbrName, TableRef binding) ]
+            ValueNode.Column(mbrName, TableRef binding)
         | _ -> failwith "Not implemented"
 
-    let VisitConstant (exp : ConstantExpression) =
+    let VisitConstant (exp : ConstantExpression) : ValueNode =
         match exp.Value with
-        | null -> [ SqlNode.NullValue ]
-        | :? ISqlStreamTransformable as ss -> ss.ToSqlStream()
-        | :? string as s-> [ SqlNode.Constant(ConstantNode(sprintf "'%s'" s))]
-        | x ->  [ SqlNode.Constant(ConstantNode(x.ToString())) ]
+        | null -> ValueNode.NullValue
+        | :? SelectExpression as se -> ValueNode.SubExpression(se)
+        | :? string as s-> ValueNode.Constant(ConstantNode(sprintf "'%s'" s))
+        | x ->  ValueNode.Constant(ConstantNode(x.ToString()))
 
-    let (|CompiledNullLambda|_|) (e : Expression) =
+    let (|CompiledNullLambda|_|) (e : Expression) : ValueNode option =
         try
             let result = Expression.Lambda(e).Compile().DynamicInvoke()
             match result with
-            | null -> Some [ SqlNode.NullValue ]
-            | :? SqlStream as ss -> Some ss
-            | :? ISqlStreamTransformable as ss -> Some (ss.ToSqlStream())
-            | _ -> Some [ SqlNode.Constant(ConstantNode(result.ToString())) ]
+            | null -> Some ValueNode.NullValue
+            | :? ValueNode as vn -> Some vn
+            | :? ISelectExpressionTransformable as ss -> Some (ValueNode.SubExpression(ss.ToSelectExpression()))
+            | :? SelectExpression as ss -> Some (ValueNode.SubExpression(ss))
+            | _ -> Some (ValueNode.Constant(ConstantNode(result.ToString())))
         with
             | _ -> Option.None
 
-    let rec VisitSqlMethodCall (exp : MethodCallExpression) context = 
+    let rec VisitSqlMethodCall (exp : MethodCallExpression) (context : EvaluationContext) : ValueNode = 
         let args = VisitExpressionList <| List.ofArray (exp.Arguments.ToArray()) <| context
         match exp.Method.Name, args with
-        | "In", [ lhs; rhs ] -> [ SqlNode.BinaryExpression({ Lhs = lhs; Rhs = [ SubExpression(rhs) ]; Operation = BinaryOperation.In }) ]
-        | "SubExpr", [ expr ] -> [ SubExpression(expr) ]
-        | "Max", [ expr ] -> [ Aggregate(Max, expr) ]
-        | "Min", [ expr ] -> [ Aggregate(Min, expr) ]
-        | "Avg", [ expr ] -> [ Aggregate(Avg, expr) ]
-        | "Count", [] -> [Aggregate(Count, [])]
-        | "Count", [ expr ]-> [ Aggregate(Count, expr) ]
+        | "In", ValueList([ lhs; rhs ]) -> ValueNode.BinaryExpression({ Lhs = lhs; Rhs = rhs; Operation = BinaryOperation.In })
+        | "SubExpr", ValueList([ expr ]) -> expr
+        | "Max", ValueList([ expr ]) -> ValueNode.Aggregate(Max, expr)
+        | "Min", ValueList([ expr ]) -> ValueNode.Aggregate(Min, expr)
+        | "Avg", ValueList([ expr ]) -> ValueNode.Aggregate(Avg, expr)
+        | "Count", ValueList(_) -> ValueNode.Aggregate(Count, ValueNode.NullValue )
         | _ -> failwith "Not implemented"
 
-    and VisitMethodCall (exp : MethodCallExpression) context =
+    and VisitMethodCall (exp : MethodCallExpression) context : ValueNode =
         match exp with
         | x when x.Method.DeclaringType = typeof<Sql> -> VisitSqlMethodCall exp context
         | CompiledNullLambda stream -> stream
         | _ -> failwith "Not implemented"
 
+        
     and VisitUnary (exp : UnaryExpression) context =
         match exp with
         | x when x.NodeType = ExpressionType.Convert && typeof<ExpressionParameter>.IsAssignableFrom(x.Operand.Type) -> 
             InternalVisit exp.Operand context
         | x when x.NodeType = ExpressionType.Convert && x.Method <> null ->
             match Expression.Lambda(x).Compile().DynamicInvoke() with
-            | null -> [ SqlNode.NullValue ]
-            | x -> [ SqlNode.Constant(ConstantNode(x.ToString())) ]
+            | null -> ValueNode.NullValue
+            | x -> ValueNode.Constant(ConstantNode(x.ToString()))
         | _ -> InternalVisit exp.Operand context
+        
 
-    and VisitBinary (exp : BinaryExpression) (context : EvaluationContext) = 
-        [ 
-            SqlNode.BinaryExpression(
-                { 
-                    Lhs = InternalVisit exp.Left context 
-                    Operation = ToBinaryOperation exp.NodeType
-                    Rhs = InternalVisit exp.Right context 
-                }
-            ) 
-        ]
+    and VisitBinary (exp : BinaryExpression) (context : EvaluationContext) : ValueNode = 
+        let op = ToBinaryOperation exp.NodeType
+        let lhs = InternalVisit exp.Left context 
+        let rhs = InternalVisit exp.Right context 
+        ValueNode.BinaryExpression({ Lhs = lhs; Operation = op; Rhs = rhs })
 
-    and VisitNew (exp : NewExpression) (context : EvaluationContext) =
+    and VisitNew (exp : NewExpression) (context : EvaluationContext) : ValueNode =
         let mbr = Expression.Convert(exp, typeof<System.Object>) 
         let lmb = Expression.Lambda<System.Func<System.Object>>(mbr)
         try 
             let getter = lmb.Compile()
             let result = getter.DynamicInvoke()
             match result with
-            | :? ExpressionParameter as param -> [ SqlNode.Parameter(ParameterToken(param.Name)) ]
+            | :? ExpressionParameter as param -> ValueNode.Parameter(ParameterToken(param.Name))
             | _ -> 
                 let binding = FindBinding context (getter.ToString())
-                [ SqlNode.Column(ParamName binding, TableRef binding) ]
+                ValueNode.Column(ParamName binding, TableRef binding)
         with
             | :? System.Collections.Generic.KeyNotFoundException 
             | :? System.InvalidOperationException -> 
-                VisitExpressionList <| List.ofArray (exp.Arguments.ToArray()) <| context |> List.concat
+                VisitExpressionList <| List.ofArray (exp.Arguments.ToArray()) <| context
 
-    and VisitExpressionList (expList : Expression list) (context : EvaluationContext) : SqlStream list =
-        let HandleSingleExpression (exp : Expression) (context : EvaluationContext) : SqlStream =
+    and VisitExpressionList (expList : Expression list) (context : EvaluationContext) : ValueNode =
+        let HandleSingleExpression (context : EvaluationContext) (exp : Expression) : ValueNode =
             match exp with
-            | :? NewArrayExpression as arrayExp -> VisitExpressionList <| List.ofArray (arrayExp.Expressions.ToArray()) <| context |> List.concat
+            | :? NewArrayExpression as arrayExp -> 
+                VisitExpressionList <| List.ofArray (arrayExp.Expressions.ToArray()) <| context 
             | _ -> InternalVisit exp context
-        List.map (fun x -> HandleSingleExpression x context) expList
 
-    and InternalVisit (exp : Expression) context : SqlStream =
+        ValueNode.ValueList(List.map (HandleSingleExpression context) expList)
+        
+
+    and InternalVisit (exp : Expression) context : ValueNode =
         match exp with
-        | null -> []
+        | null -> ValueNode.NullValue
         | :? LambdaExpression as x -> InternalVisit x.Body context
         | :? NewExpression as x -> VisitNew x context
         | :? MemberExpression as x -> VisitMemberAccess x context
@@ -141,8 +141,8 @@ module ExpressionVisitor =
         |> Seq.zip <| context
         |> List.ofSeq
 
-    let Visit (exp : Expression) (context : ITableReference seq) : SqlStream =
+    let Visit (exp : Expression) (context : ITableReference seq) : ValueNode option =
         match exp with
-        | null -> []
-        | :? LambdaExpression as x -> BindEvaluationContext x context |> InternalVisit exp 
+        | null -> None
+        | :? LambdaExpression as x -> BindEvaluationContext x context |> InternalVisit exp |> fun r -> Some(r)
         | _ -> failwith "Not implemented"

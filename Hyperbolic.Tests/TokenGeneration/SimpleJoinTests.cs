@@ -10,19 +10,12 @@ namespace Hyperboliq.Tests
     [Trait("TokenGeneration", "Joins")]
     public class TokenGeneration_SimpleJoinTests
     {
-        private IEnumerable<SqlNode> GetExpectedStream(JoinType joinKeyword)
+        private SqlExpression GetExpectedStream(JoinType joinKeyword)
         {
-            return StreamFrom(
-                    Kw(KeywordNode.Select),
-                    Col<Person>("*"),
-                    Col<Car>("*"),
-                    Kw(KeywordNode.From),
-                    Tbl<Person>(),
-                    Kw(KeywordNode.NewJoin(joinKeyword)),
-                    Tbl<Car>(),
-                    Kw(KeywordNode.On),
-                    BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId"))
-                    );
+            return SelectNode(
+                Select(Col<Car>("*"), Col<Person>("*")),
+                From<Person>(
+                    Join<Person, Car>(joinKeyword, BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId")))));
         }
 
         [Fact]
@@ -33,10 +26,10 @@ namespace Hyperboliq.Tests
                       .From<Person>()
                       .InnerJoin<Person, Car>((p, c) => p.Id == c.DriverId);
 
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected = GetExpectedStream(JoinType.InnerJoin);
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
 
         [Fact]
@@ -46,10 +39,10 @@ namespace Hyperboliq.Tests
                              .From<Person>()
                              .LeftJoin<Person, Car>((p, c) => p.Id == c.DriverId);
 
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected = GetExpectedStream(JoinType.LeftJoin);
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
 
         [Fact]
@@ -59,10 +52,10 @@ namespace Hyperboliq.Tests
                              .From<Person>()
                              .RightJoin<Person, Car>((p, c) => p.Id == c.DriverId);
 
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected = GetExpectedStream(JoinType.RightJoin);
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
 
         [Fact]
@@ -72,10 +65,10 @@ namespace Hyperboliq.Tests
                              .From<Person>()
                              .FullJoin<Person, Car>((p, c) => p.Id == c.DriverId);
 
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected = GetExpectedStream(JoinType.FullJoin);
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
 
         [Fact]
@@ -85,27 +78,16 @@ namespace Hyperboliq.Tests
                              .From<House>()
                              .InnerJoin<House, Person>((h, p) => h.Id == p.LivesAtHouseId)
                              .LeftJoin<Person, Car>((p, c) => p.Id == c.DriverId);
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
-                    Kw(KeywordNode.Select),
-                    Col<Person>("*"),
-                    Col<Car>("*"),
-                    Col<House>("*"),
-                    Kw(KeywordNode.From),
-                    Tbl<House>(),
-                    Kw(KeywordNode.NewJoin(JoinType.InnerJoin)),
-                    Tbl<Person>(),
-                    Kw(KeywordNode.On),
-                    BinExp(Col<House>("Id"), BinaryOperation.Equal, Col<Person>("LivesAtHouseId")),
-                    Kw(KeywordNode.NewJoin(JoinType.LeftJoin)),
-                    Tbl<Car>(),
-                    Kw(KeywordNode.On),
-                    BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId"))
-                    );
+                SelectNode(
+                    Select(Col<House>("*"), Col<Car>("*"), Col<Person>("*")),
+                    From<House>(
+                        Join<Person, Car>(JoinType.LeftJoin, BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId"))),
+                        Join<House, Person>(JoinType.InnerJoin, BinExp(Col<House>("Id"), BinaryOperation.Equal, Col<Person>("LivesAtHouseId")))));
 
-            result.ShouldEqual(expected);
+            Assert.Equal(expected, result);
         }
     }
 }

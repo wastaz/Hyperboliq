@@ -4,157 +4,135 @@ module ExpressionParts =
     open Types
     open Stream
 
-    type FromExpression = 
-        {
-            Tables : ITableReference list
-        }
-    
-    let NewFromExpression () = { FromExpression.Tables = [] }
+    let NewFromExpression () = { Tables = []; Joins = [] }
 
     let AddFromTable fromExpr tbl =
-        { fromExpr with FromExpression.Tables = tbl :: fromExpr.Tables }
-    
-    let FlattenFromExpression fromExpr =
-        let rec internalFlatten expr acc =
-            match expr with
-            | [] -> List.rev acc
-            | head::tail -> Table(TableToken(head)) :: acc
-        internalFlatten fromExpr [ Keyword(KeywordNode.From) ]
+        { fromExpr with Tables = tbl :: fromExpr.Tables }
 
-    type JoinClause = 
-        { 
-            SourceTables: ITableReference list
-            TargetTable: ITableReference
-            Type: JoinType
-            Condition: System.Linq.Expressions.Expression
-        }
-        member x.Flatten() =
-            Keyword(Join(x.Type)) :: 
-            Table(TableToken(x.TargetTable)) :: 
-            Keyword(KeywordNode.On) :: 
-            (ExpressionVisitor.Visit x.Condition (x.SourceTables @ [ x.TargetTable ]))
+    let AddJoinClause fromExpr joinClause =
+        { fromExpr with Joins = joinClause :: fromExpr.Joins }
 
-
-    type JoinExpression = 
+    let CreateJoinClause joinType condition targetTable ([<System.ParamArray>] sourceTables : ITableReference array) =
+        let srcList = List.ofArray sourceTables
+        let envList = srcList @ [ targetTable ]
         {
-            Clauses: JoinClause list
-        }
-    
-    let NewJoinExpression () = { Clauses = [] }
-
-    let CreateJoinClause2<'a, 'b> joinType condition =
-        {
-            SourceTables = [ TableReferenceFromType<'a> ]
-            TargetTable = TableReferenceFromType<'b>
+            SourceTables = srcList
+            TargetTable = targetTable
             Type = joinType
-            Condition = condition
+            Condition = ExpressionVisitor.Visit condition envList
         }
 
-    let CreateJoinClause3<'a, 'b, 'c> joinType condition =
-        {
-            SourceTables = [ TableReferenceFromType<'a>; TableReferenceFromType<'b> ]
-            TargetTable = TableReferenceFromType<'c>
-            Type = joinType
-            Condition = condition
-        }
-
-    let AddJoinClause expr clause =
-        { Clauses = clause :: expr.Clauses }
-
-    let internal keywordForJoinType joinType =
-        match joinType with
-        | InnerJoin -> "INNER JOIN"
-        | LeftJoin -> "LEFT JOIN"
-        | RightJoin -> "RIGHT JOIN"
-        | FullJoin -> "FULL JOIN"
-
-    let FlattenJoinExpression (joinExpr : JoinExpression) =
-        joinExpr.Clauses 
-        |> List.map (fun (clause : JoinClause) -> clause.Flatten())
-        |> List.concat
-        
-    type SelectExpression =
-        {
-            Expression : (ITableReference * SqlStream) list
-            IsDistinct : bool
-        }
-    
     let NewSelectExpression () =
-        { 
-            Expression = []
-            IsDistinct = false
-        }
+        { IsDistinct = false; Values = [] }
 
     let MakeDistinct select =
         { select with IsDistinct = true }
 
-    let SelectAllColumns (select : SelectExpression) tableReference : SelectExpression =
-        { select with Expression = (tableReference, [ SqlNode.Column("*", tableReference) ]) :: select.Expression }
+    let SelectAllColumns select tableReference =
+        { select with SelectExpressionNode.Values = ValueNode.Column("*", tableReference) :: select.Values }
 
-    let SelectColumns (select : SelectExpression) expr tableReference : SelectExpression =
-        { select with Expression = (tableReference, ExpressionVisitor.Visit expr [ tableReference ]) :: select.Expression }
+    let SelectColumns select expr tableReference =
+        let stream = ExpressionVisitor.Visit expr [ tableReference ]
+        match stream with
+        | None -> select
+        | Some(ValueList(v)) -> { select with SelectExpressionNode.Values = v @ select.Values }
+        | Some(v) -> { select with Values = v :: select.Values }
 
+    (*
+    let AddOrCreateColumnsSelectExpression expr selector tableRef =
+        let values = ExpressionVisitor.Visit selector [ tableRef ]
+        match expr, values with
+        | _, None -> failwith "Must provide value"
+        | None, Some(ValueList(v)) -> { IsDistinct = false; Values = v }
+        | None, Some(v) -> { IsDistinct = false; Values = [ v ] }
+        | Some(e), Some(ValueList(v)) -> { e with Values = v @ e.Values }
+        | Some(e), Some(v) -> { e with Values = v :: e.Values}
+    *)
 
-    type OrderByClause =
-        {
-            Table : ITableReference
-            Direction : Direction
-            NullsOrdering : NullsOrdering
-            Expression : System.Linq.Expressions.Expression
-        }
+    let private NewOrderByExpression () = { OrderByExpressionNode.Clauses = [] }
 
-    type OrderByExpression = 
-        {
-            Clauses : OrderByClause list
-        }
+    let private AddOrderingClause tbl direction nullsorder expr orderExpr  =
+        let selector = ExpressionVisitor.Visit expr [ tbl ]
+        match selector with
+        | None -> orderExpr
+        | Some(v) -> 
+            let clause = { OrderByClauseNode.Direction = direction; NullsOrdering = nullsorder; Selector = v }
+            { orderExpr with OrderByExpressionNode.Clauses = clause :: orderExpr.Clauses }
 
-    let NewOrderByExpression () = { OrderByExpression.Clauses = [] }
+    let AddOrCreateOrderingClause orderExpr tbl direction nullsorder expr =
+        match orderExpr with
+        | Some(o) -> o
+        | None -> NewOrderByExpression ()
+        |> AddOrderingClause tbl direction nullsorder expr
 
-    let AddOrderingClause (expr : OrderByExpression) clause =
-        { expr with Clauses = clause :: expr.Clauses }
+    let private NewWhereExpression expr ([<System.ParamArray>] tables : ITableReference array) : WhereExpressionNode =
+        let startValue = ExpressionVisitor.Visit expr tables
+        match startValue with
+        | None -> failwith "Must provide value"
+        | Some(v) ->
+            { 
+                Start = v
+                AdditionalClauses = []
+            }
 
-    type ExpressionJoinType = And | Or
-    type WhereClause =
-        {
-            JoinType : ExpressionJoinType
-            Expression : System.Linq.Expressions.Expression
-            Tables : ITableReference list
-        }
+    let private CreateWhereClause cmbType whereExpr expr ([<System.ParamArray>] tables : ITableReference array) =
+        let startValue = ExpressionVisitor.Visit expr tables
+        match startValue with
+        | None -> failwith "Must provide value"
+        | Some(v) -> 
+            let clause = { Combinator = cmbType; Expression = v }
+            { whereExpr with AdditionalClauses = clause :: whereExpr.AdditionalClauses }
 
-    type WhereExpression =
-        {
-            Clauses : WhereClause list
-        }
-    
-    let NewWhereExpression () = { WhereExpression.Clauses = [] }
+    let private AddWhereAndClause whereExpr expr ([<System.ParamArray>] tables : ITableReference array) = 
+        CreateWhereClause And whereExpr expr tables
 
-    let internal AddWhereClause whereExpr joinType expr ([<System.ParamArray>] tables : ITableReference array) =
-        { whereExpr with WhereExpression.Clauses = { WhereClause.JoinType = joinType; Expression = expr; Tables = List.ofArray tables; } :: whereExpr.Clauses }
-    
-    let AddWhereAndClause (whereExpr : WhereExpression) expr ([<System.ParamArray>] tables : ITableReference array) = AddWhereClause whereExpr And expr tables
+    let private AddWhereOrClause whereExpr expr ([<System.ParamArray>] tables : ITableReference array) = 
+        CreateWhereClause Or whereExpr expr tables
 
-    let AddWhereOrClause whereExpr expr ([<System.ParamArray>] tables : ITableReference array) = AddWhereClause whereExpr Or expr tables
-    
-    type GroupByClause = 
-        {
-            Table : ITableReference
-            Expression: System.Linq.Expressions.Expression
-        }
+    let AddOrCreateWhereAndClause whereExpr expr ([<System.ParamArray>] tables : ITableReference array) =
+        match whereExpr with
+        | Some(w) -> AddWhereAndClause w expr tables
+        | None -> NewWhereExpression expr tables
 
-    type GroupByExpression = 
-        {
-            Clauses : GroupByClause list
-            Having : WhereClause list
-        }
+    let AddOrCreateWhereOrClause whereExpr expr ([<System.ParamArray>] tables : ITableReference array) =
+        match whereExpr with
+        | Some(w) -> AddWhereOrClause w expr tables
+        | None -> NewWhereExpression expr tables
 
-    let NewGroupByExpression () = { GroupByExpression.Clauses = []; GroupByExpression.Having = [] }
+    let NewGroupByExpression () = { 
+        Clauses = []
+        Having = [] 
+    }
 
     let internal AddHavingClause groupByExpr joinType expr ([<System.ParamArray>] tables : ITableReference array) =
-        { groupByExpr with GroupByExpression.Having = { WhereClause.JoinType = joinType; Expression = expr; Tables = List.ofArray tables; } :: groupByExpr.Having }
+        let value = ExpressionVisitor.Visit expr tables 
+        match value with
+        | None -> failwith "Must provide value"
+        | Some(v) ->
+            let clause = { WhereClauseNode.Combinator = joinType; Expression = v }
+            { groupByExpr with GroupByExpressionNode.Having = clause :: groupByExpr.Having }
 
-    let AddHavingAndClause groupByExpr expr ([<System.ParamArray>] tables : ITableReference array) = AddHavingClause groupByExpr And expr tables
+    let AddHavingAndClause groupByExpr expr ([<System.ParamArray>] tables : ITableReference array) = 
+        match groupByExpr with
+        | Some(g) -> AddHavingClause g And expr tables
+        | None -> AddHavingClause (NewGroupByExpression ()) And expr tables
 
-    let AddHavingOrClause groupByExpr expr ([<System.ParamArray>] tables : ITableReference array) = AddHavingClause groupByExpr Or expr tables
+    let AddHavingOrClause groupByExpr expr ([<System.ParamArray>] tables : ITableReference array) = 
+        match groupByExpr with
+        | Some(g) -> AddHavingClause g Or expr tables
+        | None -> AddHavingClause (NewGroupByExpression ()) Or expr tables 
 
-    let AddGroupByClause expr clause = 
-        { expr with GroupByExpression.Clauses = clause :: expr.Clauses }
+    let private AddGroupByClause expr tables groupByExpr = 
+        let cols = ExpressionVisitor.Visit expr tables
+        match cols with
+        | None -> groupByExpr
+        | Some(ValueList(v)) ->
+            { groupByExpr with GroupByExpressionNode.Clauses = groupByExpr.Clauses @ v }
+        | Some(v) -> 
+            { groupByExpr with GroupByExpressionNode.Clauses = groupByExpr.Clauses @ [ v ] }
+
+    let AddOrCreateGroupByClause groupByExpr expr ([<System.ParamArray>] tables : ITableReference array) =
+        match groupByExpr with
+        | Some(g) -> g
+        | None -> NewGroupByExpression ()
+        |> AddGroupByClause expr tables

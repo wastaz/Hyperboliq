@@ -17,27 +17,22 @@ namespace Hyperboliq.Tests
                              .Where<Person>(p => p.Age > Sql.SubExpr<int>(Select.Column<Car>(c => c.Age)
                                                                                 .From<Car>()
                                                                                 .Where<Car>(c => c.Id == 42)));
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
-                    Kw(KeywordNode.Select),
-                    Col<Person>("*"),
-                    Kw(KeywordNode.From),
-                    Tbl<Person>(),
-                    Kw(KeywordNode.Where),
-                    BinExp(
-                        Col<Person>("Age"),
-                        BinaryOperation.GreaterThan,
-                        SubExp(
-                            StreamFrom(
-                                Kw(KeywordNode.Select),
-                                Col<Car>("Age"),
-                                Kw(KeywordNode.From),
-                                Tbl<Car>(),
-                                Kw(KeywordNode.Where),
-                                BinExp(Col<Car>("Id"), BinaryOperation.Equal, Const(42))))));
-            result.ShouldEqual(expected);
+                SelectNode(
+                    Select(Col<Person>("*")),
+                    From<Person>(),
+                    Where(
+                        BinExp(
+                            Col<Person>("Age"),
+                            BinaryOperation.GreaterThan,
+                            SubExp(
+                                Select(Col<Car>("Age")),
+                                From<Car>(),
+                                Where(BinExp(Col<Car>("Id"), BinaryOperation.Equal, Const(42)))))));
+
+            Assert.Equal(expected, result);
         }
 
         [Fact]
@@ -47,25 +42,21 @@ namespace Hyperboliq.Tests
                 Select.Star<Person>()
                       .From<Person>()
                       .Where<Person>(p => Sql.In(p.Id, Select.Column<Car>(c => c.DriverId).From<Car>()));
-            var result = expr.ToSqlStream();
+            var result = expr.ToSqlExpression();
 
             var expected =
-                StreamFrom(
-                    Kw(KeywordNode.Select),
-                    Col<Person>("*"),
-                    Kw(KeywordNode.From),
-                    Tbl<Person>(),
-                    Kw(KeywordNode.Where),
-                    BinExp(
-                        Col<Person>("Id"),
-                        BinaryOperation.In,
-                        SubExp(
-                            StreamFrom(
-                                Kw(KeywordNode.Select),
-                                Col<Car>("DriverId"),
-                                Kw(KeywordNode.From),
-                                Tbl<Car>()))));
-            result.ShouldEqual(expected);
+                SelectNode(
+                    Select(Col<Person>("*")),
+                    From<Person>(),
+                    Where(
+                        BinExp(
+                            Col<Person>("Id"),
+                            BinaryOperation.In,
+                            SubExp(
+                                Select(Col<Car>("DriverId")),
+                                From<Car>()))));
+
+            Assert.Equal(expected, result);
         }
     }
 }
