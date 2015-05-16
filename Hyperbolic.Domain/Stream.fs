@@ -28,8 +28,6 @@ module Stream =
     type NullsOrdering = NullsUndefined | NullsFirst | NullsLast
 
     type JoinType = InnerJoin | LeftJoin | RightJoin | FullJoin
-    type KeywordNode = 
-        Select | From | Where | And | Or | On | Join of JoinType | OrderBy | GroupBy | Having | Distinct | Delete | InsertInto | Values | Update | Set
 
     type AggregateType = Max | Min | Avg | Count
 
