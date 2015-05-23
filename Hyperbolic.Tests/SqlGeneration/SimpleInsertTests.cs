@@ -1,8 +1,8 @@
 ﻿using Xunit;
 using Hyperboliq.Tests.Model;
+using Hyperboliq.Dialects;
 using static Hyperboliq.Tests.SqlStreamExtensions;
 using static Hyperboliq.Domain.SqlGen;
-using static Hyperboliq.Domain.Types;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {

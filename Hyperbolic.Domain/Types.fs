@@ -15,13 +15,6 @@ module Types =
     type ISqlStatement =
         inherit ISqlTransformable
 
-    type public AnsiSql private () =
-        static member private _dialect = lazy(new AnsiSql())
-        static member Dialect with get() = AnsiSql._dialect.Value
-        interface ISqlDialect with
-            member x.CreateConnection connectionString = null
-            member x.QuoteColumnName colname = colname
-
     type ExpressionParameter(name : string) =
         member val internal Value = None with get, set
         member x.Name = name

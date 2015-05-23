@@ -1,5 +1,6 @@
 ﻿using Xunit;
 using Hyperboliq.Tests.Model;
+using Hyperboliq.Dialects;
 using static Hyperboliq.Tests.SqlStreamExtensions;
 using static Hyperboliq.Domain.Stream;
 using static Hyperboliq.Domain.Types;

@@ -17,6 +17,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hyperboliq.SqlServer", "Hyp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hyperboliq.Tests.SqlServer", "Hyperbolic.Tests.SqlServer\Hyperboliq.Tests.SqlServer.csproj", "{A819F5BC-F169-4336-BF20-156F3745C397}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hyperboliq.Ansi", "Hyperboliq.Ansi\Hyperboliq.Ansi.fsproj", "{0A984155-57B7-4A4F-A5DA-34690BAA2117}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{A819F5BC-F169-4336-BF20-156F3745C397}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A819F5BC-F169-4336-BF20-156F3745C397}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A819F5BC-F169-4336-BF20-156F3745C397}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0A984155-57B7-4A4F-A5DA-34690BAA2117}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A984155-57B7-4A4F-A5DA-34690BAA2117}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A984155-57B7-4A4F-A5DA-34690BAA2117}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A984155-57B7-4A4F-A5DA-34690BAA2117}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

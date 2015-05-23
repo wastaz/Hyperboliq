@@ -2,6 +2,7 @@
 using static Hyperboliq.Tests.SqlStreamExtensions;
 using static Hyperboliq.Domain.Stream;
 using Hyperboliq.Tests.Model;
+using Hyperboliq.Dialects;
 using static Hyperboliq.Domain.Types;
 using static Hyperboliq.Domain.SqlGen;
 
