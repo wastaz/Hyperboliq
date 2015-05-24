@@ -6,7 +6,6 @@ open System.Linq.Expressions
 open Hyperboliq.Domain.Types
 open Hyperboliq.Domain.Stream
 open Hyperboliq.Domain.ExpressionParts
-open Hyperboliq.Domain.SelectExpressionParts
 open Hyperboliq.Domain.SqlGen
 
 [<AbstractClass>]

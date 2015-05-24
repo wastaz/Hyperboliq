@@ -41,9 +41,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ExpressionParameter.cs" />
-    <Compile Include="FluentApi\Delete.cs" />
-    <Compile Include="FluentApi\DeleteFrom.cs" />
-    <Compile Include="FluentApi\DeleteWhere.cs" />
     <Compile Include="FluentApi\Insert.cs" />
     <Compile Include="FluentApi\InsertValues.cs" />
     <Compile Include="FluentApi\Update.cs" />

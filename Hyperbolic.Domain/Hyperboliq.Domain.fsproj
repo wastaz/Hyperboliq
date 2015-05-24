@@ -51,8 +51,6 @@
     <Compile Include="ExpressionVisitor.fs" />
     <Compile Include="UpdateExpression.fs" />
     <Compile Include="InsertExpression.fs" />
-    <Compile Include="DeleteExpression.fs" />
-    <Compile Include="SelectExpression.fs" />
     <Compile Include="Expression.fs" />
     <Compile Include="SqlGen.fs" />
     <Compile Include="DbConnectionFactory.fs" />

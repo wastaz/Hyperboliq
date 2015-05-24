@@ -38,17 +38,6 @@ module ExpressionParts =
         | Some(ValueList(v)) -> { select with SelectExpressionNode.Values = v @ select.Values }
         | Some(v) -> { select with Values = v :: select.Values }
 
-    (*
-    let AddOrCreateColumnsSelectExpression expr selector tableRef =
-        let values = ExpressionVisitor.Visit selector [ tableRef ]
-        match expr, values with
-        | _, None -> failwith "Must provide value"
-        | None, Some(ValueList(v)) -> { IsDistinct = false; Values = v }
-        | None, Some(v) -> { IsDistinct = false; Values = [ v ] }
-        | Some(e), Some(ValueList(v)) -> { e with Values = v @ e.Values }
-        | Some(e), Some(v) -> { e with Values = v :: e.Values}
-    *)
-
     let private NewOrderByExpression () = { OrderByExpressionNode.Clauses = [] }
 
     let private AddOrderingClause tbl direction nullsorder expr orderExpr  =
