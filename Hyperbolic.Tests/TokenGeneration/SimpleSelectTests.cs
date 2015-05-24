@@ -1,9 +1,7 @@
-﻿using Hyperboliq;
-using Hyperboliq.Tests.Model;
+﻿using Hyperboliq.Tests.Model;
 using Xunit;
 using static Hyperboliq.Tests.SqlStreamExtensions;
 using static Hyperboliq.Domain.Stream;
-using Microsoft.FSharp.Collections;
 
 namespace Hyperboliq.Tests
 {
@@ -14,7 +12,7 @@ namespace Hyperboliq.Tests
         public void ItShouldBeAbleToSelectAllFromATable()
         {
             var expr = Select.Star<Person>()
-                             .From<Person>();
+                                    .From<Person>();
             var result = expr.ToSqlExpression();
 
             var expected =

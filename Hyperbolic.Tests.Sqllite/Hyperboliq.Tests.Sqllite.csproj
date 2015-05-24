@@ -89,6 +89,10 @@
       <Project>{e2a76c7d-2744-4ba0-96f5-4cec2b4bf81d}</Project>
       <Name>Hyperboliq</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Hyperboliq.Ansi\Hyperboliq.Ansi.fsproj">
+      <Project>{0a984155-57b7-4a4f-a5da-34690baa2117}</Project>
+      <Name>Hyperboliq.Ansi</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

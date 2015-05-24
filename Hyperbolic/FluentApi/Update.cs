@@ -53,6 +53,9 @@ namespace Hyperboliq.FluentApi
             return this;
         }
 
+        public UpdateSet<TTable> Set(Expression<Func<TTable, object>> selector, ISelectExpressionTransformable selectExpr)
+            => Set(selector, selectExpr.ToSelectExpression());
+
         public UpdateWhere<TTable> Where(Expression<Func<TTable, bool>> predicate) =>
             new UpdateWhere<TTable>(expr).And(predicate);
 
@@ -106,6 +109,9 @@ namespace Hyperboliq.FluentApi
             => new UpdateSet<TTable>().Set(selector, valueUpdate);
 
         public static UpdateSet<TTable> Set(Expression<Func<TTable, object>> selector, SelectExpression selectExpr) 
+            => new UpdateSet<TTable>().Set(selector, selectExpr);
+
+        public static UpdateSet<TTable> Set(Expression<Func<TTable, object>> selector, ISelectExpressionTransformable selectExpr)
             => new UpdateSet<TTable>().Set(selector, selectExpr);
     }
 }

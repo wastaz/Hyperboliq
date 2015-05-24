@@ -46,13 +46,6 @@
     <Compile Include="FluentApi\DeleteWhere.cs" />
     <Compile Include="FluentApi\Insert.cs" />
     <Compile Include="FluentApi\InsertValues.cs" />
-    <Compile Include="FluentApi\SelectFrom.cs" />
-    <Compile Include="FluentApi\GroupBy.cs" />
-    <Compile Include="FluentApi\Having.cs" />
-    <Compile Include="FluentApi\Join.cs" />
-    <Compile Include="FluentApi\OrderBy.cs" />
-    <Compile Include="FluentApi\Select.cs" />
-    <Compile Include="FluentApi\SelectWhere.cs" />
     <Compile Include="FluentApi\Update.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
