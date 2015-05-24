@@ -48,6 +48,7 @@
     <Compile Include="AnsiDialect.fs" />
     <Compile Include="SelectApi.fs" />
     <Compile Include="DeleteApi.fs" />
+    <Compile Include="InsertApi.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Hyperbolic.Domain\Hyperboliq.Domain.fsproj">

@@ -14,8 +14,8 @@ type FluentDeleteBase(expr : DeleteExpression) =
     interface ISqlExpressionTransformable with
         member x.ToSqlExpression () = SqlExpression.Delete(expr)
 
-    member x.ToSql (dialect : ISqlDialect) = (x :> ISqlQuery).ToSql(dialect)
-    interface ISqlQuery with
+    member x.ToSql (dialect : ISqlDialect) = (x :> ISqlStatement).ToSql(dialect)
+    interface ISqlStatement with
         member x.ToSql(dialect : ISqlDialect) = x.ToSqlExpression() |> SqlifyExpression dialect
 
 type DeleteWhere internal (expr : DeleteExpression) =

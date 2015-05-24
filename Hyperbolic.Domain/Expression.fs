@@ -4,11 +4,6 @@ module ExpressionParts =
     open Types
     open Stream
 
-    let NewFromExpression () = { Tables = []; Joins = [] }
-
-    let AddFromTable fromExpr tbl =
-        { fromExpr with Tables = tbl :: fromExpr.Tables }
-
     let AddJoinClause fromExpr joinClause =
         { fromExpr with Joins = joinClause :: fromExpr.Joins }
 

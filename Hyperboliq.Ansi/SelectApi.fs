@@ -171,7 +171,7 @@ type Join internal (expr : SelectExpression) =
 type SelectFrom<'a> internal (tbl: ITableReference, exprNode : SelectExpressionNode) =
     inherit FluentSelectBase({
                                  Select = exprNode
-                                 From = AddFromTable <| NewFromExpression () <| tbl
+                                 From = { Tables = [ tbl ]; Joins = [] }
                                  Where = None
                                  GroupBy = None
                                  OrderBy = None

@@ -53,17 +53,3 @@ module InsertExpressionPart =
     let AddAllColumns (insertExpr : InsertStatementHeadToken) =
         ApplyOnProperties (List.ofArray (insertExpr.Table.Table.GetProperties())) PropertySortByName (fun p -> (p.Name, insertExpr.Table))
         |> fun cols -> { insertExpr with InsertStatementHeadToken.Columns = cols }
-
-    let NewInsertHead tbl =
-        {
-            Table = tbl
-            Columns = []
-        }
-
-    let NewInsertValues () = { InsertValueToken.Values = [] }
-
-    let WithHead insertExpr head =
-        { insertExpr with InsertExpression.InsertInto = head }
-
-    let WithValues insertExpr values =
-        { insertExpr with InsertExpression.InsertValues = values }
