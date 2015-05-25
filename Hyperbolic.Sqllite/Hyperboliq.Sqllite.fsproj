@@ -74,8 +74,10 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Numerics" />
-    <ProjectReference Include="..\Hyperbolic.Domain\Hyperboliq.Domain.fsproj">
-      <Name>Hyperboliq.Domain</Name>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Hyperbolic.Domain\Hyperboliq.fsproj">
+      <Name>Hyperboliq</Name>
       <Project>{b364b662-03a5-4700-a554-6b9e7eabd6cd}</Project>
       <Private>True</Private>
     </ProjectReference>

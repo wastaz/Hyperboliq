@@ -5,13 +5,13 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>9f311956-bcfb-4308-a2f1-9720d9353297</ProjectGuid>
+    <ProjectGuid>b364b662-03a5-4700-a554-6b9e7eabd6cd</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>RaptorSql.SqlServer</RootNamespace>
-    <AssemblyName>Hyperboliq.SqlServer</AssemblyName>
+    <RootNamespace>Hyperboliq.Domain</RootNamespace>
+    <AssemblyName>Hyperboliq</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <TargetFSharpCoreVersion>4.4.0.0</TargetFSharpCoreVersion>
-    <Name>Hyperboliq.SqlServer</Name>
+    <Name>Hyperboliq</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,7 +21,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Debug\RaptorSql.SqlServer.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\Hyperboliq.Domain.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -30,7 +30,7 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Release\RaptorSql.SqlServer.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\Hyperboliq.Domain.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
@@ -40,18 +40,20 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Dynamic" />
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="SqlServerDialect.fs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Hyperbolic.Domain\Hyperboliq.fsproj">
-      <Name>Hyperboliq</Name>
-      <Project>{b364b662-03a5-4700-a554-6b9e7eabd6cd}</Project>
-      <Private>True</Private>
-    </ProjectReference>
+    <Compile Include="Types.fs" />
+    <Compile Include="Stream.fs" />
+    <Compile Include="ExpressionVisitor.fsi" />
+    <Compile Include="ExpressionVisitor.fs" />
+    <Compile Include="UpdateExpression.fs" />
+    <Compile Include="InsertExpression.fs" />
+    <Compile Include="Expression.fs" />
+    <Compile Include="SqlGen.fs" />
+    <Compile Include="DbConnectionFactory.fs" />
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>

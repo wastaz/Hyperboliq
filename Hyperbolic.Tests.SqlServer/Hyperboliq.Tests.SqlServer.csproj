@@ -65,9 +65,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Hyperbolic.Domain\Hyperboliq.Domain.fsproj">
+    <ProjectReference Include="..\Hyperbolic.Domain\Hyperboliq.fsproj">
       <Project>{b364b662-03a5-4700-a554-6b9e7eabd6cd}</Project>
-      <Name>Hyperboliq.Domain</Name>
+      <Name>Hyperboliq</Name>
     </ProjectReference>
     <ProjectReference Include="..\Hyperbolic.SqlServer\Hyperboliq.SqlServer.fsproj">
       <Project>{9f311956-bcfb-4308-a2f1-9720d9353297}</Project>

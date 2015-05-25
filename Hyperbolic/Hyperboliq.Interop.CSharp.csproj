@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Hyperboliq</RootNamespace>
-    <AssemblyName>Hyperboliq</AssemblyName>
+    <AssemblyName>Hyperboliq.Interop.CSharp</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -41,13 +41,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ExpressionParameter.cs" />
-    <Compile Include="FluentApi\Update.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Hyperbolic.Domain\Hyperboliq.Domain.fsproj">
+    <ProjectReference Include="..\Hyperbolic.Domain\Hyperboliq.fsproj">
       <Project>{b364b662-03a5-4700-a554-6b9e7eabd6cd}</Project>
-      <Name>Hyperboliq.Domain</Name>
+      <Name>Hyperboliq</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

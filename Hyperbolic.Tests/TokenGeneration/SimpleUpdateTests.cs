@@ -1,5 +1,4 @@
 ﻿using Xunit;
-using Hyperboliq.FluentApi;
 using Hyperboliq.Tests.Model;
 using static Hyperboliq.Domain.Types;
 using static Hyperboliq.Domain.Stream;

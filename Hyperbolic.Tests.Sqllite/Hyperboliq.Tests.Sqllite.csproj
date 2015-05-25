@@ -73,9 +73,9 @@
     <Compile Include="BasicMappingTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Hyperbolic.Domain\Hyperboliq.Domain.fsproj">
+    <ProjectReference Include="..\Hyperbolic.Domain\Hyperboliq.fsproj">
       <Project>{b364b662-03a5-4700-a554-6b9e7eabd6cd}</Project>
-      <Name>Hyperboliq.Domain</Name>
+      <Name>Hyperboliq</Name>
     </ProjectReference>
     <ProjectReference Include="..\Hyperbolic.Sqllite\Hyperboliq.Sqllite.fsproj">
       <Project>{062f44cd-0ce5-48db-bf85-fadd3101f22e}</Project>
@@ -85,9 +85,9 @@
       <Project>{5712f2c2-4c5a-4847-a502-1a9c7137b381}</Project>
       <Name>Hyperboliq.Tests</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Hyperbolic\Hyperboliq.csproj">
+    <ProjectReference Include="..\Hyperbolic\Hyperboliq.Interop.CSharp.csproj">
       <Project>{e2a76c7d-2744-4ba0-96f5-4cec2b4bf81d}</Project>
-      <Name>Hyperboliq</Name>
+      <Name>Hyperboliq.Interop.CSharp</Name>
     </ProjectReference>
     <ProjectReference Include="..\Hyperboliq.Ansi\Hyperboliq.Ansi.fsproj">
       <Project>{0a984155-57b7-4a4f-a5da-34690baa2117}</Project>
