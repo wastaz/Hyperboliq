@@ -31,7 +31,7 @@ module ExpressionParts =
         match stream with
         | None -> select
         | Some(ValueList(v)) -> { select with SelectExpressionNode.Values = v @ select.Values }
-        | Some(v) -> { select with Values = v :: select.Values }
+        | Some(v) -> { select with Values = select.Values @ [ v ] }
 
     let private NewOrderByExpression () = { OrderByExpressionNode.Clauses = [] }
 

@@ -56,6 +56,20 @@ namespace Hyperboliq.Tests
         }
 
         [Fact]
+        public void ItShouldOrderTheColumnsInTheExceptedOrderWhenCallingColumnSeveralTimes()
+        {
+            var expr = Select.Column<Person>(p => p.Name).Column<Person>(p => p.Age)
+                             .From<Person>();
+            var result = expr.ToSqlExpression();
+
+            var expected =
+                S.SelectNode(
+                    S.Select(S.Col<Person>("Name"), S.Col<Person>("Age")),
+                    S.From<Person>());
+            Assert.Equal(expected, result);
+        }
+
+        [Fact]
         public void ItShouldBeAbleToSelectDistinctSingleColumnsFromATable()
         {
             var expr = Select.Distinct.Column<Person>(p => p.Age)
