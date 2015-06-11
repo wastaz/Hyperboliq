@@ -66,6 +66,7 @@ namespace Hyperboliq.Tests
                              .From(child)
                              .InnerJoin(child, parent, (c, p) => c.ParentId == p.Id)
                              .InnerJoin(child, parent, grandparent, (c, p, gp) => p.ParentId == gp.Id && c.LivesAtHouseId == gp.LivesAtHouseId);
+            var result = expr.ToSqlExpression();
 
             var expected =
                 S.SelectNode(
@@ -74,7 +75,6 @@ namespace Hyperboliq.Tests
                         S.Col(grandparent, "Age")),
                     S.From(
                         child,
-                        S.Join(child, parent, JoinType.InnerJoin, S.BinExp(S.Col(child, "ParentId"), BinaryOperation.Equal, S.Col(parent, "Id"))),
                         S.Join(
                             child, 
                             parent, 
@@ -83,7 +83,9 @@ namespace Hyperboliq.Tests
                             S.BinExp(
                                 S.BinExp(S.Col(parent, "ParentId"), BinaryOperation.Equal, S.Col(grandparent, "Id")),
                                 BinaryOperation.And,
-                                S.BinExp(S.Col(child, "LivesAtHouseId"), BinaryOperation.Equal, S.Col(grandparent, "LivesAtHouseId"))))));
+                                S.BinExp(S.Col(child, "LivesAtHouseId"), BinaryOperation.Equal, S.Col(grandparent, "LivesAtHouseId")))),
+                        S.Join(child, parent, JoinType.InnerJoin, S.BinExp(S.Col(child, "ParentId"), BinaryOperation.Equal, S.Col(parent, "Id")))));
+            Assert.Equal(expected, result);
         }
     }
 }
