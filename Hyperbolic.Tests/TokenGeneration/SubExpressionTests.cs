@@ -1,8 +1,8 @@
 ﻿using Xunit;
 using Hyperboliq.Tests.Model;
-using static Hyperboliq.Tests.SqlStreamExtensions;
-using static Hyperboliq.Domain.Stream;
-using static Hyperboliq.Domain.Types;
+using Hyperboliq.Domain;
+using S = Hyperboliq.Tests.SqlStreamExtensions;
+using BinaryOperation = Hyperboliq.Domain.Types.BinaryOperation;
 
 namespace Hyperboliq.Tests
 {
@@ -20,17 +20,17 @@ namespace Hyperboliq.Tests
             var result = expr.ToSqlExpression();
 
             var expected =
-                SelectNode(
-                    Select(Col<Person>("*")),
-                    From<Person>(),
-                    Where(
-                        BinExp(
-                            Col<Person>("Age"),
+                S.SelectNode(
+                    S.Select(S.Col<Person>("*")),
+                    S.From<Person>(),
+                    S.Where(
+                        S.BinExp(
+                            S.Col<Person>("Age"),
                             BinaryOperation.GreaterThan,
-                            SubExp(
-                                Select(Col<Car>("Age")),
-                                From<Car>(),
-                                Where(BinExp(Col<Car>("Id"), BinaryOperation.Equal, Const(42)))))));
+                            S.SubExp(
+                                S.Select(S.Col<Car>("Age")),
+                                S.From<Car>(),
+                                S.Where(S.BinExp(S.Col<Car>("Id"), BinaryOperation.Equal, S.Const(42)))))));
 
             Assert.Equal(expected, result);
         }
@@ -45,16 +45,16 @@ namespace Hyperboliq.Tests
             var result = expr.ToSqlExpression();
 
             var expected =
-                SelectNode(
-                    Select(Col<Person>("*")),
-                    From<Person>(),
-                    Where(
-                        BinExp(
-                            Col<Person>("Id"),
+                S.SelectNode(
+                    S.Select(S.Col<Person>("*")),
+                    S.From<Person>(),
+                    S.Where(
+                        S.BinExp(
+                            S.Col<Person>("Id"),
                             BinaryOperation.In,
-                            SubExp(
-                                Select(Col<Car>("DriverId")),
-                                From<Car>()))));
+                            S.SubExp(
+                                S.Select(S.Col<Car>("DriverId")),
+                                S.From<Car>()))));
 
             Assert.Equal(expected, result);
         }

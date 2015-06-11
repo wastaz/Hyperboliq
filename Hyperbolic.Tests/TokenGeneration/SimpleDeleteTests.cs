@@ -1,8 +1,8 @@
 ﻿using Xunit;
 using Hyperboliq.Tests.Model;
-using static Hyperboliq.Tests.SqlStreamExtensions;
-using static Hyperboliq.Domain.Stream;
-using static Hyperboliq.Domain.Types;
+using Hyperboliq.Domain;
+using S = Hyperboliq.Tests.SqlStreamExtensions;
+using BinaryOperation = Hyperboliq.Domain.Types.BinaryOperation;
 
 namespace Hyperboliq.Tests.TokenGeneration
 {
@@ -15,7 +15,7 @@ namespace Hyperboliq.Tests.TokenGeneration
             var expr = Delete.From<Person>();
             var result = expr.ToSqlExpression();
 
-            var expected = DeleteNode(From<Person>());
+            var expected = S.DeleteNode(S.From<Person>());
 
             Assert.Equal(expected, result);
         }
@@ -27,9 +27,9 @@ namespace Hyperboliq.Tests.TokenGeneration
             var result = expr.ToSqlExpression();
 
             var expected =
-                DeleteNode(
-                    From<Person>(),
-                    Where(BinExp(Col<Person>("Age"), BinaryOperation.GreaterThan, Const(42))));
+                S.DeleteNode(
+                    S.From<Person>(),
+                    S.Where(S.BinExp(S.Col<Person>("Age"), BinaryOperation.GreaterThan, S.Const(42))));
 
             Assert.Equal(expected, result);
         }
@@ -44,12 +44,12 @@ namespace Hyperboliq.Tests.TokenGeneration
             var result = expr.ToSqlExpression();
 
             var expected =
-                DeleteNode(
-                    From<Person>(),
-                    Where(
-                        BinExp(Col<Person>("Age"), BinaryOperation.GreaterThan, Const(42)),
-                        Or(BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Henrik'"))),
-                        And(BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Kalle'")))));
+                S.DeleteNode(
+                    S.From<Person>(),
+                    S.Where(
+                        S.BinExp(S.Col<Person>("Age"), BinaryOperation.GreaterThan, S.Const(42)),
+                        S.Or(S.BinExp(S.Col<Person>("Name"), BinaryOperation.Equal, S.Const("'Henrik'"))),
+                        S.And(S.BinExp(S.Col<Person>("Name"), BinaryOperation.Equal, S.Const("'Kalle'")))));
 
             Assert.Equal(expected, result);
         }
@@ -67,16 +67,16 @@ namespace Hyperboliq.Tests.TokenGeneration
             var result = expr.ToSqlExpression();
 
             var expected =
-                DeleteNode(
-                    From<Car>(),
-                    Where(
-                        BinExp(
-                            Col<Car>("DriverId"),
+                S.DeleteNode(
+                    S.From<Car>(),
+                    S.Where(
+                        S.BinExp(
+                            S.Col<Car>("DriverId"),
                             BinaryOperation.In,
-                            SubExp(
-                                Select(Col<Person>("Id")),
-                                From<Person>(),
-                                Where(BinExp(Col<Person>("Age"), BinaryOperation.LessThan, Const(18)))))));
+                            S.SubExp(
+                                S.Select(S.Col<Person>("Id")),
+                                S.From<Person>(),
+                                S.Where(S.BinExp(S.Col<Person>("Age"), BinaryOperation.LessThan, S.Const(18)))))));
 
             Assert.Equal(expected, result);
         }

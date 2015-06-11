@@ -1,7 +1,6 @@
 ﻿using Xunit;
 using Hyperboliq.Tests.Model;
-using static Hyperboliq.Tests.SqlStreamExtensions;
-using static Hyperboliq.Domain.Stream;
+using S = Hyperboliq.Tests.SqlStreamExtensions;
 
 namespace Hyperboliq.Tests.TokenGeneration
 {
@@ -18,14 +17,14 @@ namespace Hyperboliq.Tests.TokenGeneration
             var result = expr.ToSqlExpression();
 
             var expected = 
-                InsertNode(
-                    InsHead<Person>("Age", "Id", "LivesAtHouseId", "Name", "ParentId"),
-                    InsVal(
-                        InsConst(42),
-                        InsConst(2),
-                        InsConst(5),
-                        InsConst("'Kalle'"),
-                        InsConst(0))
+                S.InsertNode(
+                    S.InsHead<Person>("Age", "Id", "LivesAtHouseId", "Name", "ParentId"),
+                    S.InsVal(
+                        S.InsConst(42),
+                        S.InsConst(2),
+                        S.InsConst(5),
+                        S.InsConst("'Kalle'"),
+                        S.InsConst(0))
                 );
 
             Assert.Equal(expected, result);
@@ -41,11 +40,11 @@ namespace Hyperboliq.Tests.TokenGeneration
             var result = expr.ToSqlExpression();
 
             var expected = 
-                InsertNode(
-                    InsHead<Person>("Name", "Age"),
-                    InsVal(
-                        InsConst("'Kalle'"),
-                        InsConst(42)));
+                S.InsertNode(
+                    S.InsHead<Person>("Name", "Age"),
+                    S.InsVal(
+                        S.InsConst("'Kalle'"),
+                        S.InsConst(42)));
 
             Assert.Equal(expected, result);
         }
@@ -61,21 +60,21 @@ namespace Hyperboliq.Tests.TokenGeneration
             var result = expr.ToSqlExpression();
 
             var expected =
-                InsertNode(
-                    InsHead<Person>("Age", "Id", "LivesAtHouseId", "Name", "ParentId"),
-                    InsVal(
-                        InsConst(12),
-                        InsConst(3),
-                        InsConst(3),
-                        InsConst("'Pelle'"),
-                        InsConst(2)
+                S.InsertNode(
+                    S.InsHead<Person>("Age", "Id", "LivesAtHouseId", "Name", "ParentId"),
+                    S.InsVal(
+                        S.InsConst(12),
+                        S.InsConst(3),
+                        S.InsConst(3),
+                        S.InsConst("'Pelle'"),
+                        S.InsConst(2)
                         ),
-                    InsVal(
-                        InsConst(42),
-                        InsConst(2),
-                        InsConst(5),
-                        InsConst("'Kalle'"),
-                        InsConst(0))
+                    S.InsVal(
+                        S.InsConst(42),
+                        S.InsConst(2),
+                        S.InsConst(5),
+                        S.InsConst("'Kalle'"),
+                        S.InsConst(0))
                     );
 
             Assert.Equal(expected, result);

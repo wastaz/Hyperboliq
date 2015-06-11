@@ -1,10 +1,11 @@
 ﻿using Xunit;
 using Hyperboliq.Tests.Model;
 using Hyperboliq.Dialects;
-using static Hyperboliq.Domain.Types;
-using static Hyperboliq.Domain.Stream;
-using static Hyperboliq.Domain.SqlGen;
-using static Hyperboliq.Tests.SqlStreamExtensions;
+using Hyperboliq.Domain;
+using JoinType = Hyperboliq.Domain.Stream.JoinType;
+using BinaryOperation = Hyperboliq.Domain.Types.BinaryOperation;
+using SqlExpression = Hyperboliq.Domain.Stream.SqlExpression;
+using S = Hyperboliq.Tests.SqlStreamExtensions;
 
 
 namespace Hyperboliq.Tests.SqlGeneration
@@ -15,10 +16,10 @@ namespace Hyperboliq.Tests.SqlGeneration
         private SqlExpression GetExpectedJoinStream(JoinType joinKeyword)
         {
             return
-                SelectNode(
-                    Select(Col<Person>("*"), Col<Car>("*")),
-                    From<Person>(
-                        Join<Person, Car>(joinKeyword, BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId")))
+                S.SelectNode(
+                    S.Select(S.Col<Person>("*"), S.Col<Car>("*")),
+                    S.From<Person>(
+                        S.Join<Person, Car>(joinKeyword, S.BinExp(S.Col<Person>("Id"), BinaryOperation.Equal, S.Col<Car>("DriverId")))
                         ));
         }
 
@@ -26,7 +27,7 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItShouldBeAbleToSqlifyASimpleInnerJoin()
         {
             var stream = GetExpectedJoinStream(JoinType.InnerJoin);
-            var result = SqlifyExpression(AnsiSql.Dialect, stream);
+            var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
             Assert.Equal(@"SELECT PersonRef.*, CarRef.* FROM Person PersonRef INNER JOIN Car CarRef ON PersonRef.Id = CarRef.DriverId", result);
         }
 
@@ -34,7 +35,7 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItShouldBeAbleToSqlifyASimpleLeftJoin()
         {
             var stream = GetExpectedJoinStream(JoinType.LeftJoin);
-            var result = SqlifyExpression(AnsiSql.Dialect, stream);
+            var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
             Assert.Equal(@"SELECT PersonRef.*, CarRef.* FROM Person PersonRef LEFT JOIN Car CarRef ON PersonRef.Id = CarRef.DriverId", result);
         }
 
@@ -42,7 +43,7 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItShouldBeAbleToSqlifyASimpleRightJoin()
         {
             var stream = GetExpectedJoinStream(JoinType.RightJoin);
-            var result = SqlifyExpression(AnsiSql.Dialect, stream);
+            var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
             Assert.Equal(@"SELECT PersonRef.*, CarRef.* FROM Person PersonRef RIGHT JOIN Car CarRef ON PersonRef.Id = CarRef.DriverId", result);
         }
 
@@ -50,7 +51,7 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItShouldBeAbleToSqlifyASimpleFullJoin()
         {
             var stream = GetExpectedJoinStream(JoinType.FullJoin);
-            var result = SqlifyExpression(AnsiSql.Dialect, stream);
+            var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
             Assert.Equal(@"SELECT PersonRef.*, CarRef.* FROM Person PersonRef FULL JOIN Car CarRef ON PersonRef.Id = CarRef.DriverId", result);
         }
 
@@ -58,12 +59,12 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItShouldBeAbleToSqlifyMultipleTableJoins()
         {
             var stream =
-               SelectNode(
-                   Select(Col<Person>("*"), Col<Car>("*"), Col<House>("*")),
-                   From<House>(
-                       Join<House, Person>(JoinType.InnerJoin, BinExp(Col<House>("Id"), BinaryOperation.Equal, Col<Person>("LivesAtHouseId"))),
-                       Join<Person, Car>(JoinType.LeftJoin, BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId")))));
-            var result = SqlifyExpression(AnsiSql.Dialect, stream);
+               S.SelectNode(
+                   S.Select(S.Col<Person>("*"), S.Col<Car>("*"), S.Col<House>("*")),
+                   S.From<House>(
+                       S.Join<House, Person>(JoinType.InnerJoin, S.BinExp(S.Col<House>("Id"), BinaryOperation.Equal, S.Col<Person>("LivesAtHouseId"))),
+                       S.Join<Person, Car>(JoinType.LeftJoin, S.BinExp(S.Col<Person>("Id"), BinaryOperation.Equal, S.Col<Car>("DriverId")))));
+            var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
             Assert.Equal(
                 @"SELECT PersonRef.*, CarRef.*, HouseRef.* " +
                 "FROM House HouseRef " +

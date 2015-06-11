@@ -1,10 +1,11 @@
 ﻿using Xunit;
-using static Hyperboliq.Tests.SqlStreamExtensions;
-using static Hyperboliq.Domain.Stream;
+using Hyperboliq.Domain;
+using S = Hyperboliq.Tests.SqlStreamExtensions;
+using JoinType = Hyperboliq.Domain.Stream.JoinType;
+using Direction = Hyperboliq.Domain.Stream.Direction;
+using BinaryOperation = Hyperboliq.Domain.Types.BinaryOperation;
 using Hyperboliq.Tests.Model;
 using Hyperboliq.Dialects;
-using static Hyperboliq.Domain.Types;
-using static Hyperboliq.Domain.SqlGen;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
@@ -15,13 +16,13 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItShouldBePossibleToOrderAscendingByAColumn()
         {
             var stream =
-                SelectNode(
-                    Select(Col<Person>("*")),
-                    From<Person>(),
-                    orderBy: OrderBy(
-                        OrderClause(Col<Person>("Age"), Direction.Ascending))
+                S.SelectNode(
+                    S.Select(S.Col<Person>("*")),
+                    S.From<Person>(),
+                    orderBy: S.OrderBy(
+                        S.OrderClause(S.Col<Person>("Age"), Direction.Ascending))
                     );
-            var result = SqlifyExpression(AnsiSql.Dialect, stream);
+            var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
             Assert.Equal(@"SELECT PersonRef.* FROM Person PersonRef ORDER BY PersonRef.Age ASC", result);
         }
 
@@ -29,11 +30,11 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItShouldBePossibleToOrderDescendingByAColumn()
         {
             var stream =
-                SelectNode(
-                    Select(Col<Person>("*")),
-                    From<Person>(),
-                    orderBy: OrderBy(OrderClause(Col<Person>("Age"), Direction.Descending)));
-            var result = SqlifyExpression(AnsiSql.Dialect, stream);
+                S.SelectNode(
+                    S.Select(S.Col<Person>("*")),
+                    S.From<Person>(),
+                    orderBy: S.OrderBy(S.OrderClause(S.Col<Person>("Age"), Direction.Descending)));
+            var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
             Assert.Equal(@"SELECT PersonRef.* FROM Person PersonRef ORDER BY PersonRef.Age DESC", result);
         }
 
@@ -41,15 +42,15 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItShouldBePossibleToOrderBySeveralColumns()
         {
             var stream =
-                SelectNode(
-                    Select(Col<Person>("*"), Col<Car>("*")),
-                    From<Person>(
-                        Join<Person, Car>(JoinType.InnerJoin, BinExp(Col<Person>("Id"), BinaryOperation.Equal, Col<Car>("DriverId")))),
+                S.SelectNode(
+                    S.Select(S.Col<Person>("*"), S.Col<Car>("*")),
+                    S.From<Person>(
+                        S.Join<Person, Car>(JoinType.InnerJoin, S.BinExp(S.Col<Person>("Id"), BinaryOperation.Equal, S.Col<Car>("DriverId")))),
                     orderBy: 
-                        OrderBy(
-                            OrderClause(Col<Person>("Age"), Direction.Ascending),
-                            OrderClause(Col<Car>("Brand"), Direction.Descending)));
-            var result = SqlifyExpression(AnsiSql.Dialect, stream);
+                        S.OrderBy(
+                            S.OrderClause(S.Col<Person>("Age"), Direction.Ascending),
+                            S.OrderClause(S.Col<Car>("Brand"), Direction.Descending)));
+            var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
             Assert.Equal(
                 @"SELECT PersonRef.*, CarRef.* FROM Person PersonRef " +
                 "INNER JOIN Car CarRef ON PersonRef.Id = CarRef.DriverId " +

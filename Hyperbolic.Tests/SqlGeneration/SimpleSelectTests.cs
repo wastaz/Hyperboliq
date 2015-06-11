@@ -1,9 +1,8 @@
 ﻿using Hyperboliq.Tests.Model;
 using Xunit;
 using Hyperboliq.Dialects;
-using static Hyperboliq.Tests.SqlStreamExtensions;
-using static Hyperboliq.Domain.SqlGen;
-using static Hyperboliq.Domain.Types;
+using S = Hyperboliq.Tests.SqlStreamExtensions;
+using Hyperboliq.Domain;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
@@ -15,11 +14,11 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItShouldBePossibleToSqlifyASimpleSelect()
         {
             var stream =
-                SelectNode(
-                    Select(Col<Person>("*")),
-                    From<Person>());
+                S.SelectNode(
+                    S.Select(S.Col<Person>("*")),
+                    S.From<Person>());
 
-            var result = SqlifyExpression(AnsiSql.Dialect, stream);
+            var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
             Assert.Equal(@"SELECT PersonRef.* FROM Person PersonRef", result);
         }
 
@@ -27,14 +26,14 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItShouldBePossibleToSqlifyASelectWithManyColumns()
         {
             var stream =
-                SelectNode(
-                    Select(
-                        Col<Person>("Name"),
-                        Col<Person>("Age"),
-                        Col<Person>("Id")),
-                    From<Person>());
+                S.SelectNode(
+                    S.Select(
+                        S.Col<Person>("Name"),
+                        S.Col<Person>("Age"),
+                        S.Col<Person>("Id")),
+                    S.From<Person>());
 
-            var result = SqlifyExpression(AnsiSql.Dialect, stream);
+            var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
             Assert.Equal(@"SELECT PersonRef.Name, PersonRef.Age, PersonRef.Id FROM Person PersonRef", result);
         }
     }

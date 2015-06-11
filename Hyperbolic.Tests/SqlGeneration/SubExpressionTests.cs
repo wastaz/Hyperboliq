@@ -1,9 +1,9 @@
 ﻿using Xunit;
-using static Hyperboliq.Tests.SqlStreamExtensions;
 using Hyperboliq.Tests.Model;
 using Hyperboliq.Dialects;
-using static Hyperboliq.Domain.Types;
-using static Hyperboliq.Domain.SqlGen;
+using Hyperboliq.Domain;
+using S = Hyperboliq.Tests.SqlStreamExtensions;
+using BinaryOperation = Hyperboliq.Domain.Types.BinaryOperation;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
@@ -14,18 +14,18 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItShouldBePossibleToSqlifyACompareAgainstASubExpressionInAWhereExpression()
         {
             var stream =
-                SelectNode(
-                    Select(Col<Person>("*")),
-                    From<Person>(),
-                    Where(
-                        BinExp(
-                            Col<Person>("Age"),
+                S.SelectNode(
+                     S.Select(S.Col<Person>("*")),
+                    S.From<Person>(),
+                    S.Where(
+                        S.BinExp(
+                            S.Col<Person>("Age"),
                             BinaryOperation.GreaterThan,
-                            SubExp(
-                                Select(Col<Car>("Age")),
-                                From<Car>(),
-                                Where(BinExp(Col<Car>("Id"), BinaryOperation.Equal, Const(42)))))));
-            var result = SqlifyExpression(AnsiSql.Dialect, stream);
+                            S.SubExp(
+                                S.Select(S.Col<Car>("Age")),
+                                S.From<Car>(),
+                                S.Where(S.BinExp(S.Col<Car>("Id"), BinaryOperation.Equal, S.Const(42)))))));
+            var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
             Assert.Equal(@"SELECT PersonRef.* FROM Person PersonRef WHERE PersonRef.Age > (SELECT CarRef.Age FROM Car CarRef WHERE CarRef.Id = 42)", result);
         }
 
@@ -34,17 +34,17 @@ namespace Hyperboliq.Tests.SqlGeneration
         {
 
             var stream =
-                SelectNode(
-                    Select(Col<Person>("*")),
-                    From<Person>(),
-                    Where(
-                        BinExp(
-                            Col<Person>("Id"),
+                S.SelectNode(
+                     S.Select(S.Col<Person>("*")),
+                    S.From<Person>(),
+                    S.Where(
+                        S.BinExp(
+                            S.Col<Person>("Id"),
                             BinaryOperation.In,
-                            SubExp(
-                                Select(Col<Car>("DriverId")),
-                                From<Car>()))));
-            var result = SqlifyExpression(AnsiSql.Dialect, stream);
+                            S.SubExp(
+                                S.Select(S.Col<Car>("DriverId")),
+                                S.From<Car>()))));
+            var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
             Assert.Equal(@"SELECT PersonRef.* FROM Person PersonRef WHERE PersonRef.Id IN (SELECT CarRef.DriverId FROM Car CarRef)", result);
         }
     }

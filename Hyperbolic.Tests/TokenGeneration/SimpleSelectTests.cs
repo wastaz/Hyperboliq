@@ -1,7 +1,9 @@
 ﻿using Hyperboliq.Tests.Model;
 using Xunit;
-using static Hyperboliq.Tests.SqlStreamExtensions;
-using static Hyperboliq.Domain.Stream;
+using Hyperboliq.Domain;
+using S = Hyperboliq.Tests.SqlStreamExtensions;
+using AggregateType = Hyperboliq.Domain.Stream.AggregateType;
+using ValueNode = Hyperboliq.Domain.Stream.ValueNode;
 
 namespace Hyperboliq.Tests
 {
@@ -12,13 +14,13 @@ namespace Hyperboliq.Tests
         public void ItShouldBeAbleToSelectAllFromATable()
         {
             var expr = Select.Star<Person>()
-                                    .From<Person>();
+                             .From<Person>();
             var result = expr.ToSqlExpression();
 
             var expected =
-                SelectNode(
-                    Select(Col<Person>("*")),
-                    From<Person>());
+                S.SelectNode(
+                    S.Select(S.Col<Person>("*")),
+                    S.From<Person>());
 
             Assert.Equal(expected, result);
         }
@@ -31,9 +33,9 @@ namespace Hyperboliq.Tests
             var result = expr.ToSqlExpression();
 
             var expected =
-                SelectNode(
-                    SelectDistinct(Col<Person>("*")),
-                    From<Person>());
+                S.SelectNode(
+                    S.SelectDistinct(S.Col<Person>("*")),
+                    S.From<Person>());
 
             Assert.Equal(expected, result);
         }
@@ -46,9 +48,9 @@ namespace Hyperboliq.Tests
             var result = expr.ToSqlExpression();
 
             var expected =
-                SelectNode(
-                    Select(Col<Person>("Name"), Col<Person>("Age")),
-                    From<Person>());
+                S.SelectNode(
+                    S.Select(S.Col<Person>("Name"), S.Col<Person>("Age")),
+                    S.From<Person>());
 
             Assert.Equal(expected, result);
         }
@@ -62,9 +64,9 @@ namespace Hyperboliq.Tests
 
 
             var expected =
-                SelectNode(
-                    SelectDistinct(Col<Person>("Age")),
-                    From<Person>());
+                S.SelectNode(
+                    S.SelectDistinct(S.Col<Person>("Age")),
+                    S.From<Person>());
 
             Assert.Equal(expected, result);
         }
@@ -75,9 +77,9 @@ namespace Hyperboliq.Tests
             var expr = Select.Column<Person>(p => Sql.Count()).From<Person>();
             var result = expr.ToSqlExpression();
             var expected =
-                SelectNode(
-                    Select(Aggregate(AggregateType.Count, ValueNode.NullValue)), 
-                    From<Person>());
+                S.SelectNode(
+                    S.Select(S.Aggregate(AggregateType.Count, ValueNode.NullValue)), 
+                    S.From<Person>());
             Assert.Equal(expected, result);
         }
 
@@ -87,9 +89,9 @@ namespace Hyperboliq.Tests
             var expr = Select.Column<Person>(p => new { NumberOfPersons = Sql.Count() }).From<Person>();
             var result = expr.ToSqlExpression();
             var expected =
-                SelectNode(
-                    Select(Aggregate(AggregateType.Count, ValueNode.NullValue)),
-                    From<Person>());
+                S.SelectNode(
+                    S.Select(S.Aggregate(AggregateType.Count, ValueNode.NullValue)),
+                    S.From<Person>());
             Assert.Equal(expected, result);
         }
 

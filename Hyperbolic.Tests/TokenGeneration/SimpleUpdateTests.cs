@@ -1,8 +1,9 @@
 ﻿using Xunit;
 using Hyperboliq.Tests.Model;
-using static Hyperboliq.Domain.Types;
-using static Hyperboliq.Domain.Stream;
-using static Hyperboliq.Tests.SqlStreamExtensions;
+using Hyperboliq.Domain;
+using S = Hyperboliq.Tests.SqlStreamExtensions;
+using BinaryOperation = Hyperboliq.Domain.Types.BinaryOperation;
+using AggregateType = Hyperboliq.Domain.Stream.AggregateType;
 
 namespace Hyperboliq.Tests.TokenGeneration
 {
@@ -16,9 +17,9 @@ namespace Hyperboliq.Tests.TokenGeneration
             var result = expr.ToSqlExpression();
 
             var expected =
-                UpdateNode(
-                    UpdHead<Person>(
-                        Ust<Person>("Name", "'Kalle'")));
+                S.UpdateNode(
+                    S.UpdHead<Person>(
+                        S.Ust<Person>("Name", "'Kalle'")));
 
             Assert.Equal(expected, result);
         }
@@ -31,10 +32,10 @@ namespace Hyperboliq.Tests.TokenGeneration
             var result = expr.ToSqlExpression();
 
             var expected =
-                UpdateNode(
-                    UpdHead<Person>(
-                        Ust<Person>("Age", 42),
-                        Ust<Person>("Name", "'Kalle'")));
+                S.UpdateNode(
+                    S.UpdHead<Person>(
+                        S.Ust<Person>("Age", 42),
+                        S.Ust<Person>("Name", "'Kalle'")));
 
             Assert.Equal(expected, result);
         }
@@ -47,10 +48,10 @@ namespace Hyperboliq.Tests.TokenGeneration
             var result = expr.ToSqlExpression();
 
             var expected =
-                UpdateNode(
-                    UpdHead<Person>(
-                        Ust<Person>("Name", "'Kalle'"),
-                        Ust<Person>("Age", 42)));
+                S.UpdateNode(
+                    S.UpdHead<Person>(
+                        S.Ust<Person>("Name", "'Kalle'"),
+                        S.Ust<Person>("Age", 42)));
 
             Assert.Equal(expected, result);
         }
@@ -63,9 +64,9 @@ namespace Hyperboliq.Tests.TokenGeneration
             var result = expr.ToSqlExpression();
 
             var expected =
-                UpdateNode(
-                    UpdHead<Person>(
-                        Ust<Person>("Age", BinExp(Col<Person>("Age"), BinaryOperation.Add, Const(1)))));
+                S.UpdateNode(
+                    S.UpdHead<Person>(
+                        S.Ust<Person>("Age", S.BinExp(S.Col<Person>("Age"), BinaryOperation.Add, S.Const(1)))));
 
             Assert.Equal(expected, result);
         }
@@ -78,10 +79,10 @@ namespace Hyperboliq.Tests.TokenGeneration
             var result = expr.ToSqlExpression();
 
             var expected =
-                UpdateNode(
-                    UpdHead<Person>(
-                        Ust<Person>("Name", BinExp(Const("'Kalle'"), BinaryOperation.Add, Col<Person>("Name"))),
-                        Ust<Person>("Age", BinExp(Col<Person>("Age"), BinaryOperation.Subtract, Const(2)))
+                S.UpdateNode(
+                    S.UpdHead<Person>(
+                        S.Ust<Person>("Name", S.BinExp(S.Const("'Kalle'"), BinaryOperation.Add, S.Col<Person>("Name"))),
+                        S.Ust<Person>("Age", S.BinExp(S.Col<Person>("Age"), BinaryOperation.Subtract, S.Const(2)))
                     ));
 
             Assert.Equal(expected, result);
@@ -95,13 +96,13 @@ namespace Hyperboliq.Tests.TokenGeneration
             var result = expr.ToSqlExpression();
 
             var expected =
-                UpdateNode(
-                    UpdHead<Person>(
-                        Ust<Person>(
+                S.UpdateNode(
+                    S.UpdHead<Person>(
+                        S.Ust<Person>(
                             "Age", 
-                            SubExp(
-                                Select(Aggregate(AggregateType.Max, Col<Car>("Age"))),
-                                From<Car>()))));
+                            S.SubExp(
+                                 S.Select(S.Aggregate(AggregateType.Max, S.Col<Car>("Age"))),
+                                S.From<Car>()))));
             Assert.Equal(expected, result);
         }
 
@@ -113,9 +114,9 @@ namespace Hyperboliq.Tests.TokenGeneration
             var result = expr.ToSqlExpression();
 
             var expected =
-                UpdateNode(
-                    UpdHead<Person>(Ust<Person>("Age", 42)),
-                    Where(BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Kalle'"))));
+                S.UpdateNode(
+                    S.UpdHead<Person>(S.Ust<Person>("Age", 42)),
+                    S.Where(S.BinExp(S.Col<Person>("Name"), BinaryOperation.Equal, S.Const("'Kalle'"))));
             Assert.Equal(expected, result);
         }
 
@@ -129,12 +130,12 @@ namespace Hyperboliq.Tests.TokenGeneration
             var result = expr.ToSqlExpression();
 
             var expected =
-                UpdateNode(
-                    UpdHead<Person>(Ust<Person>("Age", 42)),
-                    Where(
-                        BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Kalle'")),
-                        And(BinExp(Col<Person>("Age"), BinaryOperation.LessThan, Const(18))),
-                        Or(BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Pelle'")))
+                S.UpdateNode(
+                    S.UpdHead<Person>(S.Ust<Person>("Age", 42)),
+                    S.Where(
+                        S.BinExp(S.Col<Person>("Name"), BinaryOperation.Equal, S.Const("'Kalle'")),
+                        S.And(S.BinExp(S.Col<Person>("Age"), BinaryOperation.LessThan, S.Const(18))),
+                        S.Or(S.BinExp(S.Col<Person>("Name"), BinaryOperation.Equal, S.Const("'Pelle'")))
                         ));
             Assert.Equal(expected, result);
         }

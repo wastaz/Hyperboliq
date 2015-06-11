@@ -1,9 +1,9 @@
 ﻿using Xunit;
-using static Hyperboliq.Tests.SqlStreamExtensions;
+using S = Hyperboliq.Tests.SqlStreamExtensions;
 using Hyperboliq.Tests.Model;
 using Hyperboliq.Dialects;
-using static Hyperboliq.Domain.Types;
-using static Hyperboliq.Domain.SqlGen;
+using Hyperboliq.Domain;
+using BinaryOperation = Hyperboliq.Domain.Types.BinaryOperation;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
@@ -15,21 +15,21 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItShouldAddParensWhenNecessaryToPreserveAndOrPredecence()
         {
             var stream = 
-                SelectNode(
-                    Select(Col<Person>("*")),
-                    From<Person>(),
-                    Where(
-                        BinExp(
-                            BinExp(
-                               BinExp(Col<Person>("Age"), BinaryOperation.LessThan, Const(10)),
+                S.SelectNode(
+                    S.Select(S.Col<Person>("*")),
+                    S.From<Person>(),
+                    S.Where(
+                        S.BinExp(
+                            S.BinExp(
+                               S.BinExp(S.Col<Person>("Age"), BinaryOperation.LessThan, S.Const(10)),
                                BinaryOperation.Or,
-                               BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Karl'"))
+                               S.BinExp(S.Col<Person>("Name"), BinaryOperation.Equal, S.Const("'Karl'"))
                            ),
                            BinaryOperation.And,
-                           BinExp(Col<Person>("Age"), BinaryOperation.GreaterThan, Const(42))
+                           S.BinExp(S.Col<Person>("Age"), BinaryOperation.GreaterThan, S.Const(42))
                        )));
 
-            var result = SqlifyExpression(AnsiSql.Dialect, stream);
+            var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
             Assert.Equal(@"SELECT PersonRef.* FROM Person PersonRef WHERE (PersonRef.Age < 10 OR PersonRef.Name = 'Karl') AND PersonRef.Age > 42", result);
         }
     }

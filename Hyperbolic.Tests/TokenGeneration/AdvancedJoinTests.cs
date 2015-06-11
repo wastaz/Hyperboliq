@@ -1,8 +1,9 @@
 ﻿using Xunit;
 using Hyperboliq.Tests.Model;
-using static Hyperboliq.Tests.SqlStreamExtensions;
-using static Hyperboliq.Domain.Types;
-using static Hyperboliq.Domain.Stream;
+using Hyperboliq.Domain;
+using S = Hyperboliq.Tests.SqlStreamExtensions;
+using JoinType = Hyperboliq.Domain.Stream.JoinType;
+using BinaryOperation = Hyperboliq.Domain.Types.BinaryOperation;
 
 namespace Hyperboliq.Tests
 {
@@ -12,8 +13,8 @@ namespace Hyperboliq.Tests
         [Fact]
         public void ItShouldBePossibleToJoinATableToItself()
         {
-            var child = NamedTableReferenceFromType<Person>("child");
-            var parent = NamedTableReferenceFromType<Person>("parent");
+            var child = Types.NamedTableReferenceFromType<Person>("child");
+            var parent = Types.NamedTableReferenceFromType<Person>("parent");
 
             var expr = Select.Column(child, p => new { p.Name })
                              .Column(parent, p => new { p.Name })
@@ -22,11 +23,11 @@ namespace Hyperboliq.Tests
             var result = expr.ToSqlExpression();
 
             var expected =
-                SelectNode(
-                    Select(Col(parent, "Name"), Col(child, "Name")),
-                    From(
+                S.SelectNode(
+                    S.Select(S.Col(parent, "Name"), S.Col(child, "Name")),
+                    S.From(
                         child,
-                        Join(child, parent, JoinType.InnerJoin, BinExp(Col(child, "ParentId"), BinaryOperation.Equal, Col(parent, "Id")))));
+                        S.Join(child, parent, Stream.JoinType.InnerJoin, S.BinExp(S.Col(child, "ParentId"), Types.BinaryOperation.Equal, S.Col(parent, "Id")))));
             Assert.Equal(expected, result);
         }
 
@@ -40,49 +41,49 @@ namespace Hyperboliq.Tests
             var result = expr.ToSqlExpression();
 
             var expected =
-                SelectNode(
-                    Select(Col<Car>("*")),
-                    From<House>(
-                        Join<House, Person, Car>(
+                S.SelectNode(
+                    S.Select(S.Col<Car>("*")),
+                    S.From<House>(
+                        S.Join<House, Person, Car>(
                             JoinType.InnerJoin, 
-                            BinExp(
-                                BinExp(Col<Car>("Brand"), BinaryOperation.Equal, Col<House>("Address")),
+                            S.BinExp(
+                                S.BinExp(S.Col<Car>("Brand"), BinaryOperation.Equal, S.Col<House>("Address")),
                                 BinaryOperation.And,
-                                BinExp(Col<Person>("LivesAtHouseId"), BinaryOperation.Equal, Col<House>("Id")))),
-                        Join<House, Person>(
+                                S.BinExp(S.Col<Person>("LivesAtHouseId"), BinaryOperation.Equal, S.Col<House>("Id")))),
+                        S.Join<House, Person>(
                             JoinType.InnerJoin,
-                            BinExp(Col<House>("Id"), BinaryOperation.Equal, Col<Person>("LivesAtHouseId")))));
+                            S.BinExp(S.Col<House>("Id"), BinaryOperation.Equal, S.Col<Person>("LivesAtHouseId")))));
             Assert.Equal(expected, result);
         }
 
         [Fact]
         public void ItShouldBePossibleToInnerJoinATableOnItselfSeveralTimes()
         {
-            var child = NamedTableReferenceFromType<Person>("child");
-            var parent = NamedTableReferenceFromType<Person>("parent");
-            var grandparent = NamedTableReferenceFromType<Person>("grandparent");
+            var child = Types.NamedTableReferenceFromType<Person>("child");
+            var parent = Types.NamedTableReferenceFromType<Person>("parent");
+            var grandparent = Types.NamedTableReferenceFromType<Person>("grandparent");
             var expr = Select.Column(grandparent, gp => new { gp.Name, gp.Age })
                              .From(child)
                              .InnerJoin(child, parent, (c, p) => c.ParentId == p.Id)
                              .InnerJoin(child, parent, grandparent, (c, p, gp) => p.ParentId == gp.Id && c.LivesAtHouseId == gp.LivesAtHouseId);
 
             var expected =
-                SelectNode(
-                    Select(
-                        Col(grandparent, "Name"),
-                        Col(grandparent, "Age")),
-                    From(
+                S.SelectNode(
+                    S.Select(
+                        S.Col(grandparent, "Name"),
+                        S.Col(grandparent, "Age")),
+                    S.From(
                         child,
-                        Join(child, parent, JoinType.InnerJoin, BinExp(Col(child, "ParentId"), BinaryOperation.Equal, Col(parent, "Id"))),
-                        Join(
+                        S.Join(child, parent, JoinType.InnerJoin, S.BinExp(S.Col(child, "ParentId"), BinaryOperation.Equal, S.Col(parent, "Id"))),
+                        S.Join(
                             child, 
                             parent, 
                             grandparent, 
                             JoinType.InnerJoin, 
-                            BinExp(
-                                BinExp(Col(parent, "ParentId"), BinaryOperation.Equal, Col(grandparent, "Id")),
+                            S.BinExp(
+                                S.BinExp(S.Col(parent, "ParentId"), BinaryOperation.Equal, S.Col(grandparent, "Id")),
                                 BinaryOperation.And,
-                                BinExp(Col(child, "LivesAtHouseId"), BinaryOperation.Equal, Col(grandparent, "LivesAtHouseId"))))));
+                                S.BinExp(S.Col(child, "LivesAtHouseId"), BinaryOperation.Equal, S.Col(grandparent, "LivesAtHouseId"))))));
         }
     }
 }

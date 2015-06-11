@@ -1,18 +1,64 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using static Hyperboliq.Domain.Types;
-using static Hyperboliq.Domain.Stream;
+using Hyperboliq.Domain;
 using Microsoft.FSharp.Collections;
 using Microsoft.FSharp.Core;
 
+#region Stupid usings since using static isn't available until C#6
+
+using ValueNode = Hyperboliq.Domain.Stream.ValueNode;
+using ITableReference = Hyperboliq.Domain.Types.ITableReference;
+using AggregateType = Hyperboliq.Domain.Stream.AggregateType;
+using Direction = Hyperboliq.Domain.Stream.Direction;
+using NullsOrdering = Hyperboliq.Domain.Stream.NullsOrdering;
+using JoinType = Hyperboliq.Domain.Stream.JoinType;
+using BinaryOperation = Hyperboliq.Domain.Types.BinaryOperation;
+using ExpressionCombinatorType = Hyperboliq.Domain.Stream.ExpressionCombinatorType;
+using BinaryExpressionNode = Hyperboliq.Domain.Stream.BinaryExpressionNode;
+using ParameterToken = Hyperboliq.Domain.Stream.ParameterToken;
+using ConstantNode = Hyperboliq.Domain.Stream.ConstantNode;
+using InsertStatementHeadToken = Hyperboliq.Domain.Stream.InsertStatementHeadToken;
+using UpdateSetToken = Hyperboliq.Domain.Stream.UpdateSetToken;
+using UpdateStatementHeadToken = Hyperboliq.Domain.Stream.UpdateStatementHeadToken;
+using InsertValueToken = Hyperboliq.Domain.Stream.InsertValueToken;
+using InsertValueNode = Hyperboliq.Domain.Stream.InsertValueNode;
+using SqlExpression = Hyperboliq.Domain.Stream.SqlExpression;
+using SelectExpression = Hyperboliq.Domain.Stream.SelectExpression;
+using UpdateExpression = Hyperboliq.Domain.Stream.UpdateExpression;
+using InsertExpression = Hyperboliq.Domain.Stream.InsertExpression;
+using DeleteExpression = Hyperboliq.Domain.Stream.DeleteExpression;
+using SelectExpressionNode = Hyperboliq.Domain.Stream.SelectExpressionNode;
+using FromExpressionNode = Hyperboliq.Domain.Stream.FromExpressionNode;
+using WhereExpressionNode = Hyperboliq.Domain.Stream.WhereExpressionNode;
+using GroupByExpressionNode = Hyperboliq.Domain.Stream.GroupByExpressionNode;
+using OrderByExpressionNode = Hyperboliq.Domain.Stream.OrderByExpressionNode;
+using OrderByClauseNode = Hyperboliq.Domain.Stream.OrderByClauseNode;
+using JoinClauseNode = Hyperboliq.Domain.Stream.JoinClauseNode;
+using WhereClauseNode = Hyperboliq.Domain.Stream.WhereClauseNode;
+
+#endregion
+
 namespace Hyperboliq.Tests
 {
+    public static class ObjectExtension
+    {
+        public static FSharpOption<T> ToOption<T>(this T obj)
+        {
+            if (obj == null)
+            {
+                return FSharpOption<T>.None;
+            }
+
+            return new FSharpOption<T>(obj);
+        }
+    }
+
     public static class SqlStreamExtensions
     {
         public static ValueNode Col<TTableType>(string columnDef)
         {
-            return ValueNode.NewColumn(new Tuple<string, ITableReference>(columnDef, TableReferenceFromType<TTableType>()));
+            return ValueNode.NewColumn(new Tuple<string, ITableReference>(columnDef, Types.TableReferenceFromType<TTableType>()));
         }
 
         public static ValueNode Col(ITableReference r, string columnDef)
@@ -48,14 +94,14 @@ namespace Hyperboliq.Tests
         {
             return 
                 new InsertStatementHeadToken(
-                    TableReferenceFromType<TTableType>(),
+                    Types.TableReferenceFromType<TTableType>(),
                     ListModule.OfSeq(
-                        colNames.Select(n => new Tuple<string, ITableReference>(n, TableReferenceFromType<TTableType>()))));
+                        colNames.Select(n => new Tuple<string, ITableReference>(n, Types.TableReferenceFromType<TTableType>()))));
         }
 
         private static UpdateSetToken CreateUpdateSetToken<TTableType>(string colDef, ValueNode stream)
         {
-            return new UpdateSetToken(new Tuple<string, ITableReference>(colDef, TableReferenceFromType<TTableType>()), stream);
+            return new UpdateSetToken(new Tuple<string, ITableReference>(colDef, Types.TableReferenceFromType<TTableType>()), stream);
         }
 
         public static UpdateSetToken Ust<TTableType>(string colDef, object c)
@@ -72,7 +118,7 @@ namespace Hyperboliq.Tests
         {
             return 
                 new UpdateStatementHeadToken(
-                    TableReferenceFromType<TTableType>(),
+                    Types.TableReferenceFromType<TTableType>(),
                     ListModule.OfArray(setExprs));
         }
 
@@ -93,7 +139,7 @@ namespace Hyperboliq.Tests
 
         public static InsertValueNode InsCol<TTableType>(string columnDef)
         {
-            return InsertValueNode.NewColumn(new Tuple<string, ITableReference>(columnDef, TableReferenceFromType<TTableType>()));
+            return InsertValueNode.NewColumn(new Tuple<string, ITableReference>(columnDef, Types.TableReferenceFromType<TTableType>()));
         }
 
         public static ValueNode SubExp(
@@ -107,9 +153,9 @@ namespace Hyperboliq.Tests
                 new SelectExpression(
                     select,
                     from,
-                    OptionModule.OfObj(where),
-                    OptionModule.OfObj(groupBy),
-                    OptionModule.OfObj(orderBy)));
+                    where.ToOption(),
+                    groupBy.ToOption(),
+                    orderBy.ToOption()));
         }
 
         public static OrderByClauseNode OrderClause(ValueNode col, Direction direction, NullsOrdering nullsOrdering = null)
@@ -152,25 +198,25 @@ namespace Hyperboliq.Tests
         {
             return
                 new FromExpressionNode(
-                    new FSharpList<ITableReference>(TableReferenceFromType<TTable>(), FSharpList<ITableReference>.Empty),
+                    new FSharpList<ITableReference>(Types.TableReferenceFromType<TTable>(), FSharpList<ITableReference>.Empty),
                     ListModule.OfArray(joins));
         }
 
         public static JoinClauseNode Join<TSource, TTarget>(JoinType type, ValueNode joinExpr)
         {
             return new JoinClauseNode(
-                new FSharpList<ITableReference>(TableReferenceFromType<TSource>(), FSharpList<ITableReference>.Empty),
-                TableReferenceFromType<TTarget>(),
+                new FSharpList<ITableReference>(Types.TableReferenceFromType<TSource>(), FSharpList<ITableReference>.Empty),
+                Types.TableReferenceFromType<TTarget>(),
                 type,
-                OptionModule.OfObj(joinExpr));
+                joinExpr.ToOption());
         }
         public static JoinClauseNode Join<TSource1, TSource2, TTarget>(JoinType type, ValueNode joinExpr)
         {
             return new JoinClauseNode(
-                ListModule.OfArray(new ITableReference[] { TableReferenceFromType<TSource1>(), TableReferenceFromType<TSource2>() }),
-                TableReferenceFromType<TTarget>(),
+                ListModule.OfArray(new ITableReference[] { Types.TableReferenceFromType<TSource1>(), Types.TableReferenceFromType<TSource2>() }),
+                Types.TableReferenceFromType<TTarget>(),
                 type,
-                OptionModule.OfObj(joinExpr));
+                joinExpr.ToOption());
         }
 
         public static JoinClauseNode Join(ITableReference source1, ITableReference source2, ITableReference target, JoinType type, ValueNode joinExpr)
@@ -179,7 +225,7 @@ namespace Hyperboliq.Tests
                 ListModule.OfArray(new[] { source1, source2 }),
                 target,
                 type,
-                OptionModule.OfObj(joinExpr));
+                joinExpr.ToOption());
         }
 
         public static JoinClauseNode Join(ITableReference source, ITableReference target, JoinType type, ValueNode joinExpr)
@@ -188,7 +234,7 @@ namespace Hyperboliq.Tests
                 new FSharpList<ITableReference>(source, FSharpList<ITableReference>.Empty),
                 target,
                 type,
-                OptionModule.OfObj(joinExpr));
+                joinExpr.ToOption());
         }
 
         public static WhereExpressionNode Where(ValueNode start, params WhereClauseNode[] additionalClauses)
@@ -228,15 +274,15 @@ namespace Hyperboliq.Tests
                 new SelectExpression(
                     select,
                     from,
-                    OptionModule.OfObj(where),
-                    OptionModule.OfObj(groupBy),
-                    OptionModule.OfObj(orderBy)));
+                    where.ToOption(),
+                    groupBy.ToOption(),
+                    orderBy.ToOption()));
         }
 
         public static SqlExpression DeleteNode(FromExpressionNode from, WhereExpressionNode where = null)
         {
             return SqlExpression.NewDelete(
-                new DeleteExpression(from, OptionModule.OfObj(where)));
+                new DeleteExpression(from, where.ToOption()));
         }
 
         public static SqlExpression UpdateNode(UpdateStatementHeadToken head, WhereExpressionNode where = null)
@@ -244,7 +290,7 @@ namespace Hyperboliq.Tests
             return SqlExpression.NewUpdate(
                 new UpdateExpression(
                     head,
-                    OptionModule.OfObj(where)));
+                    where.ToOption()));
         }
 
         public static SqlExpression InsertNode(InsertStatementHeadToken head, params InsertValueToken[] values)

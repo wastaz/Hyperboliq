@@ -1,9 +1,9 @@
 ﻿using Xunit;
 using Hyperboliq.Tests.Model;
 using Hyperboliq.Dialects;
-using static Hyperboliq.Tests.SqlStreamExtensions;
-using static Hyperboliq.Domain.Types;
-using static Hyperboliq.Domain.SqlGen;
+using Hyperboliq.Domain;
+using BinaryOperation = Hyperboliq.Domain.Types.BinaryOperation;
+using S = Hyperboliq.Tests.SqlStreamExtensions;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
@@ -14,8 +14,8 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItShouldBePossibleToGenerateADeleteAllRowsFromTableStatement()
         {
             var stream =
-                DeleteNode(From<Person>());
-            var result = SqlifyExpression(AnsiSql.Dialect, stream);
+                S.DeleteNode(S.From<Person>());
+            var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
 
             Assert.Equal(@"DELETE FROM Person PersonRef", result);
         }
@@ -24,10 +24,10 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItShouldBePossibleToPutAWhereExpressionOnADeleteStatement()
         {
             var stream =
-                DeleteNode(
-                    From<Person>(),
-                    Where(BinExp(Col<Person>("Age"), BinaryOperation.GreaterThan, Const(42))));
-            var result = SqlifyExpression(AnsiSql.Dialect, stream);
+                S.DeleteNode(
+                    S.From<Person>(),
+                    S.Where(S.BinExp(S.Col<Person>("Age"), BinaryOperation.GreaterThan, S.Const(42))));
+            var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
 
             Assert.Equal(@"DELETE FROM Person PersonRef WHERE PersonRef.Age > 42", result);
         }
@@ -36,13 +36,13 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItShouldBePossibleToUseAndAndOrOnAWhereStatementOnADeleteStatement()
         {
             var stream =
-                DeleteNode(
-                    From<Person>(),
-                    Where(
-                        BinExp(Col<Person>("Age"), BinaryOperation.GreaterThan, Const(42)),
-                        And(BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Kalle'"))),
-                        Or(BinExp(Col<Person>("Name"), BinaryOperation.Equal, Const("'Henrik'")))));
-            var result = SqlifyExpression(AnsiSql.Dialect, stream);
+                S.DeleteNode(
+                    S.From<Person>(),
+                    S.Where(
+                        S.BinExp(S.Col<Person>("Age"), BinaryOperation.GreaterThan, S.Const(42)),
+                        S.And(S.BinExp(S.Col<Person>("Name"), BinaryOperation.Equal, S.Const("'Kalle'"))),
+                        S.Or(S.BinExp(S.Col<Person>("Name"), BinaryOperation.Equal, S.Const("'Henrik'")))));
+            var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
 
             Assert.Equal(
                 "DELETE FROM Person PersonRef " +
@@ -56,17 +56,17 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItShouldBePossibleToDeleteWithASubQuery()
         {
             var stream =
-                DeleteNode(
-                    From<Car>(),
-                    Where(
-                        BinExp(
-                            Col<Car>("DriverId"),
+                S.DeleteNode(
+                    S.From<Car>(),
+                    S.Where(
+                        S.BinExp(
+                            S.Col<Car>("DriverId"),
                             BinaryOperation.In,
-                            SubExp(
-                                Select(Col<Person>("Id")),
-                                From<Person>(),
-                                Where(BinExp(Col<Person>("Age"), BinaryOperation.LessThan, Const(18)))))));
-            var result = SqlifyExpression(AnsiSql.Dialect, stream);
+                            S.SubExp(
+                                S.Select(S.Col<Person>("Id")),
+                                S.From<Person>(),
+                                S.Where(S.BinExp(S.Col<Person>("Age"), BinaryOperation.LessThan, S.Const(18)))))));
+            var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
 
             Assert.Equal(
                 "DELETE FROM Car CarRef " +

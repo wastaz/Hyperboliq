@@ -3,8 +3,6 @@ using Hyperboliq.Tests.Model;
 using System.Linq;
 using Hyperboliq.Domain;
 using Hyperboliq.Dialects;
-using static Hyperboliq.Domain.IDbConnectionExtensions;
-using static Hyperboliq.Domain.Stream;
 
 namespace Hyperboliq.Tests.Sqllite
 {

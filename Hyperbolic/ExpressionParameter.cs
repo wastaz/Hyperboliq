@@ -1,8 +1,8 @@
-﻿using static Hyperboliq.Domain.Types;
+﻿using Hyperboliq.Domain;
 
 namespace Hyperboliq
 {
-    public class ExpressionParameter<TParamType> : ExpressionParameter
+    public class ExpressionParameter<TParamType> : Types.ExpressionParameter
     {
         public ExpressionParameter(string name) : base(name) { }
 

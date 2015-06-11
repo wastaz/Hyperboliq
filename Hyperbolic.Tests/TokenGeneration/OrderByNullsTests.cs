@@ -1,7 +1,8 @@
 ﻿using Xunit;
 using Hyperboliq.Tests.Model;
-using static Hyperboliq.Tests.SqlStreamExtensions;
-using static Hyperboliq.Domain.Stream;
+using S = Hyperboliq.Tests.SqlStreamExtensions;
+using Direction = Hyperboliq.Domain.Stream.Direction;
+using NullsOrdering = Hyperboliq.Domain.Stream.NullsOrdering;
 
 namespace Hyperboliq.Tests
 {
@@ -21,11 +22,11 @@ namespace Hyperboliq.Tests
             var result = expr.ToSqlExpression();
 
             var expected =
-                SelectNode(
-                    Select(Col<Person>("*")),
-                    From<Person>(),
-                    orderBy: OrderBy(
-                        OrderClause(Col<Person>("Age"), Direction.Ascending, NullsOrdering.NullsFirst))
+                S.SelectNode(
+                    S.Select(S.Col<Person>("*")),
+                    S.From<Person>(),
+                    orderBy: S.OrderBy(
+                        S.OrderClause(S.Col<Person>("Age"), Direction.Ascending, NullsOrdering.NullsFirst))
                     );
 
             Assert.Equal(expected, result);
@@ -40,11 +41,11 @@ namespace Hyperboliq.Tests
             var result = expr.ToSqlExpression();
 
             var expected =
-                SelectNode(
-                    Select(Col<Person>("*")),
-                    From<Person>(),
-                    orderBy: OrderBy(
-                        OrderClause(Col<Person>("Age"), Direction.Ascending, NullsOrdering.NullsLast))
+                S.SelectNode(
+                    S.Select(S.Col<Person>("*")),
+                    S.From<Person>(),
+                    orderBy: S.OrderBy(
+                        S.OrderClause(S.Col<Person>("Age"), Direction.Ascending, NullsOrdering.NullsLast))
                     );
 
             Assert.Equal(expected, result);
@@ -60,12 +61,12 @@ namespace Hyperboliq.Tests
             var result = expr.ToSqlExpression();
 
             var expected =
-                SelectNode(
-                    Select(Col<Person>("*")),
-                    From<Person>(),
-                    orderBy: OrderBy(
-                        OrderClause(Col<Person>("Name"), Direction.Descending, NullsOrdering.NullsFirst),
-                        OrderClause(Col<Person>("Age"), Direction.Ascending, NullsOrdering.NullsLast))
+                S.SelectNode(
+                    S.Select(S.Col<Person>("*")),
+                    S.From<Person>(),
+                    orderBy: S.OrderBy(
+                        S.OrderClause(S.Col<Person>("Name"), Direction.Descending, NullsOrdering.NullsFirst),
+                        S.OrderClause(S.Col<Person>("Age"), Direction.Ascending, NullsOrdering.NullsLast))
                     );
 
             Assert.Equal(expected, result);

@@ -1,8 +1,9 @@
 ﻿using Xunit;
-using static Hyperboliq.Tests.SqlStreamExtensions;
 using Hyperboliq.Tests.Model;
-using static Hyperboliq.Domain.SqlGen;
+using Hyperboliq.Domain;
 using Hyperboliq.Dialects;
+using Hyperboliq.Tests;
+using S = Hyperboliq.Tests.SqlStreamExtensions;
 
 namespace Hyperboliq.Tests.Sqllite
 {
@@ -13,14 +14,14 @@ namespace Hyperboliq.Tests.Sqllite
         public void ItShouldProperlyQuoteColumnNames()
         {
             var stream =
-                SelectNode(
-                    Select(
-                        Col<Person>("Name"),
-                        Col<Person>("Age"),
-                        Col<Person>("Id")),
-                    From<Person>());
+                S.SelectNode(
+                    S.Select(
+                        S.Col<Person>("Name"),
+                        S.Col<Person>("Age"),
+                        S.Col<Person>("Id")),
+                    S.From<Person>());
 
-            var result = SqlifyExpression(SqlLite.Dialect, stream);
+            var result = SqlGen.SqlifyExpression(SqlLite.Dialect, stream);
             Assert.Equal(@"SELECT PersonRef.""Name"", PersonRef.""Age"", PersonRef.""Id"" FROM Person PersonRef", result);
         }
     }

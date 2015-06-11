@@ -1,9 +1,9 @@
 ﻿using Xunit;
 using Hyperboliq.Tests.Model;
 using Hyperboliq.Dialects;
-using static Hyperboliq.Tests.SqlStreamExtensions;
-using static Hyperboliq.Domain.Types;
-using static Hyperboliq.Domain.SqlGen;
+using Hyperboliq.Domain;
+using BinaryOperation = Hyperboliq.Domain.Types.BinaryOperation;
+using S = Hyperboliq.Tests.SqlStreamExtensions;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
@@ -14,11 +14,11 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItShouldBeAbleToParameterizeAQuery()
         {
             var stream =
-                SelectNode(
-                    Select(Col<Person>("*")),
-                    From<Person>(),
-                    Where(BinExp(Col<Person>("Age"), BinaryOperation.GreaterThan, Param("age"))));
-            var result = SqlifyExpression(AnsiSql.Dialect, stream);
+                S.SelectNode(
+                    S.Select(S.Col<Person>("*")),
+                    S.From<Person>(),
+                    S.Where(S.BinExp(S.Col<Person>("Age"), BinaryOperation.GreaterThan, S.Param("age"))));
+            var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
 
             Assert.Equal("SELECT PersonRef.* FROM Person PersonRef WHERE PersonRef.Age > @age", result);
         }
@@ -27,18 +27,18 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItShouldBePossibleToUseTheParameterInMoreComplexExpressions()
         {
             var stream =
-                SelectNode(
-                    Select(Col<Person>("*")),
-                    From<Person>(),
-                    Where(                    
-                        BinExp(
-                            BinExp(Col<Person>("Age"), BinaryOperation.GreaterThan, Param("age")),
+                S.SelectNode(
+                    S.Select(S.Col<Person>("*")),
+                    S.From<Person>(),
+                    S.Where(                    
+                        S.BinExp(
+                            S.BinExp(S.Col<Person>("Age"), BinaryOperation.GreaterThan, S.Param("age")),
                             BinaryOperation.And,
-                            BinExp(Param("age"), BinaryOperation.LessThan, Const(90))
+                            S.BinExp(S.Param("age"), BinaryOperation.LessThan, S.Const(90))
                             ),
-                        Or(BinExp(Col<Person>("Age"), BinaryOperation.LessThan, Param("age")))
+                        S.Or(S.BinExp(S.Col<Person>("Age"), BinaryOperation.LessThan, S.Param("age")))
                     ));
-            var result = SqlifyExpression(AnsiSql.Dialect, stream);
+            var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
 
             Assert.Equal(
                 @"SELECT PersonRef.* " +

@@ -1,9 +1,9 @@
 ﻿using Xunit;
 using Hyperboliq.Tests.Model;
 using Hyperboliq.Dialects;
-using static Hyperboliq.Tests.SqlStreamExtensions;
-using static Hyperboliq.Domain.Types;
-using static Hyperboliq.Domain.SqlGen;
+using Hyperboliq.Domain;
+using S = Hyperboliq.Tests.SqlStreamExtensions;
+using BinaryOperation = Hyperboliq.Domain.Types.BinaryOperation;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
@@ -14,12 +14,12 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItCanGenerateCorrectSqlForAComparisonWithNull()
         {
             var stream =
-                SelectNode(
-                    Select(Col<Person>("*")),
-                    From<Person>(),
-                    Where(
-                        BinExp(Col<Person>("Age"), BinaryOperation.Equal, Null())));
-            var result = SqlifyExpression(AnsiSql.Dialect, stream);
+                S.SelectNode(
+                    S.Select(S.Col<Person>("*")),
+                    S.From<Person>(),
+                    S.Where(
+                        S.BinExp(S.Col<Person>("Age"), BinaryOperation.Equal, S.Null())));
+            var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
 
             Assert.Equal("SELECT PersonRef.* FROM Person PersonRef WHERE PersonRef.Age IS NULL", result);
         }
@@ -28,12 +28,12 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItCanGenerateCorrectSqlForAnInvertedComparisonWithNull()
         {
             var stream =
-                SelectNode(
-                    Select(Col<Person>("*")),
-                    From<Person>(),
-                    Where(
-                        BinExp(Col<Person>("Age"), BinaryOperation.NotEqual, Null())));
-            var result = SqlifyExpression(AnsiSql.Dialect, stream);
+                S.SelectNode(
+                    S.Select(S.Col<Person>("*")),
+                    S.From<Person>(),
+                    S.Where(
+                        S.BinExp(S.Col<Person>("Age"), BinaryOperation.NotEqual, S.Null())));
+            var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
 
             Assert.Equal("SELECT PersonRef.* FROM Person PersonRef WHERE PersonRef.Age IS NOT NULL", result);
         }
@@ -42,12 +42,12 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItCanSupportFlippingOrdersForComparisonWithNull()
         {
             var stream =
-                SelectNode(
-                    Select(Col<Person>("*")),
-                    From<Person>(),
-                    Where(
-                        BinExp(Null(), BinaryOperation.Equal, Col<Person>("Age"))));
-            var result = SqlifyExpression(AnsiSql.Dialect, stream);
+                S.SelectNode(
+                    S.Select(S.Col<Person>("*")),
+                    S.From<Person>(),
+                    S.Where(
+                        S.BinExp(S.Null(), BinaryOperation.Equal, S.Col<Person>("Age"))));
+            var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
 
             Assert.Equal("SELECT PersonRef.* FROM Person PersonRef WHERE PersonRef.Age IS NULL", result);
         }
@@ -56,12 +56,12 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItCanSupportFlippingOrdersForInvertedComparisonWithNull()
         {
             var stream =
-                SelectNode(
-                    Select(Col<Person>("*")),
-                    From<Person>(),
-                    Where(
-                        BinExp(Null(), BinaryOperation.NotEqual, Col<Person>("Age"))));
-            var result = SqlifyExpression(AnsiSql.Dialect, stream);
+                S.SelectNode(
+                    S.Select(S.Col<Person>("*")),
+                    S.From<Person>(),
+                    S.Where(
+                        S.BinExp(S.Null(), BinaryOperation.NotEqual, S.Col<Person>("Age"))));
+            var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
 
             Assert.Equal("SELECT PersonRef.* FROM Person PersonRef WHERE PersonRef.Age IS NOT NULL", result);
         }
