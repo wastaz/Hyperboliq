@@ -3,6 +3,7 @@
 module Stream =
     open Types
 
+
     type ConstantNode = ConstantNode of string
 
     type ColumnToken = string * ITableReference
@@ -119,7 +120,7 @@ module Stream =
 
     and InsertValueToken = { Values : InsertValueNode list }
     
-    and SelectExpression =
+    and PlainSelectExpression = 
         {
             Select : SelectExpressionNode
             From : FromExpressionNode
@@ -127,6 +128,31 @@ module Stream =
             GroupBy : GroupByExpressionNode option
             OrderBy : OrderByExpressionNode option
         }
+    and CommonTableValuedSelectExpression = CommonTableExpression * PlainSelectExpression
+
+    and SelectExpression =
+        | Plain of PlainSelectExpression
+        | Complex of CommonTableValuedSelectExpression
+
+    and ICommonTableDefinition =
+        abstract Query : PlainSelectExpression with get
+        abstract TableReference : ITableReference with get
+
+    and ICommonTableDefinition<'a> =
+        abstract Query : PlainSelectExpression with get
+        abstract TableReference : ITableReference<'a> with get
+
+    and CommonTableDefinition<'a> =
+        { Query : PlainSelectExpression; TableReference : ITableReference<'a> }
+        interface ICommonTableDefinition<'a> with
+            member x.Query with get() = x.Query
+            member x.TableReference with get() = x.TableReference
+        interface ICommonTableDefinition with
+            member x.Query with get () = x.Query
+            member x.TableReference with get() = x.TableReference :> ITableReference
+
+    and CommonTableExpression = { Definitions : ICommonTableDefinition list }
+
 
     type InsertExpression =
         {

@@ -28,6 +28,7 @@ using SelectExpression = Hyperboliq.Domain.Stream.SelectExpression;
 using UpdateExpression = Hyperboliq.Domain.Stream.UpdateExpression;
 using InsertExpression = Hyperboliq.Domain.Stream.InsertExpression;
 using DeleteExpression = Hyperboliq.Domain.Stream.DeleteExpression;
+using CommonTableExpression = Hyperboliq.Domain.Stream.CommonTableExpression;
 using SelectExpressionNode = Hyperboliq.Domain.Stream.SelectExpressionNode;
 using FromExpressionNode = Hyperboliq.Domain.Stream.FromExpressionNode;
 using WhereExpressionNode = Hyperboliq.Domain.Stream.WhereExpressionNode;
@@ -165,6 +166,7 @@ namespace Hyperboliq.Tests
         {
             return ValueNode.NewSubExpression(
                 new SelectExpression(
+                    FSharpOption<CommonTableExpression>.None,
                     select,
                     from,
                     where.ToOption(),
@@ -286,6 +288,25 @@ namespace Hyperboliq.Tests
         {
             return SqlExpression.NewSelect(
                 new SelectExpression(
+                    FSharpOption<CommonTableExpression>.None,
+                    select,
+                    from,
+                    where.ToOption(),
+                    groupBy.ToOption(),
+                    orderBy.ToOption()));
+        }
+
+        public static SqlExpression SelectNode(
+            CommonTableExpression with,
+            SelectExpressionNode select,
+            FromExpressionNode from,
+            WhereExpressionNode where = null,
+            GroupByExpressionNode groupBy = null,
+            OrderByExpressionNode orderBy = null)
+        {
+            return SqlExpression.NewSelect(
+                new SelectExpression(
+                    with.ToOption(),
                     select,
                     from,
                     where.ToOption(),
@@ -313,6 +334,26 @@ namespace Hyperboliq.Tests
                 new InsertExpression(
                     head,
                     ListModule.OfArray(values)));
+        }
+
+        public static Stream.ICommonTableDefinition TableDef<TType>(Types.ISqlQuery)
+        {
+            return 
+                new Stream.CommonTableDefinition<TType>(
+                    SqlExpression.NewSelect(null)
+                    );
+                new SelectExpression(
+                    FSharpOption<CommonTableExpression>.None,
+                    select,
+                    from,
+                    where.ToOption(),
+                    groupBy.ToOption(),
+                    orderBy.ToOption()));
+        }
+
+        public static CommonTableExpression With(params Stream.ICommonTableDefinition[] definitions)
+        {
+            return new CommonTableExpression(ListModule.OfArray(definitions));
         }
     }
 }

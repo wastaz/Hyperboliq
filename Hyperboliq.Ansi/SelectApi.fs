@@ -170,6 +170,7 @@ type Join internal (expr : SelectExpression) =
 
 type SelectFrom<'a> internal (tbl: ITableReference, exprNode : SelectExpressionNode) =
     inherit FluentSelectBase({
+                                 With = None
                                  Select = exprNode
                                  From = { Tables = [ tbl ]; Joins = [] }
                                  Where = None
