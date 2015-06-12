@@ -33,7 +33,7 @@ Do be aware of the fact that Hyperboliq is currently in a pre-alpha state and as
 ## Selecting data
 Hyperboliq aims to use POCOs for accessing data in order to be able to provide as much intellisense/type safety as possible. 
 Hyperboliq will always generate table aliases for all tables in your query. 
-You can provide your own aliases if necessary, though as long as you  are not referencing the same table more than once in your query you should not have to do this. 
+You can provide your own aliases if necessary, though as long as you are not referencing the same table more than once in your query you should not have to do this. 
 
 ### Basic selects
     Select<Person>(p => p.Name).From<Person>().Where<Person>(p => p.Age > 42)
@@ -57,6 +57,16 @@ You can provide your own aliases if necessary, though as long as you  are not re
     SELECT child.Name, parent.Name 
     FROM Person child 
     INNER JOIN Person parent ON child.ParentId = parent.Id
+
+### Windowing functions with OVER/PARTITION BY/ORDER BY
+    Select.Column<Person>(p => p.Name)
+          .Column<Person>(
+              p => Sql.Sum(p.Age), 
+              Over.PartitionBy<Person>(p => p.Name).OrderBy<Person>(p => p.Age, Direction.Ascending))
+          .From<Person>();
+
+    SELECT PersonRef.Name, SUM(PersonRef.Age) OVER (PARTITION BY PersonRef.Name ORDER BY PersonRef.Age ASC)
+    FROM Person PersonRef
 
 ### Subquery support
 Hyperboliq allows you to create queries that contain subqueries. However due to the nature of C#'s type system these kind of queries are not as type safe. This may let you write queries that translate into SQL that your database will not accept (and thus throw a `SQLException` during runtime). If you use subqueries, be extra careful to match the correct types, number of expected results and number of columns to avoid these exceptions during runtime.
