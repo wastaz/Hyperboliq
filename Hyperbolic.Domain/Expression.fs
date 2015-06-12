@@ -4,6 +4,21 @@ module ExpressionParts =
     open Types
     open Stream
 
+    let AddPartitionBy window selector tblRef =
+        let v = ExpressionVisitor.Visit selector [ tblRef ]
+        match v with
+        | None -> window
+        | Some(ValueList(values)) -> { window with PartitionBy = window.PartitionBy @ values }
+        | Some(value) -> { window with PartitionBy = window.PartitionBy @ [ value ]}
+
+    let AddPartitionOrderBy (window : WindowNode) selector tblRef direction nullsOrder =
+        let v = ExpressionVisitor.Visit selector [ tblRef ]
+        match v with
+        | None -> window
+        | Some(value) ->
+            let clause = { Selector = value; Direction = direction; NullsOrdering = nullsOrder }
+            { window with OrderBy = window.OrderBy @ [ clause ] }
+
     let AddJoinClause fromExpr joinClause =
         { fromExpr with Joins = joinClause :: fromExpr.Joins }
 
@@ -32,6 +47,13 @@ module ExpressionParts =
         | None -> select
         | Some(ValueList(v)) -> { select with SelectExpressionNode.Values = v @ select.Values }
         | Some(v) -> { select with Values = select.Values @ [ v ] }
+
+    let SelectColumnWithPartition select expr tblRef partition =
+        let stream = ExpressionVisitor.Visit expr [ tblRef ] 
+        match stream with
+        | Some(Aggregate(a)) ->
+            { select with SelectExpressionNode.Values = select.Values @ [ WindowedColumn(a, partition) ] }
+        | _ -> select
 
     let private NewOrderByExpression () = { OrderByExpressionNode.Clauses = [] }
 

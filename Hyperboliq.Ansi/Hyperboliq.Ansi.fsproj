@@ -46,6 +46,7 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="AnsiDialect.fs" />
+    <Compile Include="PartitionApi.fs" />
     <Compile Include="SelectApi.fs" />
     <Compile Include="DeleteApi.fs" />
     <Compile Include="InsertApi.fs" />

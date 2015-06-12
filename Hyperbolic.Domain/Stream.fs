@@ -29,11 +29,18 @@ module Stream =
 
     type JoinType = InnerJoin | LeftJoin | RightJoin | FullJoin
 
-    type AggregateType = Max | Min | Avg | Count
+    type AggregateType = Max | Min | Avg | Count | Sum
 
     type ExpressionCombinatorType = And | Or
 
-    type JoinClauseNode = { 
+    type WindowedColumnNode = AggregateToken * WindowNode
+
+    and WindowNode = {
+        PartitionBy: ValueNode list
+        OrderBy: OrderByClauseNode list
+    }
+
+    and JoinClauseNode = { 
         SourceTables: ITableReference list
         TargetTable: ITableReference
         Type: JoinType
@@ -82,6 +89,7 @@ module Stream =
         | NullValue
         | Constant of ConstantNode
         | Column of ColumnToken
+        | WindowedColumn of WindowedColumnNode
         | Parameter of ParameterToken
         | Aggregate of AggregateToken
         | SubExpression of SelectExpression

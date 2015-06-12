@@ -83,6 +83,7 @@
     <Compile Include="SqlGeneration\SimpleInsertTests.cs" />
     <Compile Include="TokenGeneration\ExpressionVisitorTests.cs" />
     <Compile Include="TokenGeneration\OrderByNullsTests.cs" />
+    <Compile Include="TokenGeneration\SelectPartitionsTests.cs" />
     <Compile Include="TokenGeneration\SimpleDeleteTests.cs" />
     <Compile Include="TokenGeneration\SimpleInsertTests.cs" />
     <Compile Include="TokenGeneration\SimpleSelectTests.cs" />

@@ -217,6 +217,8 @@ type SelectImpl internal (expr : SelectExpressionNode) =
         SelectImpl(SelectColumns expr selector TableReferenceFromType<'a>)
     member x.Column<'a>(tbl : ITableReference<'a>, selector : Expression<Func<'a, obj>>) = 
         SelectImpl(SelectColumns expr selector tbl)
+    member x.Column<'a>(selector : Expression<Func<'a, obj>>, partition : FluentOverPartitionBase) = 
+        SelectImpl(SelectColumnWithPartition expr selector TableReferenceFromType<'a> partition.Partition)
     member x.From<'a>(tbl : ITableReference<'a>) = SelectFrom<'a>(tbl, expr)
     member x.From<'a>() = x.From<'a>(TableReferenceFromType<'a>)
 
@@ -224,4 +226,5 @@ type Select private () =
     static member Distinct with get() = (SelectImpl()).Distinct
     static member Star<'a>() = (SelectImpl()).Star<'a>()
     static member Column<'a>(selector : Expression<Func<'a, obj>>) = (SelectImpl()).Column<'a>(selector)
+    static member Column<'a>(selector : Expression<Func<'a, obj>>, partition : FluentOverPartitionBase) = (SelectImpl()).Column<'a>(selector, partition)
     static member Column<'a>(tbl : ITableReference<'a>, selector : Expression<Func<'a, obj>>) = (SelectImpl()).Column<'a>(tbl, selector)

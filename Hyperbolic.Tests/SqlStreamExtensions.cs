@@ -66,6 +66,20 @@ namespace Hyperboliq.Tests
             return ValueNode.NewColumn(new Tuple<string, ITableReference>(columnDef, r));
         }
 
+        public static ValueNode WinCol(
+            AggregateType type, 
+            ValueNode aggregateParameter, 
+            IEnumerable<ValueNode> partitionBy = null, 
+            IEnumerable<OrderByClauseNode> orderBy = null)
+        {
+            return ValueNode.NewWindowedColumn(
+                new Tuple<Tuple<AggregateType, ValueNode>, Stream.WindowNode>(
+                    new Tuple<AggregateType, ValueNode>(type, aggregateParameter),
+                    new Stream.WindowNode(
+                        partitionBy == null ? ListModule.Empty<ValueNode>() : ListModule.OfSeq(partitionBy),
+                        orderBy == null ? ListModule.Empty<OrderByClauseNode>() : ListModule.OfSeq(orderBy))));
+        }
+
         public static ValueNode Aggregate(AggregateType type, ValueNode parameter)
         {
             return ValueNode.NewAggregate(new Tuple<AggregateType, ValueNode>(type, parameter));

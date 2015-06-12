@@ -104,6 +104,7 @@ module internal SqlGenUtils =
         | Avg -> sprintf "AVG(%s)" value
         | Min -> sprintf "MIN(%s)" value
         | Max -> sprintf "MAX(%s)" value
+        | Sum -> sprintf "SUM(%s)" value
 
     and HandleBinaryExpression (subExprHandler : SubExpressionHandler) (includeTableRef : bool) (dialect : ISqlDialect) (exp : BinaryExpressionNode) =
         let AddParensIfNecessary innerExp sql =
