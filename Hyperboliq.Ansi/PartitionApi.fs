@@ -10,6 +10,9 @@ open Hyperboliq.Domain.ExpressionParts
 type FluentOverPartitionBase(p : WindowNode) =
     member x.Partition with internal get() = p
 
+type EmptyOverStatement internal (p : WindowNode) =
+    inherit FluentOverPartitionBase(p)
+
 type OverOrderBy internal (p : WindowNode) =
     inherit FluentOverPartitionBase(p)
 
@@ -39,6 +42,7 @@ type OverPartition internal (p : WindowNode) =
 
 type Over private () =
     static let EmptyPartition = { PartitionBy = []; OrderBy = [] }
+    static let EmptyOver = EmptyOverStatement(EmptyPartition)
     static let EmptyOverOrderBy = OverOrderBy(EmptyPartition)
     static let EmptyOverPartition = OverPartition(EmptyPartition)
 
@@ -51,3 +55,5 @@ type Over private () =
         EmptyOverOrderBy.ThenBy(selector, direction)
     static member OrderBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction, nullsOrder : NullsOrdering) =
         EmptyOverOrderBy.ThenBy(selector, direction, nullsOrder)
+
+    static member Empty with get() = EmptyOver

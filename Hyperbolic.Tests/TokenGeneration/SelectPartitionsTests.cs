@@ -18,6 +18,26 @@ namespace Hyperboliq.Tests.TokenGeneration
     public class TokenGeneration_SelectPartitionsTests
     {
         [Fact]
+        public void ItShouldBePossibleToUseAnEmptyOverClause()
+        {
+            var expr = Select.Column<Person>(p => p.Name)
+                             .Column<Person>(p => Sql.Sum(p.Age), Over.Empty)
+                             .From<Person>();
+            var result = expr.ToSqlExpression();
+
+            var expected =
+                S.SelectNode(
+                    S.Select(
+                        S.Col<Person>("Name"),
+                        S.WinCol(
+                            AggregateType.Sum,
+                            S.Col<Person>("Age"))),
+                    S.From<Person>());
+
+            Assert.Equal(expected, result);
+        }
+
+        [Fact]
         public void ItShouldBePossibleToPartitionByAColumn()
         {
             var expr = Select.Column<Person>(p => p.Name)

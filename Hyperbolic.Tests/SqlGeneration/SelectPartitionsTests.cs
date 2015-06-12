@@ -18,6 +18,24 @@ namespace Hyperboliq.Tests.SqlGeneration
     public class SqlGeneration_SelectPartitionsTests
     {
         [Fact]
+        public void ItShouldBePossibleToUseAnEmptyOverClause()
+        {
+            var expr =
+                S.SelectNode(
+                    S.Select(
+                        S.Col<Person>("Name"),
+                        S.WinCol(
+                            AggregateType.Sum,
+                            S.Col<Person>("Age"))),
+                    S.From<Person>());
+            var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, expr);
+
+            Assert.Equal(
+                "SELECT PersonRef.Name, SUM(PersonRef.Age) OVER () FROM Person PersonRef", 
+                result);
+        }
+
+        [Fact]
         public void ItShouldBePossibleToPartitionByAColumn()
         {
             var expr =
