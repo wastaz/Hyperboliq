@@ -68,6 +68,7 @@
     <Compile Include="Model\House.cs" />
     <Compile Include="Model\Person.cs" />
     <Compile Include="SqlGeneration\AdvancedJoinTests.cs" />
+    <Compile Include="SqlGeneration\CommonTableExpressions.cs" />
     <Compile Include="SqlGeneration\NullComparisonTests.cs" />
     <Compile Include="SqlGeneration\OperatorPredecenceTests.cs" />
     <Compile Include="SqlGeneration\OrderByNullsTests.cs" />
