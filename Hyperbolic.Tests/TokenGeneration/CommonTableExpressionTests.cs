@@ -42,5 +42,58 @@ namespace Hyperboliq.Tests.TokenGeneration
 
             Assert.Equal(expected, result);
         }
+
+        [Fact]
+        public void ItShouldBePossibleToSelectFromSeveralCommonTableExpressions()
+        {
+            var oldies = Domain.Types.NamedTableReferenceFromType<PersonLite>("Oldies");
+            var younglings = Domain.Types.NamedTableReferenceFromType<PersonLite>("YoungOnes");
+            var expr =
+                With.Table(
+                        oldies,
+                        Select.Column<Person>(p => new { p.Name, p.Age, })
+                              .From<Person>()
+                              .Where<Person>(p => p.Age > 40))
+                    .Table(
+                        younglings,
+                        Select.Column<Person>(p => new { p.Name, p.Age, })
+                              .From<Person>()
+                              .Where<Person>(p => p.Age <= 15))
+                    .Query(
+                        Select.Column(oldies, p => p.Name)
+                              .Column(younglings, p => p.Name)
+                              .From(oldies)
+                              .InnerJoin(oldies, younglings, (old, young) => old.Age - 30 == young.Age));
+            var result = expr.ToSqlExpression();
+
+            var expected =
+                S.SelectNode(
+                    S.With(
+                        S.TableDef(
+                            younglings,
+                            S.Select(S.Col<Person>("Name"), S.Col<Person>("Age")),
+                            S.From<Person>(),
+                            S.Where(S.BinExp(S.Col<Person>("Age"), BinaryOperation.LessThanOrEqual, S.Const(15)))),
+                        S.TableDef(
+                            oldies,
+                            S.Select(S.Col<Person>("Name"), S.Col<Person>("Age")),
+                            S.From<Person>(),
+                            S.Where(S.BinExp(S.Col<Person>("Age"), BinaryOperation.GreaterThan, S.Const(40))))
+                    ),
+                    S.Select(S.Col(oldies, "Name"), S.Col(younglings, "Name")),
+                    S.From(
+                        oldies,
+                        S.Join(
+                            oldies, 
+                            younglings, 
+                            Domain.Stream.JoinType.InnerJoin, 
+                            S.BinExp(
+                                S.BinExp(S.Col(oldies, "Age"), BinaryOperation.Subtract, S.Const(30)),
+                                BinaryOperation.Equal,
+                                S.Col(younglings, "Age"))))
+                );
+
+            Assert.Equal(expected, result);
+        }
     }
 }

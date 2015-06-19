@@ -339,6 +339,7 @@ namespace Hyperboliq.Tests
         }
 
         public static Stream.ICommonTableDefinition TableDef<TType>(
+            Types.ITableReference<TType> tref,
             SelectExpressionNode select,
             FromExpressionNode from,
             WhereExpressionNode where = null,
@@ -348,7 +349,17 @@ namespace Hyperboliq.Tests
             return
                 new Stream.CommonTableDefinition<TType>(
                     new PlainSelectExpression(select, from, where.ToOption(), groupBy.ToOption(), orderBy.ToOption()),
-                    Types.TableReferenceFromType<TType>());
+                    tref);
+        }
+
+        public static Stream.ICommonTableDefinition TableDef<TType>(
+            SelectExpressionNode select,
+            FromExpressionNode from,
+            WhereExpressionNode where = null,
+            GroupByExpressionNode groupBy = null,
+            OrderByExpressionNode orderBy = null)
+        {
+            return TableDef(Types.TableReferenceFromType<TType>(), select, from, where, groupBy, orderBy);
         }
 
         public static CommonTableExpression With(params Stream.ICommonTableDefinition[] definitions)
