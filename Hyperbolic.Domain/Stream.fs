@@ -93,7 +93,7 @@ module Stream =
         | WindowedColumn of WindowedColumnNode
         | Parameter of ParameterToken
         | Aggregate of AggregateToken
-        | SubExpression of SelectExpression
+        | SubExpression of PlainSelectExpression
         | BinaryExpression of BinaryExpressionNode
         | ValueList of ValueNode list
 

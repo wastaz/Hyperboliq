@@ -6,14 +6,14 @@ open Hyperboliq.Domain.Types
 open Hyperboliq.Domain.Stream
 open Hyperboliq.Domain.SqlGen
 
-type WithSelect internal (expr : SelectExpression) =
+type WithSelect internal (expr : CommonTableValuedSelectExpression) =
     member x.ToSelectExpression () = (x :> ISelectExpressionTransformable).ToSelectExpression ()
     interface ISelectExpressionTransformable with
-        member x.ToSelectExpression () = expr
+        member x.ToSelectExpression () = Complex(expr)
 
     member x.ToSqlExpression () = (x :> ISqlExpressionTransformable).ToSqlExpression ()
     interface ISqlExpressionTransformable with
-        member x.ToSqlExpression () = SqlExpression.Select(expr)
+        member x.ToSqlExpression () = SqlExpression.Select(Complex(expr))
 
     member x.ToSql (dialect : ISqlDialect) = (x :> ISqlQuery).ToSql(dialect)
     interface ISqlQuery with
@@ -23,15 +23,18 @@ type WithSelect internal (expr : SelectExpression) =
 type WithImpl internal (ctdList : ICommonTableDefinition list) =
     static let New lst = WithImpl(lst)
 
-    member x.Table<'a>(ref : ITableReference<'a>, query : ISqlQuery) = { Query = query; TableReference = ref } :> ICommonTableDefinition :: ctdList |> New
-    member x.Table<'a>(query : ISqlQuery) = x.Table<'a>(TableReferenceFromType<'a>, query)
+    member x.Table<'a>(ref : ITableReference<'a>, query : ISelectExpressionTransformable) = 
+        match query.ToSelectExpression() with
+        | Plain(q) -> { Query = q; TableReference = ref } :> ICommonTableDefinition :: ctdList |> New
+        | _ -> failwith "Not implemented"
+    member x.Table<'a>(query : ISelectExpressionTransformable) = x.Table<'a>(TableReferenceFromType<'a>, query)
 
     member x.Query(statement : ISqlExpressionTransformable) = 
         match statement.ToSqlExpression() with
-        | SqlExpression.Select(s) -> WithSelect({ s with With = { Definitions = ctdList } |> Some })
+        | SqlExpression.Select(Plain(s)) -> WithSelect({ Definitions = ctdList }, s)
         | _ -> failwith "Not implemented"
 
 
 type With private () =
-    static member Table<'a>(query : ISqlQuery) = WithImpl([]).Table<'a>(query)
-    static member Table<'a>(ref : ITableReference<'a>, query : ISqlQuery) = WithImpl([]).Table<'a>(ref, query)
+    static member Table<'a>(query : ISelectExpressionTransformable) = WithImpl([]).Table<'a>(query)
+    static member Table<'a>(ref : ITableReference<'a>, query : ISelectExpressionTransformable) = WithImpl([]).Table<'a>(ref, query)

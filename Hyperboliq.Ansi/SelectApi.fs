@@ -9,22 +9,22 @@ open Hyperboliq.Domain.ExpressionParts
 open Hyperboliq.Domain.SqlGen
 
 [<AbstractClass>]
-type FluentSelectBase(expr : SelectExpression) =
+type FluentSelectBase(expr : PlainSelectExpression) =
     member x.Expression with internal get() = expr
 
     member x.ToSelectExpression () = (x :> ISelectExpressionTransformable).ToSelectExpression ()
     interface ISelectExpressionTransformable with
-        member x.ToSelectExpression () = expr
+        member x.ToSelectExpression () = Plain(x.Expression)
 
     member x.ToSqlExpression () = (x :> ISqlExpressionTransformable).ToSqlExpression ()
     interface ISqlExpressionTransformable with
-        member x.ToSqlExpression () = SqlExpression.Select(expr)
+        member x.ToSqlExpression () = SqlExpression.Select(Plain(x.Expression))
 
     member x.ToSql (dialect : ISqlDialect) = (x :> ISqlQuery).ToSql(dialect)
     interface ISqlQuery with
         member x.ToSql(dialect : ISqlDialect) = x.ToSqlExpression() |> SqlifyExpression dialect
 
-type SelectOrderBy internal (expr : SelectExpression) =
+type SelectOrderBy internal (expr : PlainSelectExpression) =
     inherit FluentSelectBase(expr)
     static let New expr = SelectOrderBy(expr)
 
@@ -40,7 +40,7 @@ type SelectOrderBy internal (expr : SelectExpression) =
     member x.ThenBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction, nullsOrdering : NullsOrdering) = 
         x.InternalThenBy(selector, direction, nullsOrdering) |> New
 
-type SelectHaving internal  (expr : SelectExpression) =
+type SelectHaving internal  (expr : PlainSelectExpression) =
     inherit FluentSelectBase(expr)
     static let New expr = SelectHaving(expr)
 
@@ -67,7 +67,7 @@ type SelectHaving internal  (expr : SelectExpression) =
     member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction, nullsOrdering : NullsOrdering) =
         SelectOrderBy(expr).ThenBy(selector, direction, nullsOrdering)
 
-type SelectGroupBy internal (expr : SelectExpression) =
+type SelectGroupBy internal (expr : PlainSelectExpression) =
     inherit FluentSelectBase(expr)
     static let New expr = SelectGroupBy(expr)
 
@@ -85,7 +85,7 @@ type SelectGroupBy internal (expr : SelectExpression) =
     member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction, nullsOrdering : NullsOrdering) =
         SelectOrderBy(expr).ThenBy(selector, direction, nullsOrdering)
 
-type SelectWhere internal (expr : SelectExpression) =
+type SelectWhere internal (expr : PlainSelectExpression) =
     inherit FluentSelectBase(expr)
     static let New expr = SelectWhere(expr)
 
@@ -112,7 +112,7 @@ type SelectWhere internal (expr : SelectExpression) =
     member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction, nullsOrdering : NullsOrdering) =
         SelectOrderBy(expr).ThenBy(selector, direction, nullsOrdering)
 
-type Join internal (expr : SelectExpression) =
+type Join internal (expr : PlainSelectExpression) =
     inherit FluentSelectBase(expr)
     static let New ex = Join(ex)
     
@@ -170,7 +170,6 @@ type Join internal (expr : SelectExpression) =
 
 type SelectFrom<'a> internal (tbl: ITableReference, exprNode : SelectExpressionNode) =
     inherit FluentSelectBase({
-                                 With = None
                                  Select = exprNode
                                  From = { Tables = [ tbl ]; Joins = [] }
                                  Where = None

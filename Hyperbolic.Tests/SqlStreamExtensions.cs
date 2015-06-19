@@ -25,6 +25,7 @@ using InsertValueToken = Hyperboliq.Domain.Stream.InsertValueToken;
 using InsertValueNode = Hyperboliq.Domain.Stream.InsertValueNode;
 using SqlExpression = Hyperboliq.Domain.Stream.SqlExpression;
 using SelectExpression = Hyperboliq.Domain.Stream.SelectExpression;
+using PlainSelectExpression = Hyperboliq.Domain.Stream.PlainSelectExpression;
 using UpdateExpression = Hyperboliq.Domain.Stream.UpdateExpression;
 using InsertExpression = Hyperboliq.Domain.Stream.InsertExpression;
 using DeleteExpression = Hyperboliq.Domain.Stream.DeleteExpression;
@@ -165,8 +166,7 @@ namespace Hyperboliq.Tests
             OrderByExpressionNode orderBy = null)
         {
             return ValueNode.NewSubExpression(
-                new SelectExpression(
-                    FSharpOption<CommonTableExpression>.None,
+                new PlainSelectExpression(
                     select,
                     from,
                     where.ToOption(),
@@ -287,13 +287,13 @@ namespace Hyperboliq.Tests
             OrderByExpressionNode orderBy = null)
         {
             return SqlExpression.NewSelect(
-                new SelectExpression(
-                    FSharpOption<CommonTableExpression>.None,
-                    select,
-                    from,
-                    where.ToOption(),
-                    groupBy.ToOption(),
-                    orderBy.ToOption()));
+                SelectExpression.NewPlain(
+                    new PlainSelectExpression(
+                        select,
+                        from,
+                        where.ToOption(),
+                        groupBy.ToOption(),
+                        orderBy.ToOption())));
         }
 
         public static SqlExpression SelectNode(
@@ -305,13 +305,15 @@ namespace Hyperboliq.Tests
             OrderByExpressionNode orderBy = null)
         {
             return SqlExpression.NewSelect(
-                new SelectExpression(
-                    with.ToOption(),
-                    select,
-                    from,
-                    where.ToOption(),
-                    groupBy.ToOption(),
-                    orderBy.ToOption()));
+                SelectExpression.NewComplex(
+                    new Tuple<CommonTableExpression, PlainSelectExpression>(
+                        with,
+                        new PlainSelectExpression(
+                            select,
+                            from,
+                            where.ToOption(),
+                            groupBy.ToOption(),
+                            orderBy.ToOption()))));
         }
 
         public static SqlExpression DeleteNode(FromExpressionNode from, WhereExpressionNode where = null)
@@ -336,19 +338,17 @@ namespace Hyperboliq.Tests
                     ListModule.OfArray(values)));
         }
 
-        public static Stream.ICommonTableDefinition TableDef<TType>(Types.ISqlQuery)
+        public static Stream.ICommonTableDefinition TableDef<TType>(
+            SelectExpressionNode select,
+            FromExpressionNode from,
+            WhereExpressionNode where = null,
+            GroupByExpressionNode groupBy = null,
+            OrderByExpressionNode orderBy = null)
         {
-            return 
+            return
                 new Stream.CommonTableDefinition<TType>(
-                    SqlExpression.NewSelect(null)
-                    );
-                new SelectExpression(
-                    FSharpOption<CommonTableExpression>.None,
-                    select,
-                    from,
-                    where.ToOption(),
-                    groupBy.ToOption(),
-                    orderBy.ToOption()));
+                    new PlainSelectExpression(select, from, where.ToOption(), groupBy.ToOption(), orderBy.ToOption()),
+                    Types.TableReferenceFromType<TType>());
         }
 
         public static CommonTableExpression With(params Stream.ICommonTableDefinition[] definitions)

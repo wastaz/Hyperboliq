@@ -84,7 +84,7 @@ module internal SqlGenUtils =
         else
             cname
 
-    type SubExpressionHandler = ISqlDialect -> SelectExpression -> string
+    type SubExpressionHandler = ISqlDialect -> PlainSelectExpression -> string
 
     let rec HandleValueNode (subExprHandler : SubExpressionHandler) (includeTableRef : bool) (dialect : ISqlDialect) (vn : ValueNode) =
         match vn with
@@ -149,10 +149,10 @@ module SelectSqlGen =
     open Types
     open Stream
      
-    let rec HandleSelectValue = HandleValueNode HandleSelectExpression true
+    let rec HandleSelectValue = HandleValueNode HandlePlainSelectExpression true
     and HandleSelectColumn = HandleColumn true
-    and HandleSelectAggregate = HandleAggregate HandleSelectExpression true
-    and HandleSelectBinaryExpression = HandleBinaryExpression HandleSelectExpression true
+    and HandleSelectAggregate = HandleAggregate HandlePlainSelectExpression true
+    and HandleSelectBinaryExpression = HandleBinaryExpression HandlePlainSelectExpression true
 
     and HandleWindowedColumn (dialect : ISqlDialect) ((aggregateToken, windowToken) : WindowedColumnNode) =
         let HandlePartitionBy dialect partitionNodes =
@@ -277,7 +277,7 @@ module SelectSqlGen =
             |> sprintf "ORDER BY %s"
             |> Option.Some
 
-    and HandleSelectExpression dialect (select : SelectExpression) =
+    and HandlePlainSelectExpression dialect (select : PlainSelectExpression) =
         [
             Some(HandleSelect dialect select.Select)
             Some(HandleFrom dialect select.From)
@@ -287,13 +287,18 @@ module SelectSqlGen =
         ]
         |> JoinOptionsWithSpace
 
+    and HandleSelectExpression dialect (select : SelectExpression) =
+        match select with
+        | Plain(exp) ->  HandlePlainSelectExpression dialect exp
+        | Complex(withPart, selectPart) -> HandlePlainSelectExpression dialect selectPart
+
 module UpdateSqlGen =
     open Types
     open Stream
 
     let HandleUpdateSetToken dialect (token : UpdateSetToken) =
         let col = HandleColumn false dialect token.Column
-        let value = HandleValueNode SelectSqlGen.HandleSelectExpression false dialect token.Value
+        let value = HandleValueNode SelectSqlGen.HandlePlainSelectExpression false dialect token.Value
         sprintf "%s = %s" col value
 
     let HandleUpdateSet dialect (updateSet : UpdateStatementHeadToken) =
@@ -305,7 +310,7 @@ module UpdateSqlGen =
     let HandleUpdateExpression dialect (update : UpdateExpression) =
         [
             Some(HandleUpdateSet dialect update.UpdateSet)
-            HandleWhere (HandleBinaryExpression SelectSqlGen.HandleSelectExpression false) dialect update.Where
+            HandleWhere (HandleBinaryExpression SelectSqlGen.HandlePlainSelectExpression false) dialect update.Where
         ]
         |> JoinOptionsWithSpace
 
@@ -322,7 +327,7 @@ module DeleteSqlGen =
     let HandleDeleteExpression dialect (delete : DeleteExpression) =
         [
             Some(HandleFrom dialect delete.From)
-            HandleWhere (HandleBinaryExpression SelectSqlGen.HandleSelectExpression true) dialect delete.Where
+            HandleWhere (HandleBinaryExpression SelectSqlGen.HandlePlainSelectExpression true) dialect delete.Where
         ]
         |> JoinOptionsWithSpace
 

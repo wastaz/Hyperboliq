@@ -23,10 +23,13 @@ module UpdateExpressionPart =
 
     let private ToValue (v : obj) : ValueNode =
         match v with
-            | null -> ValueNode.NullValue
-            | :? SelectExpression as ss -> ValueNode.SubExpression(ss)
-            | :? string as s-> ValueNode.Constant(ConstantNode(sprintf "'%s'" s))
-            | x ->  ValueNode.Constant(ConstantNode(x.ToString()))
+        | null -> ValueNode.NullValue
+        | :? SelectExpression as ss -> 
+            match ss with
+            | Plain(q) -> ValueNode.SubExpression(q)
+            | _ -> failwith "Not implemented"
+        | :? string as s-> ValueNode.Constant(ConstantNode(sprintf "'%s'" s))
+        | x ->  ValueNode.Constant(ConstantNode(x.ToString()))
 
     let private ToSetExpression tbl colSelector (value : obj) =
         { 
