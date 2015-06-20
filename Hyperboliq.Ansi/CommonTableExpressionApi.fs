@@ -23,11 +23,11 @@ type WithSelect internal (expr : CommonTableValuedSelectExpression) =
 type WithImpl internal (ctdList : ICommonTableDefinition list) =
     static let New lst = WithImpl(lst)
 
-    member x.Table<'a>(ref : ITableReference<'a>, query : ISelectExpressionTransformable) = 
+    member x.Table<'a>(def : ITableIdentifier<'a>, query : ISelectExpressionTransformable) = 
         match query.ToSelectExpression() with
-        | Plain(q) -> { Query = q; TableReference = ref } :> ICommonTableDefinition :: ctdList |> New
+        | Plain(q) -> { Query = q; TableDef = def } :> ICommonTableDefinition :: ctdList |> New
         | _ -> failwith "Not implemented"
-    member x.Table<'a>(query : ISelectExpressionTransformable) = x.Table<'a>(TableReferenceFromType<'a>, query)
+    member x.Table<'a>(query : ISelectExpressionTransformable) = x.Table<'a>((TableIdentifier<'a>()), query)
 
     member x.Query(statement : ISqlExpressionTransformable) = 
         match statement.ToSqlExpression() with
@@ -37,4 +37,4 @@ type WithImpl internal (ctdList : ICommonTableDefinition list) =
 
 type With private () =
     static member Table<'a>(query : ISelectExpressionTransformable) = WithImpl([]).Table<'a>(query)
-    static member Table<'a>(ref : ITableReference<'a>, query : ISelectExpressionTransformable) = WithImpl([]).Table<'a>(ref, query)
+    static member Table<'a>(ref : ITableIdentifier<'a>, query : ISelectExpressionTransformable) = WithImpl([]).Table<'a>(ref, query)

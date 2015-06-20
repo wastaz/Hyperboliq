@@ -26,17 +26,17 @@ namespace Hyperboliq.Tests.SqlGeneration
                             S.From<Person>(),
                             S.Where(S.BinExp(S.Col<Person>("Age"), BinaryOperation.GreaterThan, S.Const(15))))),
                     S.Select(S.Col<PersonLite>("Name")),
-                    S.From<PersonLite>(),
+                    S.From(new Domain.Types.TableIdentifier<PersonLite>()),
                     S.Where(S.BinExp(S.Col<PersonLite>("Age"), BinaryOperation.Equal, S.Const(42)))
                 );
             var result = SqlGen.SqlifyExpression(Dialects.AnsiSql.Dialect, expr);
 
             var expected =
-                "WITH PersonLiteTbl AS ("+ 
+                "WITH PersonLite AS ("+ 
                     "SELECT PersonRef.Name, PersonRef.Age " +
                     "FROM Person PersonRef " +
                     "WHERE PersonRef.Age > 15" +
-                ")" +
+                ") " +
                 "SELECT PersonLiteRef.Name " +
                 "FROM PersonLite PersonLiteRef " +
                 "WHERE PersonLiteRef.Age = 42";
@@ -47,8 +47,8 @@ namespace Hyperboliq.Tests.SqlGeneration
         [Fact]
         public void ItShouldBePossibleToSelectFromSeveralCommonTableExpressions()
         {
-            var oldies = Domain.Types.NamedTableReferenceFromType<PersonLite>("Oldies");
-            var younglings = Domain.Types.NamedTableReferenceFromType<PersonLite>("YoungOnes");
+            var oldies = Table<PersonLite>.WithTableAlias("Oldies");
+            var younglings = Table<PersonLite>.WithTableAlias("YoungOnes");
 
             var expr =
                 S.SelectNode(
@@ -83,12 +83,12 @@ namespace Hyperboliq.Tests.SqlGeneration
                 "WITH Oldies AS (" +
                     "SELECT PersonRef.Name, PersonRef.Age " +
                     "FROM Person PersonRef " +
-                    "WHERE PersonRef.Age <= 15" +
+                    "WHERE PersonRef.Age > 40" +
                 "), YoungOnes AS (" +
                     "SELECT PersonRef.Name, PersonRef.Age " +
                     "FROM Person PersonRef " +
-                    "WHERE PersonRef.Age > 40" +
-                ")" +
+                    "WHERE PersonRef.Age <= 15" +
+                ") " +
                 "SELECT OldiesRef.Name, YoungOnesRef.Name " +
                 "FROM Oldies OldiesRef " +
                 "INNER JOIN YoungOnes YoungOnesRef ON OldiesRef.Age - 30 = YoungOnesRef.Age";

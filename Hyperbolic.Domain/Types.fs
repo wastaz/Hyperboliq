@@ -41,12 +41,57 @@ module Types =
             member x.ReferenceName with get() = x.referenceName
         member x.Table with get() = (x :> ITableReference<'a>).Table
         member x.ReferenceName with get() = (x :> ITableReference<'a>).ReferenceName
+    
+    type ITableDefinition =
+        abstract Table : System.Type with get
+        abstract Name : string with get
+
+    type ITableDefinition<'a> =
+        inherit ITableDefinition
+
+    [<StructuralEquality; NoComparison>]
+    type internal TableDefinition<'a> =
+        { table : System.Type; name : string option }
+        member x.Table with get() = (x :> ITableDefinition<'a>).Table
+        member x.Name with get() = (x :> ITableDefinition<'a>).Name
+
+        interface ITableDefinition<'a> with
+            member x.Table with get() = x.table
+            member x.Name with get() = match x.name with
+                                       | None -> x.Table.Name
+                                       | Some name -> name
 
     open System.Reflection;
     open System.Linq;
 
-    let TableReferenceFromType<'a> = ({ table = typeof<'a>; referenceName = typeof<'a>.Name + "Ref"} : TableReference<'a>) :> ITableReference<'a>
-    let NamedTableReferenceFromType<'a> name = ({ table = typeof<'a>; referenceName =  name } : TableReference<'a>) :> ITableReference<'a>
+    let TableReferenceFromType<'a> = ({ table = typeof<'a>; referenceName = typeof<'a>.Name + "Ref" } : TableReference<'a>) :> ITableReference<'a>
+    let NamedTableReferenceFromType<'a> name = ({ table = typeof<'a>; referenceName = name } : TableReference<'a>) :> ITableReference<'a>
+
+    let TableDefinitionFromType<'a> = { table = typeof<'a>; name = None } :> ITableDefinition<'a>
+    let NamedTableDefinitionFromType<'a> name = { table = typeof<'a>; name = Some name } :> ITableDefinition<'a>
+
+    type ITableIdentifier =
+        abstract member Definition : ITableDefinition with get 
+        abstract member Reference : ITableReference with get
+
+    type ITableIdentifier<'a> =
+        inherit ITableIdentifier
+
+    type TableIdentifier<'a> (def : ITableDefinition<'a>, ref : ITableReference<'a>) = 
+        new () = TableIdentifier<'a>(TableDefinitionFromType<'a>, TableReferenceFromType<'a>)
+
+        member x.Definition = def
+        member x.Reference = ref
+        
+        override x.Equals o =
+            match o with
+            | :? ITableIdentifier<'a> as ti -> ti.Definition = (x.Definition :> ITableDefinition) && ti.Reference = (x.Reference :> ITableReference)
+            | _ -> false
+        override x.GetHashCode () = x.Definition.GetHashCode() + x.Reference.GetHashCode()
+
+        interface ITableIdentifier<'a> with
+            member x.Definition with get() = x.Definition :> ITableDefinition
+            member x.Reference with get () = x.Reference :> ITableReference
 
     type BinaryOperation =
         Equal | NotEqual | GreaterThan | GreaterThanOrEqual | LessThan | LessThanOrEqual

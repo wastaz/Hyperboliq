@@ -3,7 +3,6 @@
 module Stream =
     open Types
 
-
     type ConstantNode = ConstantNode of string
 
     type ColumnToken = string * ITableReference
@@ -42,14 +41,14 @@ module Stream =
     }
 
     and JoinClauseNode = { 
-        SourceTables: ITableReference list
-        TargetTable: ITableReference
+        SourceTables: ITableIdentifier list
+        TargetTable: ITableIdentifier
         Type: JoinType
         Condition: ValueNode option
     }
 
     and FromExpressionNode = {
-        Tables : ITableReference list
+        Tables : ITableIdentifier list
         Joins : JoinClauseNode list
     }
 
@@ -136,23 +135,22 @@ module Stream =
 
     and ICommonTableDefinition =
         abstract Query : PlainSelectExpression with get
-        abstract TableReference : ITableReference with get
+        abstract Table : ITableIdentifier with get
 
     and ICommonTableDefinition<'a> =
         abstract Query : PlainSelectExpression with get
-        abstract TableReference : ITableReference<'a> with get
+        abstract Table : ITableIdentifier<'a> with get
 
     and CommonTableDefinition<'a> =
-        { Query : PlainSelectExpression; TableReference : ITableReference<'a> }
+        { Query : PlainSelectExpression; TableDef : ITableIdentifier<'a> }
         interface ICommonTableDefinition<'a> with
             member x.Query with get() = x.Query
-            member x.TableReference with get() = x.TableReference
+            member x.Table with get() = x.TableDef
         interface ICommonTableDefinition with
             member x.Query with get () = x.Query
-            member x.TableReference with get() = x.TableReference :> ITableReference
+            member x.Table with get() = x.TableDef :> ITableIdentifier
 
     and CommonTableExpression = { Definitions : ICommonTableDefinition list }
-
 
     type InsertExpression =
         {

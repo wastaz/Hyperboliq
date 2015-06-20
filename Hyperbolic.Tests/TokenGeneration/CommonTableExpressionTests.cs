@@ -46,8 +46,9 @@ namespace Hyperboliq.Tests.TokenGeneration
         [Fact]
         public void ItShouldBePossibleToSelectFromSeveralCommonTableExpressions()
         {
-            var oldies = Domain.Types.NamedTableReferenceFromType<PersonLite>("Oldies");
-            var younglings = Domain.Types.NamedTableReferenceFromType<PersonLite>("YoungOnes");
+            var oldies = Table<PersonLite>.WithTableAlias("Oldies");
+            var younglings = Table<PersonLite>.WithTableAlias("YoungOnes");
+
             var expr =
                 With.Table(
                         oldies,

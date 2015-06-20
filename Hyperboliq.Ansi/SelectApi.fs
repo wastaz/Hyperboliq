@@ -115,44 +115,44 @@ type SelectWhere internal (expr : PlainSelectExpression) =
 type Join internal (expr : PlainSelectExpression) =
     inherit FluentSelectBase(expr)
     static let New ex = Join(ex)
-    
+
     let JoinWithArray joinType src tgt predicate =
         { expr with From = { expr.From with Joins = (CreateJoinClause joinType predicate tgt src) :: expr.From.Joins } }
     let Join2 joinType src tgt predicate = JoinWithArray joinType [| src |] tgt predicate
     let Join3 joinType src1 src2 tgt predicate = JoinWithArray joinType [| src1; src2 |] tgt predicate
 
     member x.InnerJoin<'src, 'tgt>(predicate : Expression<Func<'src, 'tgt, bool>>) =
-        Join2 JoinType.InnerJoin TableReferenceFromType<'src> TableReferenceFromType<'tgt> predicate
+        Join2 JoinType.InnerJoin (TableIdentifier<'src>()) (TableIdentifier<'tgt>()) predicate
         |> New
-    member x.InnerJoin<'src, 'tgt>(source : ITableReference<'src>, target : ITableReference<'tgt>, predicate : Expression<Func<'src, 'tgt, bool>>) =
+    member x.InnerJoin<'src, 'tgt>(source : ITableIdentifier<'src>, target : ITableIdentifier<'tgt>, predicate : Expression<Func<'src, 'tgt, bool>>) =
         Join2 JoinType.InnerJoin source target predicate
         |> New
     member x.InnerJoin<'src1, 'src2, 'tgt>(predicate : Expression<Func<'src1, 'src2, 'tgt, bool>>) =
-        Join3 JoinType.InnerJoin TableReferenceFromType<'src1> TableReferenceFromType<'src2> TableReferenceFromType<'tgt> predicate
+        Join3 JoinType.InnerJoin (TableIdentifier<'src1>()) (TableIdentifier<'src2>()) (TableIdentifier<'tgt>()) predicate
         |> New
-    member x.InnerJoin<'src1, 'src2, 'tgt>(source1 : ITableReference<'src1>, source2 : ITableReference<'src2>, target : ITableReference<'tgt>, predicate : Expression<Func<'src1, 'src2, 'tgt, bool>>) =
+    member x.InnerJoin<'src1, 'src2, 'tgt>(source1 : ITableIdentifier<'src1>, source2 : ITableIdentifier<'src2>, target : ITableIdentifier<'tgt>, predicate : Expression<Func<'src1, 'src2, 'tgt, bool>>) =
         Join3 JoinType.InnerJoin source1 source2 target predicate
         |> New
 
     member x.LeftJoin<'src, 'tgt>(predicate : Expression<Func<'src, 'tgt, bool>>) =
-        Join2 JoinType.LeftJoin TableReferenceFromType<'src> TableReferenceFromType<'tgt> predicate
+        Join2 JoinType.LeftJoin (TableIdentifier<'src>()) (TableIdentifier<'tgt>()) predicate
         |> New
     member x.LeftJoin<'src1, 'src2, 'tgt>(predicate : Expression<Func<'src1, 'src2, 'tgt, bool>>) =
-        Join3 JoinType.LeftJoin TableReferenceFromType<'src1> TableReferenceFromType<'src2> TableReferenceFromType<'tgt> predicate
+        Join3 JoinType.LeftJoin (TableIdentifier<'src1>()) (TableIdentifier<'src2>()) (TableIdentifier<'tgt>()) predicate
         |> New
 
     member x.RightJoin<'src, 'tgt>(predicate : Expression<Func<'src, 'tgt, bool>>) =
-        Join2 JoinType.RightJoin TableReferenceFromType<'src> TableReferenceFromType<'tgt> predicate
+        Join2 JoinType.RightJoin (TableIdentifier<'src>()) (TableIdentifier<'tgt>()) predicate
         |> New
     member x.RightJoin<'src1, 'src2, 'tgt>(predicate : Expression<Func<'src1, 'src2, 'tgt, bool>>) =
-        Join3 JoinType.RightJoin TableReferenceFromType<'src1> TableReferenceFromType<'src2> TableReferenceFromType<'tgt> predicate
+        Join3 JoinType.RightJoin (TableIdentifier<'src1>()) (TableIdentifier<'src2>()) (TableIdentifier<'tgt>()) predicate
         |> New
 
     member x.FullJoin<'src, 'tgt>(predicate : Expression<Func<'src, 'tgt, bool>>) =
-        Join2 JoinType.FullJoin TableReferenceFromType<'src> TableReferenceFromType<'tgt> predicate
+        Join2 JoinType.FullJoin (TableIdentifier<'src>()) (TableIdentifier<'tgt>()) predicate
         |> New
     member x.FullJoin<'src1, 'src2, 'tgt>(predicate : Expression<Func<'src1, 'src2, 'tgt, bool>>) =
-        Join3 JoinType.FullJoin TableReferenceFromType<'src1> TableReferenceFromType<'src2> TableReferenceFromType<'tgt> predicate
+        Join3 JoinType.FullJoin (TableIdentifier<'src1>()) (TableIdentifier<'src2>()) (TableIdentifier<'tgt>()) predicate
         |> New
 
     member x.Where<'a>(predicate : Expression<Func<'a, bool>>) = SelectWhere(expr).And(predicate)
@@ -168,7 +168,7 @@ type Join internal (expr : PlainSelectExpression) =
     member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction, nullsOrdering : NullsOrdering) =
         SelectOrderBy(expr).ThenBy(selector, direction, nullsOrdering)
 
-type SelectFrom<'a> internal (tbl: ITableReference, exprNode : SelectExpressionNode) =
+type SelectFrom<'a> internal (tbl: ITableIdentifier, exprNode : SelectExpressionNode) =
     inherit FluentSelectBase({
                                  Select = exprNode
                                  From = { Tables = [ tbl ]; Joins = [] }
@@ -179,9 +179,9 @@ type SelectFrom<'a> internal (tbl: ITableReference, exprNode : SelectExpressionN
 
     member x.InnerJoin<'src, 'tgt>(predicate : Expression<Func<'src, 'tgt, bool>>) = Join(x.Expression).InnerJoin(predicate)
     member x.InnerJoin<'src1, 'src2, 'tgt>(predicate : Expression<Func<'src1, 'src2, 'tgt, bool>>) = Join(x.Expression).InnerJoin(predicate)
-    member x.InnerJoin<'src, 'tgt>(source : ITableReference<'src>, target : ITableReference<'tgt>, predicate : Expression<Func<'src, 'tgt, bool>>) =
+    member x.InnerJoin<'src, 'tgt>(source : ITableIdentifier<'src>, target : ITableIdentifier<'tgt>, predicate : Expression<Func<'src, 'tgt, bool>>) =
         Join(x.Expression).InnerJoin(source, target, predicate)
-    member x.InnerJoin<'src1, 'src2, 'tgt>(source1 : ITableReference<'src1>, source2 : ITableReference<'src2>, target : ITableReference<'tgt>, predicate : Expression<Func<'src1, 'src2, 'tgt, bool>>) =
+    member x.InnerJoin<'src1, 'src2, 'tgt>(source1 : ITableIdentifier<'src1>, source2 : ITableIdentifier<'src2>, target : ITableIdentifier<'tgt>, predicate : Expression<Func<'src1, 'src2, 'tgt, bool>>) =
         Join(x.Expression).InnerJoin(source1, source2, target, predicate)
 
     member x.LeftJoin<'src, 'tgt>(predicate : Expression<Func<'src, 'tgt, bool>>) = Join(x.Expression).LeftJoin(predicate)
@@ -211,20 +211,23 @@ type SelectImpl internal (expr : SelectExpressionNode) =
 
     member x.Distinct 
         with get() = SelectImpl(MakeDistinct expr)
+    
     member x.Star<'a>() = 
-        SelectImpl(SelectAllColumns expr TableReferenceFromType<'a>)
-    member x.Column<'a>(selector : Expression<Func<'a, obj>>) = 
-        SelectImpl(SelectColumns expr selector TableReferenceFromType<'a>)
-    member x.Column<'a>(tbl : ITableReference<'a>, selector : Expression<Func<'a, obj>>) = 
+        SelectImpl(SelectAllColumns expr (TableIdentifier<'a>()))
+
+    member x.Column<'a>(tbl : ITableIdentifier<'a>, selector : Expression<Func<'a, obj>>) = 
         SelectImpl(SelectColumns expr selector tbl)
     member x.Column<'a>(selector : Expression<Func<'a, obj>>, partition : FluentOverPartitionBase) = 
-        SelectImpl(SelectColumnWithPartition expr selector TableReferenceFromType<'a> partition.Partition)
-    member x.From<'a>(tbl : ITableReference<'a>) = SelectFrom<'a>(tbl, expr)
-    member x.From<'a>() = x.From<'a>(TableReferenceFromType<'a>)
+        SelectImpl(SelectColumnWithPartition expr selector (TableIdentifier<'a>()) partition.Partition)
+
+    member x.Column<'a>(selector : Expression<Func<'a, obj>>) = x.Column(TableIdentifier<'a>(), selector)
+
+    member x.From<'a>(tbl : ITableIdentifier<'a>) = SelectFrom<'a>(tbl, expr)
+    member x.From<'a>() = x.From<'a>(TableIdentifier<'a>())
 
 type Select private () =
     static member Distinct with get() = (SelectImpl()).Distinct
     static member Star<'a>() = (SelectImpl()).Star<'a>()
     static member Column<'a>(selector : Expression<Func<'a, obj>>) = (SelectImpl()).Column<'a>(selector)
     static member Column<'a>(selector : Expression<Func<'a, obj>>, partition : FluentOverPartitionBase) = (SelectImpl()).Column<'a>(selector, partition)
-    static member Column<'a>(tbl : ITableReference<'a>, selector : Expression<Func<'a, obj>>) = (SelectImpl()).Column<'a>(tbl, selector)
+    static member Column<'a>(tbl : ITableIdentifier<'a>, selector : Expression<Func<'a, obj>>) = (SelectImpl()).Column<'a>(tbl, selector)

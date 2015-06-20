@@ -38,7 +38,10 @@ type DeleteWhere internal (expr : DeleteExpression) =
 
 
 type DeleteFrom<'a> internal () =
-    inherit FluentDeleteBase({ From = { Tables = [ TableReferenceFromType<'a> ]; Joins = [] }; Where = None })
+    inherit FluentDeleteBase({ 
+                                From = { Tables = [ TableIdentifier<'a>() ]; Joins = [] }
+                                Where = None 
+                             })
     
     member x.Where<'a>(predicate : Expression<Func<'a, bool>>) = DeleteWhere(x.Expression).And(predicate)
     member x.Where<'a, 'b>(predicate : Expression<Func<'a, bool>>) = DeleteWhere(x.Expression).And(predicate)
