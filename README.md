@@ -50,8 +50,8 @@ You can provide your own aliases if necessary, though as long as you are not ref
     INNER JOIN Car CarRef ON CarRef.DriverId = PersonRef.Id
 
 ### Self-joins
-    var child = NamedTableReferenceFromType<Person>("child");
-    var parent = NamedTableReferenceFromType<Person>("parent");
+    var child = Table<Person>.WithReferenceName("child");
+    var parent = Table<Person>.WithReferenceName("parent");
     Select.Column(child, p => p.Name).Column(parent, p => p.Name).From(child).InnerJoin(child, parent, (c, p) => c.ParentId == p.Id)
     
     SELECT child.Name, parent.Name 
@@ -88,6 +88,57 @@ Hyperboliq allows you to create queries that contain subqueries. However due to 
           .Where<Person>(p => Sql.In(p.Id, Select.Column<Car>(c => c.DriverId).From<Car>()));
     
     SELECT PersonRef.* FROM Person PersonRef WHERE PersonRef.Id IN (SELECT CarRef.DriverId FROM Car CarRef)
+
+### Common Table Expression support
+Hyperboliq lets you use common table expressions in your select queries. 
+These do however require an extra class in order to specify how the result set for this CTE looks.
+
+#### Simple example
+    // Class for specifying how the result set of our CTE looks
+    public class PersonLite
+    {
+        public string Name { get; set; }
+        public int Age { get; set; }
+    }
+
+    With.Table<PersonLite>(
+        Select.Column<Person>(p => new { p.Name, p.Age })
+              .From<Person>()
+              .Where<Person>(p => p.Age > 15))
+        .Query(
+            Select.Column<PersonLite>(p => p.Name)
+                  .From<PersonLite>()
+                  .Where<PersonLite>(p => p.Age == 42));
+    
+    WITH PersonLite AS (SELECT PersonRef.Name, PersonRef.Age FROM Person PersonRef WHERE PersonRef.Age > 15) 
+    SELECT PersonLiteRef.Name FROM PersonLite PersonLiteRef WHERE PersonLiteRef.Age = 42
+
+#### Multiple CTE's with the same result set
+    // This example uses the same PersonLite class as the example above
+    
+    // Define two aliases for the same result set in order to be able to refer to them separately
+    var oldies = Table<PersonLite>.WithTableAlias("Oldies");
+    var younglings = Table<PersonLite>.WithTableAlias("YoungOnes");
+    
+    With.Table(
+            oldies,
+            Select.Column<Person>(p => new { p.Name, p.Age, })
+                  .From<Person>()
+                  .Where<Person>(p => p.Age > 40))
+        .Table(
+            younglings,
+            Select.Column<Person>(p => new { p.Name, p.Age, })
+                  .From<Person>()
+                  .Where<Person>(p => p.Age <= 15))
+        .Query(
+            Select.Column(oldies, p => p.Name)
+                  .Column(younglings, p => p.Name)
+                  .From(oldies)
+                  .InnerJoin(oldies, younglings, (old, young) => old.Age - 30 == young.Age));
+    
+    WITH Oldies AS (SELECT PersonRef.Name, PersonRef.Age FROM Person PersonRef WHERE PersonRef.Age > 40), 
+         YoungOnes AS (SELECT PersonRef.Name, PersonRef.Age FROM Person PersonRef WHERE PersonRef.Age <= 15)
+    SELECT OldiesRef.Name, YoungOnesRef.Name FROM Oldies OldiesRef INNER JOIN YoungOnes YoungOnesRef ON OldiesRef.Age - 30 = YoungOnesRef.Age
 
 ### Basic deletes
     Delete.From<Person>().Where<Person>(p => p.Age > 42)
