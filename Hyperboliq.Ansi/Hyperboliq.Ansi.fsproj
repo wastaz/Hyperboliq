@@ -51,6 +51,7 @@
     <Compile Include="DeleteApi.fs" />
     <Compile Include="InsertApi.fs" />
     <Compile Include="UpdateApi.fs" />
+    <Compile Include="CommonTableExpressionApi.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Hyperbolic.Domain\Hyperboliq.fsproj">

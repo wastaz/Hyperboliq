@@ -1,38 +1,48 @@
-﻿namespace Hyperboliq.Domain
+﻿namespace Hyperboliq
 
-module Types =
+type ISqlDialect =
+    abstract member CreateConnection : string -> System.Data.IDbConnection
+    abstract member QuoteColumnName : string -> string
 
-    type ISqlDialect =
-        abstract member CreateConnection : string -> System.Data.IDbConnection
-        abstract member QuoteColumnName : string -> string
+type ISqlTransformable =
+    abstract member ToSql : ISqlDialect -> string
 
-    type ISqlTransformable =
-        abstract member ToSql : ISqlDialect -> string
-
-    type ISqlQuery = 
-        inherit ISqlTransformable
+type ISqlQuery = 
+    inherit ISqlTransformable
     
-    type ISqlStatement =
-        inherit ISqlTransformable
+type ISqlStatement =
+    inherit ISqlTransformable
 
-    type ExpressionParameter(name : string) =
-        member val internal Value = None with get, set
-        member x.Name = name
-        member x.HasValue () = x.Value.IsSome
-        member x.SetValue o = x.Value <- Some(o)
-        override x.Equals(obj) =
-            match obj with
-            | :? ExpressionParameter as other -> x.Name.Equals(other.Name)
-            | _ -> false
-        override x.GetHashCode() = x.Name.GetHashCode()
-
-    type ITableReference = 
-        abstract Table : System.Type with get
-        abstract ReferenceName : string with get
-
-    type ITableReference<'a> =
-        inherit ITableReference
+type ExpressionParameter(name : string) =
+    member val internal Value = None with get, set
+    member x.Name = name
+    member x.HasValue () = x.Value.IsSome
+    member x.SetValue o = x.Value <- Some(o)
+    override x.Equals(obj) =
+        match obj with
+        | :? ExpressionParameter as other -> x.Name.Equals(other.Name)
+        | _ -> false
+    override x.GetHashCode() = x.Name.GetHashCode()
     
+type ITableReference = 
+    abstract Table : System.Type with get
+    abstract ReferenceName : string with get
+
+type ITableReference<'a> =
+    inherit ITableReference
+
+type ITableDefinition =
+    abstract Table : System.Type with get
+    abstract Name : string with get
+
+type ITableDefinition<'a> =
+    inherit ITableDefinition
+
+
+module internal Types =
+    open System.Reflection;
+    open System.Linq;
+
     [<StructuralEquality; NoComparison>]
     type internal TableReference<'a> = 
         { table : System.Type; referenceName : string }
@@ -42,32 +52,20 @@ module Types =
         member x.Table with get() = (x :> ITableReference<'a>).Table
         member x.ReferenceName with get() = (x :> ITableReference<'a>).ReferenceName
 
-    open System.Reflection;
-    open System.Linq;
+    [<StructuralEquality; NoComparison>]
+    type internal TableDefinition<'a> =
+        { table : System.Type; name : string option }
+        member x.Table with get() = (x :> ITableDefinition<'a>).Table
+        member x.Name with get() = (x :> ITableDefinition<'a>).Name
 
-    let TableReferenceFromType<'a> = ({ table = typeof<'a>; referenceName = typeof<'a>.Name + "Ref"} : TableReference<'a>) :> ITableReference<'a>
-    let NamedTableReferenceFromType<'a> name = ({ table = typeof<'a>; referenceName =  name } : TableReference<'a>) :> ITableReference<'a>
+        interface ITableDefinition<'a> with
+            member x.Table with get() = x.table
+            member x.Name with get() = match x.name with
+                                        | None -> x.Table.Name
+                                        | Some name -> name
 
-    type BinaryOperation =
-        Equal | NotEqual | GreaterThan | GreaterThanOrEqual | LessThan | LessThanOrEqual
-        | In | And | Or | Add | Subtract | Multiply | Divide | Modulo | Coalesce
+    let TableReferenceFromType<'a> = ({ table = typeof<'a>; referenceName = typeof<'a>.Name + "Ref" } : TableReference<'a>) :> ITableReference<'a>
+    let NamedTableReferenceFromType<'a> name = ({ table = typeof<'a>; referenceName = name } : TableReference<'a>) :> ITableReference<'a>
 
-    open System.Linq.Expressions
-    
-    let ToBinaryOperation et =
-        match et with
-        | ExpressionType.Equal -> Equal
-        | ExpressionType.NotEqual -> NotEqual
-        | ExpressionType.GreaterThan -> GreaterThan
-        | ExpressionType.GreaterThanOrEqual -> GreaterThanOrEqual
-        | ExpressionType.LessThan -> LessThan
-        | ExpressionType.LessThanOrEqual -> LessThanOrEqual
-        | ExpressionType.AndAlso -> And
-        | ExpressionType.OrElse -> Or
-        | ExpressionType.Add -> Add
-        | ExpressionType.Subtract -> Subtract
-        | ExpressionType.Multiply -> Multiply
-        | ExpressionType.Divide -> Divide
-        | ExpressionType.Modulo -> Modulo
-        | ExpressionType.Coalesce -> Coalesce
-        | _ -> failwith "Not implemented"
+    let TableDefinitionFromType<'a> = { table = typeof<'a>; name = None } :> ITableDefinition<'a>
+    let NamedTableDefinitionFromType<'a> name = { table = typeof<'a>; name = Some name } :> ITableDefinition<'a>

@@ -3,7 +3,7 @@ using Hyperboliq.Tests.Model;
 using Hyperboliq.Dialects;
 using Hyperboliq.Domain;
 using JoinType = Hyperboliq.Domain.Stream.JoinType;
-using BinaryOperation = Hyperboliq.Domain.Types.BinaryOperation;
+using BinaryOperation = Hyperboliq.Domain.Stream.BinaryOperation;
 using SqlExpression = Hyperboliq.Domain.Stream.SqlExpression;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
 

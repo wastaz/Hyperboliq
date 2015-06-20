@@ -2,7 +2,8 @@
 
 open System
 open System.Linq.Expressions
-open Hyperboliq.Domain.Types
+open Hyperboliq
+open Hyperboliq.Types
 open Hyperboliq.Domain.Stream
 open Hyperboliq.Domain.SqlGen
 open Hyperboliq.Domain.ExpressionParts
@@ -38,7 +39,10 @@ type DeleteWhere internal (expr : DeleteExpression) =
 
 
 type DeleteFrom<'a> internal () =
-    inherit FluentDeleteBase({ From = { Tables = [ TableReferenceFromType<'a> ]; Joins = [] }; Where = None })
+    inherit FluentDeleteBase({ 
+                                From = { Tables = [ TableIdentifier<'a>() ]; Joins = [] }
+                                Where = None 
+                             })
     
     member x.Where<'a>(predicate : Expression<Func<'a, bool>>) = DeleteWhere(x.Expression).And(predicate)
     member x.Where<'a, 'b>(predicate : Expression<Func<'a, bool>>) = DeleteWhere(x.Expression).And(predicate)

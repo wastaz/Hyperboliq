@@ -1,7 +1,7 @@
 ﻿namespace Hyperboliq.Domain
 
 module ExpressionParts =
-    open Types
+    open Hyperboliq
     open Stream
 
     let AddPartitionBy window selector tblRef =
@@ -22,9 +22,9 @@ module ExpressionParts =
     let AddJoinClause fromExpr joinClause =
         { fromExpr with Joins = joinClause :: fromExpr.Joins }
 
-    let CreateJoinClause joinType condition targetTable ([<System.ParamArray>] sourceTables : ITableReference array) =
+    let CreateJoinClause joinType condition targetTable ([<System.ParamArray>] sourceTables : ITableIdentifier array) =
         let srcList = List.ofArray sourceTables
-        let envList = srcList @ [ targetTable ]
+        let envList = srcList @ [ targetTable ] |> List.map (fun ti -> ti.Reference)
         {
             SourceTables = srcList
             TargetTable = targetTable
@@ -38,18 +38,18 @@ module ExpressionParts =
     let MakeDistinct select =
         { select with IsDistinct = true }
 
-    let SelectAllColumns select tableReference =
-        { select with SelectExpressionNode.Values = ValueNode.Column("*", tableReference) :: select.Values }
+    let SelectAllColumns select (table : ITableIdentifier) =
+        { select with SelectExpressionNode.Values = ValueNode.Column("*", table.Reference) :: select.Values }
 
-    let SelectColumns select expr tableReference =
-        let stream = ExpressionVisitor.Visit expr [ tableReference ]
+    let SelectColumns select expr (table : ITableIdentifier) =
+        let stream = ExpressionVisitor.Visit expr [ table.Reference ]
         match stream with
         | None -> select
         | Some(ValueList(v)) -> { select with SelectExpressionNode.Values = v @ select.Values }
         | Some(v) -> { select with Values = select.Values @ [ v ] }
 
-    let SelectColumnWithPartition select expr tblRef partition =
-        let stream = ExpressionVisitor.Visit expr [ tblRef ] 
+    let SelectColumnWithPartition select expr (table : ITableIdentifier) partition =
+        let stream = ExpressionVisitor.Visit expr [ table.Reference ] 
         match stream with
         | Some(Aggregate(a)) ->
             { select with SelectExpressionNode.Values = select.Values @ [ WindowedColumn(a, partition) ] }

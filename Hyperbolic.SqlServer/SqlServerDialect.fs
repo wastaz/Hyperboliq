@@ -1,6 +1,6 @@
 ﻿namespace Hyperboliq.Dialects
 
-open Hyperboliq.Domain.Types
+open Hyperboliq
 open System.Data
 open System.Data.SqlClient
 

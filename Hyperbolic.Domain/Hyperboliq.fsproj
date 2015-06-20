@@ -48,6 +48,8 @@
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Extensions.fs" />
     <Compile Include="Types.fs" />
+    <Compile Include="TableIdentifier.fs" />
+    <Compile Include="TableApi.fs" />
     <Compile Include="Stream.fs" />
     <Compile Include="AggregateFunctions.fs" />
     <Compile Include="ExpressionVisitor.fsi" />

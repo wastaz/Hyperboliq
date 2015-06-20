@@ -4,7 +4,7 @@ using Hyperboliq.Dialects;
 using Hyperboliq.Domain;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
 using AggregateType = Hyperboliq.Domain.Stream.AggregateType;
-using BinaryOperation = Hyperboliq.Domain.Types.BinaryOperation;
+using BinaryOperation = Hyperboliq.Domain.Stream.BinaryOperation;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {

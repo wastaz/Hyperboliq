@@ -1,7 +1,11 @@
 ﻿namespace Hyperboliq.Domain
 
 module Stream =
-    open Types
+    open Hyperboliq
+
+    type BinaryOperation =
+        Equal | NotEqual | GreaterThan | GreaterThanOrEqual | LessThan | LessThanOrEqual
+        | In | And | Or | Add | Subtract | Multiply | Divide | Modulo | Coalesce
 
     type ConstantNode = ConstantNode of string
 
@@ -41,14 +45,14 @@ module Stream =
     }
 
     and JoinClauseNode = { 
-        SourceTables: ITableReference list
-        TargetTable: ITableReference
+        SourceTables: ITableIdentifier list
+        TargetTable: ITableIdentifier
         Type: JoinType
         Condition: ValueNode option
     }
 
     and FromExpressionNode = {
-        Tables : ITableReference list
+        Tables : ITableIdentifier list
         Joins : JoinClauseNode list
     }
 
@@ -92,7 +96,7 @@ module Stream =
         | WindowedColumn of WindowedColumnNode
         | Parameter of ParameterToken
         | Aggregate of AggregateToken
-        | SubExpression of SelectExpression
+        | SubExpression of PlainSelectExpression
         | BinaryExpression of BinaryExpressionNode
         | ValueList of ValueNode list
 
@@ -119,7 +123,7 @@ module Stream =
 
     and InsertValueToken = { Values : InsertValueNode list }
     
-    and SelectExpression =
+    and PlainSelectExpression = 
         {
             Select : SelectExpressionNode
             From : FromExpressionNode
@@ -127,6 +131,30 @@ module Stream =
             GroupBy : GroupByExpressionNode option
             OrderBy : OrderByExpressionNode option
         }
+    and CommonTableValuedSelectExpression = CommonTableExpression * PlainSelectExpression
+
+    and SelectExpression =
+        | Plain of PlainSelectExpression
+        | Complex of CommonTableValuedSelectExpression
+
+    and ICommonTableDefinition =
+        abstract Query : PlainSelectExpression with get
+        abstract Table : ITableIdentifier with get
+
+    and ICommonTableDefinition<'a> =
+        abstract Query : PlainSelectExpression with get
+        abstract Table : ITableIdentifier<'a> with get
+
+    and CommonTableDefinition<'a> =
+        { Query : PlainSelectExpression; TableDef : ITableIdentifier<'a> }
+        interface ICommonTableDefinition<'a> with
+            member x.Query with get() = x.Query
+            member x.Table with get() = x.TableDef
+        interface ICommonTableDefinition with
+            member x.Query with get () = x.Query
+            member x.Table with get() = x.TableDef :> ITableIdentifier
+
+    and CommonTableExpression = { Definitions : ICommonTableDefinition list }
 
     type InsertExpression =
         {

@@ -68,6 +68,7 @@
     <Compile Include="Model\House.cs" />
     <Compile Include="Model\Person.cs" />
     <Compile Include="SqlGeneration\AdvancedJoinTests.cs" />
+    <Compile Include="SqlGeneration\CommonTableExpressions.cs" />
     <Compile Include="SqlGeneration\NullComparisonTests.cs" />
     <Compile Include="SqlGeneration\OperatorPredecenceTests.cs" />
     <Compile Include="SqlGeneration\OrderByNullsTests.cs" />
@@ -82,6 +83,7 @@
     <Compile Include="SqlGeneration\SimpleOrderByTests.cs" />
     <Compile Include="SqlGeneration\ParameterizedQueryTests.cs" />
     <Compile Include="SqlGeneration\SimpleInsertTests.cs" />
+    <Compile Include="TokenGeneration\CommonTableExpressionTests.cs" />
     <Compile Include="TokenGeneration\ExpressionVisitorTests.cs" />
     <Compile Include="TokenGeneration\OrderByNullsTests.cs" />
     <Compile Include="TokenGeneration\SelectPartitionsTests.cs" />

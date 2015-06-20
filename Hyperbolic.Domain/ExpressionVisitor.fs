@@ -1,10 +1,28 @@
 ﻿namespace Hyperboliq.Domain
 
 module ExpressionVisitor =
-    open Types
+    open Hyperboliq
     open Stream
     open System.Linq
     open System.Linq.Expressions
+
+    let ToBinaryOperation et =
+        match et with
+        | ExpressionType.Equal -> Equal
+        | ExpressionType.NotEqual -> NotEqual
+        | ExpressionType.GreaterThan -> GreaterThan
+        | ExpressionType.GreaterThanOrEqual -> GreaterThanOrEqual
+        | ExpressionType.LessThan -> LessThan
+        | ExpressionType.LessThanOrEqual -> LessThanOrEqual
+        | ExpressionType.AndAlso -> BinaryOperation.And
+        | ExpressionType.OrElse -> BinaryOperation.Or
+        | ExpressionType.Add -> Add
+        | ExpressionType.Subtract -> Subtract
+        | ExpressionType.Multiply -> Multiply
+        | ExpressionType.Divide -> Divide
+        | ExpressionType.Modulo -> Modulo
+        | ExpressionType.Coalesce -> Coalesce
+        | _ -> failwith "Not implemented"
 
     type EvaluationBinding = string * ITableReference
     type EvaluationContext = EvaluationBinding list
@@ -46,7 +64,10 @@ module ExpressionVisitor =
     let VisitConstant (exp : ConstantExpression) : ValueNode =
         match exp.Value with
         | null -> ValueNode.NullValue
-        | :? SelectExpression as se -> ValueNode.SubExpression(se)
+        |  :? SelectExpression as se -> 
+            match se with 
+            | Plain(q) -> ValueNode.SubExpression(q)
+            | _ -> failwith "Not implemented"
         | :? string as s-> ValueNode.Constant(ConstantNode(sprintf "'%s'" s))
         | x ->  ValueNode.Constant(ConstantNode(x.ToString()))
 
@@ -54,13 +75,22 @@ module ExpressionVisitor =
         try
             let result = Expression.Lambda(e).Compile().DynamicInvoke()
             match result with
-            | null -> Some ValueNode.NullValue
-            | :? ValueNode as vn -> Some vn
-            | :? ISelectExpressionTransformable as ss -> Some (ValueNode.SubExpression(ss.ToSelectExpression()))
-            | :? SelectExpression as ss -> Some (ValueNode.SubExpression(ss))
-            | _ -> Some (ValueNode.Constant(ConstantNode(result.ToString())))
+            | null -> 
+                Some ValueNode.NullValue
+            | :? ValueNode as vn -> 
+                Some vn
+            | :? ISelectExpressionTransformable as ss -> 
+                match ss.ToSelectExpression() with
+                | Plain(q) -> Some(ValueNode.SubExpression(q))
+                | _ -> None
+            | :? SelectExpression as ss ->
+                match ss with
+                | Plain(q) -> Some (ValueNode.SubExpression(q))
+                | _ -> None
+            | _ -> 
+                Some (ValueNode.Constant(ConstantNode(result.ToString())))
         with
-            | _ -> Option.None
+            | _ -> None
 
     let rec VisitSqlMethodCall (exp : MethodCallExpression) (context : EvaluationContext) : ValueNode = 
         let args = VisitExpressionList <| List.ofArray (exp.Arguments.ToArray()) <| context

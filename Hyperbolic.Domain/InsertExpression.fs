@@ -2,7 +2,6 @@
 
 
 module InsertExpressionPart =
-    open Types
     open Stream
 
     let PropertySortByName (p : System.Reflection.PropertyInfo) = p.Name

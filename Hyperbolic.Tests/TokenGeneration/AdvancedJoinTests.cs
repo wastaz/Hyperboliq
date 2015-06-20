@@ -1,9 +1,8 @@
 ﻿using Xunit;
 using Hyperboliq.Tests.Model;
-using Hyperboliq.Domain;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
 using JoinType = Hyperboliq.Domain.Stream.JoinType;
-using BinaryOperation = Hyperboliq.Domain.Types.BinaryOperation;
+using BinaryOperation = Hyperboliq.Domain.Stream.BinaryOperation;
 
 namespace Hyperboliq.Tests
 {
@@ -13,9 +12,9 @@ namespace Hyperboliq.Tests
         [Fact]
         public void ItShouldBePossibleToJoinATableToItself()
         {
-            var child = Types.NamedTableReferenceFromType<Person>("child");
-            var parent = Types.NamedTableReferenceFromType<Person>("parent");
-
+            var child = Table<Person>.WithReferenceName("child");
+            var parent = Table<Person>.WithReferenceName("parent");
+            
             var expr = Select.Column(child, p => new { p.Name })
                              .Column(parent, p => new { p.Name })
                              .From(child)
@@ -27,7 +26,7 @@ namespace Hyperboliq.Tests
                     S.Select(S.Col(parent, "Name"), S.Col(child, "Name")),
                     S.From(
                         child,
-                        S.Join(child, parent, Stream.JoinType.InnerJoin, S.BinExp(S.Col(child, "ParentId"), Types.BinaryOperation.Equal, S.Col(parent, "Id")))));
+                        S.Join(child, parent, JoinType.InnerJoin, S.BinExp(S.Col(child, "ParentId"), BinaryOperation.Equal, S.Col(parent, "Id")))));
             Assert.Equal(expected, result);
         }
 
@@ -59,9 +58,10 @@ namespace Hyperboliq.Tests
         [Fact]
         public void ItShouldBePossibleToInnerJoinATableOnItselfSeveralTimes()
         {
-            var child = Types.NamedTableReferenceFromType<Person>("child");
-            var parent = Types.NamedTableReferenceFromType<Person>("parent");
-            var grandparent = Types.NamedTableReferenceFromType<Person>("grandparent");
+            var child = Table<Person>.WithReferenceName("child");
+            var parent = Table<Person>.WithReferenceName("parent");
+            var grandparent = Table<Person>.WithReferenceName("grandparent");
+
             var expr = Select.Column(grandparent, gp => new { gp.Name, gp.Age })
                              .From(child)
                              .InnerJoin(child, parent, (c, p) => c.ParentId == p.Id)

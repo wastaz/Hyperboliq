@@ -8,12 +8,11 @@ using Microsoft.FSharp.Core;
 #region Stupid usings since using static isn't available until C#6
 
 using ValueNode = Hyperboliq.Domain.Stream.ValueNode;
-using ITableReference = Hyperboliq.Domain.Types.ITableReference;
 using AggregateType = Hyperboliq.Domain.Stream.AggregateType;
 using Direction = Hyperboliq.Domain.Stream.Direction;
 using NullsOrdering = Hyperboliq.Domain.Stream.NullsOrdering;
 using JoinType = Hyperboliq.Domain.Stream.JoinType;
-using BinaryOperation = Hyperboliq.Domain.Types.BinaryOperation;
+using BinaryOperation = Hyperboliq.Domain.Stream.BinaryOperation;
 using ExpressionCombinatorType = Hyperboliq.Domain.Stream.ExpressionCombinatorType;
 using BinaryExpressionNode = Hyperboliq.Domain.Stream.BinaryExpressionNode;
 using ParameterToken = Hyperboliq.Domain.Stream.ParameterToken;
@@ -25,9 +24,11 @@ using InsertValueToken = Hyperboliq.Domain.Stream.InsertValueToken;
 using InsertValueNode = Hyperboliq.Domain.Stream.InsertValueNode;
 using SqlExpression = Hyperboliq.Domain.Stream.SqlExpression;
 using SelectExpression = Hyperboliq.Domain.Stream.SelectExpression;
+using PlainSelectExpression = Hyperboliq.Domain.Stream.PlainSelectExpression;
 using UpdateExpression = Hyperboliq.Domain.Stream.UpdateExpression;
 using InsertExpression = Hyperboliq.Domain.Stream.InsertExpression;
 using DeleteExpression = Hyperboliq.Domain.Stream.DeleteExpression;
+using CommonTableExpression = Hyperboliq.Domain.Stream.CommonTableExpression;
 using SelectExpressionNode = Hyperboliq.Domain.Stream.SelectExpressionNode;
 using FromExpressionNode = Hyperboliq.Domain.Stream.FromExpressionNode;
 using WhereExpressionNode = Hyperboliq.Domain.Stream.WhereExpressionNode;
@@ -61,9 +62,19 @@ namespace Hyperboliq.Tests
             return ValueNode.NewColumn(new Tuple<string, ITableReference>(columnDef, Types.TableReferenceFromType<TTableType>()));
         }
 
-        public static ValueNode Col(ITableReference r, string columnDef)
+        public static ValueNode Col<TTable>(ITableIdentifier<TTable> r, string columnDef)
         {
-            return ValueNode.NewColumn(new Tuple<string, ITableReference>(columnDef, r));
+            return ValueNode.NewColumn(new Tuple<string, ITableReference>(columnDef, r.Reference));
+        }
+
+        public static ValueNode Col<TTable>(TableReferenceCreator<TTable> c, string colDef)
+        {
+            return ValueNode.NewColumn(new Tuple<string, ITableReference>(colDef, c.ToTableReference().Reference));
+        }
+
+        public static ValueNode Col(ITableReference r, string colDef)
+        {
+            return ValueNode.NewColumn(new Tuple<string, ITableReference>(colDef, r));
         }
 
         public static ValueNode WinCol(
@@ -164,7 +175,7 @@ namespace Hyperboliq.Tests
             OrderByExpressionNode orderBy = null)
         {
             return ValueNode.NewSubExpression(
-                new SelectExpression(
+                new PlainSelectExpression(
                     select,
                     from,
                     where.ToOption(),
@@ -195,57 +206,72 @@ namespace Hyperboliq.Tests
             return new SelectExpressionNode(true, ListModule.OfArray(columns));
         }
 
-        public static FromExpressionNode From(params ITableReference[] tables)
+        public static FromExpressionNode From<TType>(ITableIdentifier<TType> table)
         {
-            return new FromExpressionNode(ListModule.OfArray(tables), FSharpList<JoinClauseNode>.Empty);
+            return new FromExpressionNode(
+                new FSharpList<ITableIdentifier>(table, FSharpList<ITableIdentifier>.Empty),
+                FSharpList<JoinClauseNode>.Empty);
         }
 
-        public static FromExpressionNode From(ITableReference table, params JoinClauseNode[] joins)
+        public static FromExpressionNode From<TType>(ITableIdentifier<TType> c, params JoinClauseNode[] joins)
         {
-            return
-                new FromExpressionNode(
-                    new FSharpList<ITableReference>(table, FSharpList<ITableReference>.Empty),
-                    ListModule.OfArray(joins));
+            return new FromExpressionNode(
+                new FSharpList<ITableIdentifier>(c, FSharpList<ITableIdentifier>.Empty),
+                ListModule.OfArray(joins));
         }
-
+        
         public static FromExpressionNode From<TTable>(params JoinClauseNode[] joins)
         {
             return
                 new FromExpressionNode(
-                    new FSharpList<ITableReference>(Types.TableReferenceFromType<TTable>(), FSharpList<ITableReference>.Empty),
+                    new FSharpList<ITableIdentifier>(new TableIdentifier<TTable>(), FSharpList<ITableIdentifier>.Empty),
                     ListModule.OfArray(joins));
         }
 
-        public static JoinClauseNode Join<TSource, TTarget>(JoinType type, ValueNode joinExpr)
+        public static JoinClauseNode Join<TSource, TTarget>(
+            ITableIdentifier<TSource> source, 
+            ITableIdentifier<TTarget> target,
+            JoinType type,
+            ValueNode joinExpr)
         {
             return new JoinClauseNode(
-                new FSharpList<ITableReference>(Types.TableReferenceFromType<TSource>(), FSharpList<ITableReference>.Empty),
-                Types.TableReferenceFromType<TTarget>(),
-                type,
-                joinExpr.ToOption());
-        }
-        public static JoinClauseNode Join<TSource1, TSource2, TTarget>(JoinType type, ValueNode joinExpr)
-        {
-            return new JoinClauseNode(
-                ListModule.OfArray(new ITableReference[] { Types.TableReferenceFromType<TSource1>(), Types.TableReferenceFromType<TSource2>() }),
-                Types.TableReferenceFromType<TTarget>(),
-                type,
-                joinExpr.ToOption());
-        }
-
-        public static JoinClauseNode Join(ITableReference source1, ITableReference source2, ITableReference target, JoinType type, ValueNode joinExpr)
-        {
-            return new JoinClauseNode(
-                ListModule.OfArray(new[] { source1, source2 }),
+                new FSharpList<ITableIdentifier>(source, FSharpList<ITableIdentifier>.Empty),
                 target,
                 type,
                 joinExpr.ToOption());
         }
 
-        public static JoinClauseNode Join(ITableReference source, ITableReference target, JoinType type, ValueNode joinExpr)
+        public static JoinClauseNode Join<TSource, TTarget>(JoinType type, ValueNode joinExpr)
         {
             return new JoinClauseNode(
-                new FSharpList<ITableReference>(source, FSharpList<ITableReference>.Empty),
+                new FSharpList<ITableIdentifier>(new TableIdentifier<TSource>(), FSharpList<ITableIdentifier>.Empty),
+                new TableIdentifier<TTarget>(),
+                type,
+                joinExpr.ToOption());
+        }
+
+
+        public static JoinClauseNode Join<TSource1, TSource2, TTarget>(JoinType type, ValueNode joinExpr)
+        {
+            return new JoinClauseNode(
+                ListModule.OfArray(new ITableIdentifier[] {
+                    new TableIdentifier<TSource1>(),
+                    new TableIdentifier<TSource2>()
+                }),
+                new TableIdentifier<TTarget>(),
+                type,
+                joinExpr.ToOption());
+        }
+
+        public static JoinClauseNode Join<TSource1, TSource2, TTarget>(
+            ITableIdentifier<TSource1> source1, 
+            ITableIdentifier<TSource2> source2, 
+            ITableIdentifier<TTarget> target, 
+            JoinType type, 
+            ValueNode joinExpr)
+        {
+            return new JoinClauseNode(
+                ListModule.OfArray(new ITableIdentifier[] { source1, source2 }),
                 target,
                 type,
                 joinExpr.ToOption());
@@ -285,12 +311,33 @@ namespace Hyperboliq.Tests
             OrderByExpressionNode orderBy = null)
         {
             return SqlExpression.NewSelect(
-                new SelectExpression(
-                    select,
-                    from,
-                    where.ToOption(),
-                    groupBy.ToOption(),
-                    orderBy.ToOption()));
+                SelectExpression.NewPlain(
+                    new PlainSelectExpression(
+                        select,
+                        from,
+                        where.ToOption(),
+                        groupBy.ToOption(),
+                        orderBy.ToOption())));
+        }
+
+        public static SqlExpression SelectNode(
+            CommonTableExpression with,
+            SelectExpressionNode select,
+            FromExpressionNode from,
+            WhereExpressionNode where = null,
+            GroupByExpressionNode groupBy = null,
+            OrderByExpressionNode orderBy = null)
+        {
+            return SqlExpression.NewSelect(
+                SelectExpression.NewComplex(
+                    new Tuple<CommonTableExpression, PlainSelectExpression>(
+                        with,
+                        new PlainSelectExpression(
+                            select,
+                            from,
+                            where.ToOption(),
+                            groupBy.ToOption(),
+                            orderBy.ToOption()))));
         }
 
         public static SqlExpression DeleteNode(FromExpressionNode from, WhereExpressionNode where = null)
@@ -313,6 +360,46 @@ namespace Hyperboliq.Tests
                 new InsertExpression(
                     head,
                     ListModule.OfArray(values)));
+        }
+
+        public static Stream.ICommonTableDefinition TableDef<TType>(
+            TableReferenceCreator<TType> c,
+            SelectExpressionNode select,
+            FromExpressionNode from,
+            WhereExpressionNode where = null,
+            GroupByExpressionNode groupBy = null,
+            OrderByExpressionNode orderBy = null)
+        {
+            return TableDef(c.ToTableReference(), select, from, where, groupBy, orderBy);
+        }
+
+        public static Stream.ICommonTableDefinition TableDef<TType>(
+            TableIdentifier<TType> tdef,
+            SelectExpressionNode select,
+            FromExpressionNode from,
+            WhereExpressionNode where = null,
+            GroupByExpressionNode groupBy = null,
+            OrderByExpressionNode orderBy = null)
+        {
+            return
+                new Stream.CommonTableDefinition<TType>(
+                    new PlainSelectExpression(select, from, where.ToOption(), groupBy.ToOption(), orderBy.ToOption()),
+                    tdef);
+        }
+
+        public static Stream.ICommonTableDefinition TableDef<TType>(
+            SelectExpressionNode select,
+            FromExpressionNode from,
+            WhereExpressionNode where = null,
+            GroupByExpressionNode groupBy = null,
+            OrderByExpressionNode orderBy = null)
+        {
+            return TableDef(new TableIdentifier<TType>(), select, from, where, groupBy, orderBy);
+        }
+
+        public static CommonTableExpression With(params Stream.ICommonTableDefinition[] definitions)
+        {
+            return new CommonTableExpression(ListModule.OfArray(definitions));
         }
     }
 }

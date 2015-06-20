@@ -4,7 +4,7 @@
 
 [<AutoOpen>]
 module internal SqlGenUtils =
-    open Types
+    open Hyperboliq
     open Stream
     
     let ToPredecenceNumber op =
@@ -36,7 +36,9 @@ module internal SqlGenUtils =
         match op with
         | Equal -> "="
         | GreaterThan -> ">"
+        | GreaterThanOrEqual -> ">="
         | LessThan -> "<"
+        | LessThanOrEqual -> "<="
         | In -> "IN"
         | BinaryOperation.Or -> "OR"
         | BinaryOperation.And -> "AND"
@@ -55,6 +57,10 @@ module internal SqlGenUtils =
     let JoinWithComma = Join ", "
     let JoinWithSpace = Join " "
     let JoinOptionsWithSpace = List.choose id >> JoinWithSpace
+
+    let HandleTableRef (tref : ITableReference) = tref.ReferenceName
+    let HandleTableDefinition (tdef : ITableDefinition) = tdef.Name
+    let HandleTableDefinitionWithRef (ti : ITableIdentifier) = ti.Definition.Name + " " + ti.Reference.ReferenceName
 
     let HandleConditionalClauses (valueHandler : ValueNode -> string) (clauses : WhereClauseNode list) =
         match clauses with
@@ -80,11 +86,11 @@ module internal SqlGenUtils =
             | "*" -> col
             | _ -> dialect.QuoteColumnName col
         if includeTableRef then
-            sprintf "%s.%s" tbl.ReferenceName cname
+            sprintf "%s.%s" (HandleTableRef tbl) cname
         else
             cname
 
-    type SubExpressionHandler = ISqlDialect -> SelectExpression -> string
+    type SubExpressionHandler = ISqlDialect -> PlainSelectExpression -> string
 
     let rec HandleValueNode (subExprHandler : SubExpressionHandler) (includeTableRef : bool) (dialect : ISqlDialect) (vn : ValueNode) =
         match vn with
@@ -146,13 +152,13 @@ module internal SqlGenUtils =
         | None -> None
 
 module SelectSqlGen =
-    open Types
+    open Hyperboliq
     open Stream
      
-    let rec HandleSelectValue = HandleValueNode HandleSelectExpression true
+    let rec HandleSelectValue = HandleValueNode HandlePlainSelectExpression true
     and HandleSelectColumn = HandleColumn true
-    and HandleSelectAggregate = HandleAggregate HandleSelectExpression true
-    and HandleSelectBinaryExpression = HandleBinaryExpression HandleSelectExpression true
+    and HandleSelectAggregate = HandleAggregate HandlePlainSelectExpression true
+    and HandleSelectBinaryExpression = HandleBinaryExpression HandlePlainSelectExpression true
 
     and HandleWindowedColumn (dialect : ISqlDialect) ((aggregateToken, windowToken) : WindowedColumnNode) =
         let HandlePartitionBy dialect partitionNodes =
@@ -198,7 +204,7 @@ module SelectSqlGen =
 
     and HandleFrom (dialect : ISqlDialect) (from : FromExpressionNode) =
         let HandleTable (t : ITableReference) =
-            sprintf "%s %s" t.Table.Name t.ReferenceName 
+            sprintf "%s %s" t.Table.Name (HandleTableRef t)
         
         let TranslateJoinType jt =
             match jt with
@@ -208,14 +214,14 @@ module SelectSqlGen =
             | JoinType.FullJoin -> "FULL JOIN"
 
         let HandleJoin (jc : JoinClauseNode) =
-            let joinHead = sprintf "%s %s" (TranslateJoinType jc.Type) (HandleTable jc.TargetTable)
+            let joinHead = sprintf "%s %s" (TranslateJoinType jc.Type) (HandleTableDefinitionWithRef jc.TargetTable)
             match jc.Condition with
             | None -> joinHead
             | Some(c) -> sprintf "%s ON %s" joinHead (HandleSelectValue dialect c)
 
         let fromPart = 
             from.Tables
-            |> List.map HandleTable
+            |> List.map HandleTableDefinitionWithRef
             |> JoinWithComma
             |> sprintf "FROM %s"
         
@@ -277,7 +283,7 @@ module SelectSqlGen =
             |> sprintf "ORDER BY %s"
             |> Option.Some
 
-    and HandleSelectExpression dialect (select : SelectExpression) =
+    and HandlePlainSelectExpression dialect (select : PlainSelectExpression) =
         [
             Some(HandleSelect dialect select.Select)
             Some(HandleFrom dialect select.From)
@@ -287,13 +293,36 @@ module SelectSqlGen =
         ]
         |> JoinOptionsWithSpace
 
+    and HandleCommonTableExpression dialect (cte : CommonTableExpression) =
+        let HandleDefinition dialect (definition : ICommonTableDefinition) = 
+            let query = HandlePlainSelectExpression dialect definition.Query
+            let tref = HandleTableDefinition definition.Table.Definition
+            sprintf "%s AS (%s)" tref query
+
+        cte.Definitions
+        |> List.rev
+        |> List.map (HandleDefinition dialect)
+        |> JoinWithComma
+        |> sprintf "WITH %s"
+
+    and HandleSelectExpression dialect (select : SelectExpression) =
+        match select with
+        | Plain(exp) -> 
+            HandlePlainSelectExpression dialect exp
+        | Complex(withPart, selectPart) -> 
+            [ 
+                HandleCommonTableExpression dialect withPart
+                HandlePlainSelectExpression dialect selectPart
+            ] 
+            |> JoinWithSpace
+
 module UpdateSqlGen =
-    open Types
+    open Hyperboliq
     open Stream
 
     let HandleUpdateSetToken dialect (token : UpdateSetToken) =
         let col = HandleColumn false dialect token.Column
-        let value = HandleValueNode SelectSqlGen.HandleSelectExpression false dialect token.Value
+        let value = HandleValueNode SelectSqlGen.HandlePlainSelectExpression false dialect token.Value
         sprintf "%s = %s" col value
 
     let HandleUpdateSet dialect (updateSet : UpdateStatementHeadToken) =
@@ -305,29 +334,29 @@ module UpdateSqlGen =
     let HandleUpdateExpression dialect (update : UpdateExpression) =
         [
             Some(HandleUpdateSet dialect update.UpdateSet)
-            HandleWhere (HandleBinaryExpression SelectSqlGen.HandleSelectExpression false) dialect update.Where
+            HandleWhere (HandleBinaryExpression SelectSqlGen.HandlePlainSelectExpression false) dialect update.Where
         ]
         |> JoinOptionsWithSpace
 
 module DeleteSqlGen =
-    open Types
+    open Hyperboliq
     open Stream
 
     let HandleFrom dialect (from : FromExpressionNode) =
         from.Tables
-        |> List.map (fun t -> sprintf "%s %s" t.Table.Name t.ReferenceName)
+        |> List.map HandleTableDefinitionWithRef
         |> JoinWithComma
         |> sprintf "DELETE FROM %s"
 
     let HandleDeleteExpression dialect (delete : DeleteExpression) =
         [
             Some(HandleFrom dialect delete.From)
-            HandleWhere (HandleBinaryExpression SelectSqlGen.HandleSelectExpression true) dialect delete.Where
+            HandleWhere (HandleBinaryExpression SelectSqlGen.HandlePlainSelectExpression true) dialect delete.Where
         ]
         |> JoinOptionsWithSpace
 
 module InsertSqlGen =
-    open Types
+    open Hyperboliq
     open Stream
 
     let HandleInsertInto dialect (into : InsertStatementHeadToken) =
@@ -363,7 +392,7 @@ module InsertSqlGen =
         |> JoinWithSpace
 
 module SqlGen =
-    open Types
+    open Hyperboliq
     open Stream
 
     let SqlifyExpression dialect expression =

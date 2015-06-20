@@ -5,7 +5,7 @@ using Hyperboliq.Tests.Model;
 using Hyperboliq.Domain;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
 using AggregateType = Hyperboliq.Domain.Stream.AggregateType;
-using BinaryOperation = Hyperboliq.Domain.Types.BinaryOperation;
+using BinaryOperation = Hyperboliq.Domain.Stream.BinaryOperation;
 using JoinType = Hyperboliq.Domain.Stream.JoinType;
 using ValueNode = Hyperboliq.Domain.Stream.ValueNode;
 

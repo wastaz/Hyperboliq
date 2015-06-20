@@ -4,7 +4,7 @@ using Hyperboliq.Dialects;
 using Hyperboliq.Domain;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
 using JoinType = Hyperboliq.Domain.Stream.JoinType;
-using BinaryOperation = Hyperboliq.Domain.Types.BinaryOperation;
+using BinaryOperation = Hyperboliq.Domain.Stream.BinaryOperation;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
@@ -14,8 +14,8 @@ namespace Hyperboliq.Tests.SqlGeneration
         [Fact]
         public void ItShouldBePossibleToJoinATableToItself()
         {
-            var child = Types.NamedTableReferenceFromType<Person>("child");
-            var parent = Types.NamedTableReferenceFromType<Person>("parent");
+            var child = Table<Person>.WithReferenceName("child");
+            var parent = Table<Person>.WithReferenceName("parent");
             var stream =
                 S.SelectNode(
                     S.Select(S.Col(child, "Name"), S.Col(parent, "Name")),
