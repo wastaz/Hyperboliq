@@ -1,7 +1,7 @@
 ﻿namespace Hyperboliq.Domain
 
 module ExpressionParts =
-    open Types
+    open Hyperboliq
     open Stream
 
     let AddPartitionBy window selector tblRef =

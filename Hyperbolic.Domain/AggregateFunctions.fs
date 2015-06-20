@@ -1,6 +1,6 @@
 ﻿namespace Hyperboliq.Domain
 
-open Hyperboliq.Domain.Types
+open Hyperboliq
 
 type Sql private () =
     static member SubExpr<'a> (e : ISqlQuery) = Unchecked.defaultof<'a>

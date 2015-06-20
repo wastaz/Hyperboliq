@@ -2,7 +2,7 @@
 
 open System
 open System.Linq.Expressions
-open Hyperboliq.Domain.Types
+open Hyperboliq
 open Hyperboliq.Domain.Stream
 open Hyperboliq.Domain.SqlGen
 

@@ -2,7 +2,7 @@
 using Xunit;
 using Hyperboliq.Tests.Model;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
-using BinaryOperation = Hyperboliq.Domain.Types.BinaryOperation;
+using BinaryOperation = Hyperboliq.Domain.Stream.BinaryOperation;
 using JoinType = Hyperboliq.Domain.Stream.JoinType;
 using SqlExpression = Hyperboliq.Domain.Stream.SqlExpression;
 

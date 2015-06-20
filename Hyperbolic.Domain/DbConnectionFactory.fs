@@ -1,5 +1,6 @@
-﻿namespace Hyperboliq.Domain
-open Types
+﻿namespace Hyperboliq
+
+open Hyperboliq.Domain
 open System.Dynamic
 
 type AliasAttribute(alias : string) =
@@ -83,7 +84,7 @@ type HyperboliqConnectionFactory(dialect : ISqlDialect, connectionString : strin
         con.Open()
         new HyperboliqConnection(x.Dialect, con)
 
-module Mapper =
+module internal Mapper =
     open System.Data
 
     let private MapRow<'a> (reader : IDataReader) (namingStrategies : IColumnMappingStrategy seq) : 'a =

@@ -1,7 +1,11 @@
 ﻿namespace Hyperboliq.Domain
 
 module Stream =
-    open Types
+    open Hyperboliq
+
+    type BinaryOperation =
+        Equal | NotEqual | GreaterThan | GreaterThanOrEqual | LessThan | LessThanOrEqual
+        | In | And | Or | Add | Subtract | Multiply | Divide | Modulo | Coalesce
 
     type ConstantNode = ConstantNode of string
 

@@ -1,6 +1,6 @@
 ﻿namespace Hyperboliq
 
-open Hyperboliq.Domain.Types
+open Hyperboliq.Types
 
 [<AbstractClass>]
 type TableReferenceCreator<'a> internal () =

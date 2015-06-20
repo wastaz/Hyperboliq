@@ -1,10 +1,28 @@
 ﻿namespace Hyperboliq.Domain
 
 module ExpressionVisitor =
-    open Types
+    open Hyperboliq
     open Stream
     open System.Linq
     open System.Linq.Expressions
+
+    let ToBinaryOperation et =
+        match et with
+        | ExpressionType.Equal -> Equal
+        | ExpressionType.NotEqual -> NotEqual
+        | ExpressionType.GreaterThan -> GreaterThan
+        | ExpressionType.GreaterThanOrEqual -> GreaterThanOrEqual
+        | ExpressionType.LessThan -> LessThan
+        | ExpressionType.LessThanOrEqual -> LessThanOrEqual
+        | ExpressionType.AndAlso -> BinaryOperation.And
+        | ExpressionType.OrElse -> BinaryOperation.Or
+        | ExpressionType.Add -> Add
+        | ExpressionType.Subtract -> Subtract
+        | ExpressionType.Multiply -> Multiply
+        | ExpressionType.Divide -> Divide
+        | ExpressionType.Modulo -> Modulo
+        | ExpressionType.Coalesce -> Coalesce
+        | _ -> failwith "Not implemented"
 
     type EvaluationBinding = string * ITableReference
     type EvaluationContext = EvaluationBinding list

@@ -8,12 +8,11 @@ using Microsoft.FSharp.Core;
 #region Stupid usings since using static isn't available until C#6
 
 using ValueNode = Hyperboliq.Domain.Stream.ValueNode;
-using ITableReference = Hyperboliq.Domain.Types.ITableReference;
 using AggregateType = Hyperboliq.Domain.Stream.AggregateType;
 using Direction = Hyperboliq.Domain.Stream.Direction;
 using NullsOrdering = Hyperboliq.Domain.Stream.NullsOrdering;
 using JoinType = Hyperboliq.Domain.Stream.JoinType;
-using BinaryOperation = Hyperboliq.Domain.Types.BinaryOperation;
+using BinaryOperation = Hyperboliq.Domain.Stream.BinaryOperation;
 using ExpressionCombinatorType = Hyperboliq.Domain.Stream.ExpressionCombinatorType;
 using BinaryExpressionNode = Hyperboliq.Domain.Stream.BinaryExpressionNode;
 using ParameterToken = Hyperboliq.Domain.Stream.ParameterToken;
@@ -63,7 +62,7 @@ namespace Hyperboliq.Tests
             return ValueNode.NewColumn(new Tuple<string, ITableReference>(columnDef, Types.TableReferenceFromType<TTableType>()));
         }
 
-        public static ValueNode Col<TTable>(Types.ITableIdentifier<TTable> r, string columnDef)
+        public static ValueNode Col<TTable>(ITableIdentifier<TTable> r, string columnDef)
         {
             return ValueNode.NewColumn(new Tuple<string, ITableReference>(columnDef, r.Reference));
         }
@@ -207,17 +206,17 @@ namespace Hyperboliq.Tests
             return new SelectExpressionNode(true, ListModule.OfArray(columns));
         }
 
-        public static FromExpressionNode From<TType>(Types.ITableIdentifier<TType> table)
+        public static FromExpressionNode From<TType>(ITableIdentifier<TType> table)
         {
             return new FromExpressionNode(
-                new FSharpList<Types.ITableIdentifier>(table, FSharpList<Types.ITableIdentifier>.Empty),
+                new FSharpList<ITableIdentifier>(table, FSharpList<ITableIdentifier>.Empty),
                 FSharpList<JoinClauseNode>.Empty);
         }
 
-        public static FromExpressionNode From<TType>(Types.ITableIdentifier<TType> c, params JoinClauseNode[] joins)
+        public static FromExpressionNode From<TType>(ITableIdentifier<TType> c, params JoinClauseNode[] joins)
         {
             return new FromExpressionNode(
-                new FSharpList<Types.ITableIdentifier>(c, FSharpList<Types.ITableIdentifier>.Empty),
+                new FSharpList<ITableIdentifier>(c, FSharpList<ITableIdentifier>.Empty),
                 ListModule.OfArray(joins));
         }
         
@@ -225,18 +224,18 @@ namespace Hyperboliq.Tests
         {
             return
                 new FromExpressionNode(
-                    new FSharpList<Types.ITableIdentifier>(new Types.TableIdentifier<TTable>(), FSharpList<Types.ITableIdentifier>.Empty),
+                    new FSharpList<ITableIdentifier>(new TableIdentifier<TTable>(), FSharpList<ITableIdentifier>.Empty),
                     ListModule.OfArray(joins));
         }
 
         public static JoinClauseNode Join<TSource, TTarget>(
-            Types.ITableIdentifier<TSource> source, 
-            Types.ITableIdentifier<TTarget> target,
+            ITableIdentifier<TSource> source, 
+            ITableIdentifier<TTarget> target,
             JoinType type,
             ValueNode joinExpr)
         {
             return new JoinClauseNode(
-                new FSharpList<Types.ITableIdentifier>(source, FSharpList<Types.ITableIdentifier>.Empty),
+                new FSharpList<ITableIdentifier>(source, FSharpList<ITableIdentifier>.Empty),
                 target,
                 type,
                 joinExpr.ToOption());
@@ -245,8 +244,8 @@ namespace Hyperboliq.Tests
         public static JoinClauseNode Join<TSource, TTarget>(JoinType type, ValueNode joinExpr)
         {
             return new JoinClauseNode(
-                new FSharpList<Types.ITableIdentifier>(new Types.TableIdentifier<TSource>(), FSharpList<Types.ITableIdentifier>.Empty),
-                new Types.TableIdentifier<TTarget>(),
+                new FSharpList<ITableIdentifier>(new TableIdentifier<TSource>(), FSharpList<ITableIdentifier>.Empty),
+                new TableIdentifier<TTarget>(),
                 type,
                 joinExpr.ToOption());
         }
@@ -255,24 +254,24 @@ namespace Hyperboliq.Tests
         public static JoinClauseNode Join<TSource1, TSource2, TTarget>(JoinType type, ValueNode joinExpr)
         {
             return new JoinClauseNode(
-                ListModule.OfArray(new Types.ITableIdentifier[] {
-                    new Types.TableIdentifier<TSource1>(),
-                    new Types.TableIdentifier<TSource2>()
+                ListModule.OfArray(new ITableIdentifier[] {
+                    new TableIdentifier<TSource1>(),
+                    new TableIdentifier<TSource2>()
                 }),
-                new Types.TableIdentifier<TTarget>(),
+                new TableIdentifier<TTarget>(),
                 type,
                 joinExpr.ToOption());
         }
 
         public static JoinClauseNode Join<TSource1, TSource2, TTarget>(
-            Types.ITableIdentifier<TSource1> source1, 
-            Types.ITableIdentifier<TSource2> source2, 
-            Types.ITableIdentifier<TTarget> target, 
+            ITableIdentifier<TSource1> source1, 
+            ITableIdentifier<TSource2> source2, 
+            ITableIdentifier<TTarget> target, 
             JoinType type, 
             ValueNode joinExpr)
         {
             return new JoinClauseNode(
-                ListModule.OfArray(new Types.ITableIdentifier[] { source1, source2 }),
+                ListModule.OfArray(new ITableIdentifier[] { source1, source2 }),
                 target,
                 type,
                 joinExpr.ToOption());
@@ -375,7 +374,7 @@ namespace Hyperboliq.Tests
         }
 
         public static Stream.ICommonTableDefinition TableDef<TType>(
-            Types.TableIdentifier<TType> tdef,
+            TableIdentifier<TType> tdef,
             SelectExpressionNode select,
             FromExpressionNode from,
             WhereExpressionNode where = null,
@@ -395,7 +394,7 @@ namespace Hyperboliq.Tests
             GroupByExpressionNode groupBy = null,
             OrderByExpressionNode orderBy = null)
         {
-            return TableDef(new Types.TableIdentifier<TType>(), select, from, where, groupBy, orderBy);
+            return TableDef(new TableIdentifier<TType>(), select, from, where, groupBy, orderBy);
         }
 
         public static CommonTableExpression With(params Stream.ICommonTableDefinition[] definitions)

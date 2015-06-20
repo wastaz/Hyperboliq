@@ -1,7 +1,7 @@
 ﻿using Xunit;
 using Hyperboliq.Tests.Model;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
-using BinaryOperation = Hyperboliq.Domain.Types.BinaryOperation;
+using BinaryOperation = Hyperboliq.Domain.Stream.BinaryOperation;
 using SqlGen = Hyperboliq.Domain.SqlGen;
 
 namespace Hyperboliq.Tests.SqlGeneration
@@ -26,7 +26,7 @@ namespace Hyperboliq.Tests.SqlGeneration
                             S.From<Person>(),
                             S.Where(S.BinExp(S.Col<Person>("Age"), BinaryOperation.GreaterThan, S.Const(15))))),
                     S.Select(S.Col<PersonLite>("Name")),
-                    S.From(new Domain.Types.TableIdentifier<PersonLite>()),
+                    S.From(new TableIdentifier<PersonLite>()),
                     S.Where(S.BinExp(S.Col<PersonLite>("Age"), BinaryOperation.Equal, S.Const(42)))
                 );
             var result = SqlGen.SqlifyExpression(Dialects.AnsiSql.Dialect, expr);

@@ -1,7 +1,6 @@
 ﻿namespace Hyperboliq.Domain
 
 module UpdateExpressionPart =
-    open Types
     open Stream
 
     let NewUpdateExpression tbl =

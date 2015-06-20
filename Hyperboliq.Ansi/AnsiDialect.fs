@@ -1,6 +1,6 @@
 ﻿namespace Hyperboliq.Dialects
 
-open Hyperboliq.Domain.Types
+open Hyperboliq
 
 type public AnsiSql private () =
     static member private _dialect = lazy(new AnsiSql())

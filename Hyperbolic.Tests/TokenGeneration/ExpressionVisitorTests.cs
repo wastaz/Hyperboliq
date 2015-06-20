@@ -7,8 +7,7 @@ using Hyperboliq.Domain;
 using Xunit;
 using Hyperboliq.Tests;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
-using ITableReference = Hyperboliq.Domain.Types.ITableReference;
-using BinaryOperation = Hyperboliq.Domain.Types.BinaryOperation;
+using BinaryOperation = Hyperboliq.Domain.Stream.BinaryOperation;
 using ValueNode = Hyperboliq.Domain.Stream.ValueNode;
 
 
