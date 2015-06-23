@@ -33,7 +33,7 @@ module Stream =
 
     type JoinType = InnerJoin | LeftJoin | RightJoin | FullJoin
 
-    type AggregateType = Max | Min | Avg | Count | Sum
+    type AggregateType = Max | Min | Avg | Count | Sum | RowNumber
 
     type ExpressionCombinatorType = And | Or
 

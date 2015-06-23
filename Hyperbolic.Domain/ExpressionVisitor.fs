@@ -102,6 +102,7 @@ module ExpressionVisitor =
         | "Avg", ValueList([ expr ]) -> ValueNode.Aggregate(Avg, expr)
         | "Sum", ValueList([ expr ]) -> ValueNode.Aggregate(Sum, expr)
         | "Count", ValueList(_) -> ValueNode.Aggregate(Count, ValueNode.NullValue)
+        | "RowNumber", ValueList(_) -> ValueNode.Aggregate(RowNumber, ValueNode.NullValue)
         | _ -> failwith "Not implemented"
 
     and VisitMethodCall (exp : MethodCallExpression) context : ValueNode =

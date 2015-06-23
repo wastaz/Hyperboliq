@@ -1,8 +1,10 @@
 ﻿using Xunit;
+using Hyperboliq.Domain;
 using Hyperboliq.Tests.Model;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
 using BinaryOperation = Hyperboliq.Domain.Stream.BinaryOperation;
 using SqlGen = Hyperboliq.Domain.SqlGen;
+using AggregateType = Hyperboliq.Domain.Stream.AggregateType;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
@@ -92,6 +94,56 @@ namespace Hyperboliq.Tests.SqlGeneration
                 "SELECT OldiesRef.Name, YoungOnesRef.Name " +
                 "FROM Oldies OldiesRef " +
                 "INNER JOIN YoungOnes YoungOnesRef ON OldiesRef.Age - 30 = YoungOnesRef.Age";
+
+            Assert.Equal(expected, result);
+        }
+
+        public class PersonLitePagingResult
+        {
+            public int RowNumber { get; set; }
+            public string Name { get; set; }
+            public int Age { get; set; }
+        }
+
+        [Fact]
+        public void ItShouldBePossibleToDoPagingWithACommonTableExpression()
+        {
+            // To be honest, this case should be covered by the other test cases so this test case is a bit redundant.
+            // However, using common table expressions for paging is a quite common technique and it's good to know for sure that it works as expected, so 
+            // let's do some bad practice testing and test something that's already covered by other tests!
+
+            var expr =
+                S.SelectNode(
+                    S.With(
+                        S.TableDef<PersonLitePagingResult>(
+                            S.Select(
+                                S.Col<Person>("Name"),
+                                S.Col<Person>("Age"),
+                                S.WinCol(
+                                    AggregateType.RowNumber,
+                                    S.Null(),
+                                    orderBy: new[] { S.OrderClause(S.Col<Person>("Age"), Stream.Direction.Ascending) })),
+                            S.From<Person>())
+                    ),
+                    S.Select(S.Col<PersonLitePagingResult>("Name"), S.Col<PersonLitePagingResult>("Age")),
+                    S.From<PersonLitePagingResult>(),
+                    S.Where(
+                        S.BinExp(
+                            S.BinExp(S.Col<PersonLitePagingResult>("RowNumber"), BinaryOperation.GreaterThanOrEqual, S.Const(10)),
+                            BinaryOperation.And,
+                            S.BinExp(S.Col<PersonLitePagingResult>("RowNumber"), BinaryOperation.LessThan, S.Const(20))
+                    )));
+
+            var result = SqlGen.SqlifyExpression(Dialects.AnsiSql.Dialect, expr);
+
+            var expected =
+                "WITH PersonLitePagingResult AS (" +
+                    "SELECT PersonRef.Name, PersonRef.Age, ROW_NUMBER() OVER (ORDER BY PersonRef.Age ASC) " +
+                    "FROM Person PersonRef" +
+                ") " +
+                "SELECT PersonLitePagingResultRef.Name, PersonLitePagingResultRef.Age " +
+                "FROM PersonLitePagingResult PersonLitePagingResultRef " +
+                "WHERE PersonLitePagingResultRef.RowNumber >= 10 AND PersonLitePagingResultRef.RowNumber < 20";
 
             Assert.Equal(expected, result);
         }

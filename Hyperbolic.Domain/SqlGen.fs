@@ -107,6 +107,7 @@ module internal SqlGenUtils =
         let value = HandleValueNode subExprHandler includeTableRef dialect payload
         match aggregateType with
         | Count -> "COUNT(*)"
+        | RowNumber -> "ROW_NUMBER()"
         | Avg -> sprintf "AVG(%s)" value
         | Min -> sprintf "MIN(%s)" value
         | Max -> sprintf "MAX(%s)" value
@@ -203,9 +204,6 @@ module SelectSqlGen =
         |> sprintf "SELECT %s%s" (if select.IsDistinct then "DISTINCT " else "") 
 
     and HandleFrom (dialect : ISqlDialect) (from : FromExpressionNode) =
-        let HandleTable (t : ITableReference) =
-            sprintf "%s %s" t.Table.Name (HandleTableRef t)
-        
         let TranslateJoinType jt =
             match jt with
             | JoinType.InnerJoin -> "INNER JOIN"
@@ -317,7 +315,6 @@ module SelectSqlGen =
             |> JoinWithSpace
 
 module UpdateSqlGen =
-    open Hyperboliq
     open Stream
 
     let HandleUpdateSetToken dialect (token : UpdateSetToken) =
@@ -339,7 +336,6 @@ module UpdateSqlGen =
         |> JoinOptionsWithSpace
 
 module DeleteSqlGen =
-    open Hyperboliq
     open Stream
 
     let HandleFrom dialect (from : FromExpressionNode) =
@@ -356,7 +352,6 @@ module DeleteSqlGen =
         |> JoinOptionsWithSpace
 
 module InsertSqlGen =
-    open Hyperboliq
     open Stream
 
     let HandleInsertInto dialect (into : InsertStatementHeadToken) =
@@ -392,7 +387,6 @@ module InsertSqlGen =
         |> JoinWithSpace
 
 module SqlGen =
-    open Hyperboliq
     open Stream
 
     let SqlifyExpression dialect expression =
