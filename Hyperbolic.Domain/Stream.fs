@@ -44,6 +44,11 @@ module Stream =
         OrderBy: OrderByClauseNode list
     }
 
+    and AliasedColumnNode = {
+        Column : ValueNode
+        Alias : string
+    }
+
     and JoinClauseNode = { 
         SourceTables: ITableIdentifier list
         TargetTable: ITableIdentifier
@@ -94,6 +99,7 @@ module Stream =
         | Constant of ConstantNode
         | Column of ColumnToken
         | WindowedColumn of WindowedColumnNode
+        | NamedColumn of AliasedColumnNode
         | Parameter of ParameterToken
         | Aggregate of AggregateToken
         | SubExpression of PlainSelectExpression

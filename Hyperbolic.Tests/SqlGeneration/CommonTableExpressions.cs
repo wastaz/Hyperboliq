@@ -119,7 +119,8 @@ namespace Hyperboliq.Tests.SqlGeneration
                             S.Select(
                                 S.Col<Person>("Name"),
                                 S.Col<Person>("Age"),
-                                S.WinCol(
+                                S.AliasedCol(
+                                    "RowNumber",
                                     AggregateType.RowNumber,
                                     S.Null(),
                                     orderBy: new[] { S.OrderClause(S.Col<Person>("Age"), Stream.Direction.Ascending) })),
@@ -138,7 +139,7 @@ namespace Hyperboliq.Tests.SqlGeneration
 
             var expected =
                 "WITH PersonLitePagingResult AS (" +
-                    "SELECT PersonRef.Name, PersonRef.Age, ROW_NUMBER() OVER (ORDER BY PersonRef.Age ASC) " +
+                    "SELECT PersonRef.Name, PersonRef.Age, ROW_NUMBER() OVER (ORDER BY PersonRef.Age ASC) AS RowNumber " +
                     "FROM Person PersonRef" +
                 ") " +
                 "SELECT PersonLitePagingResultRef.Name, PersonLitePagingResultRef.Age " +

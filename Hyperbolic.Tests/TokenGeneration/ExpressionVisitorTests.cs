@@ -123,5 +123,25 @@ namespace Hyperboliq.Domain.Tests
                 S.BinExp(S.Col<Person>("Age"), BinaryOperation.NotEqual, S.Param("ageparam")).ToOption();
             Assert.Equal(expected, ev);
         }
+
+        [Fact]
+        public void ItShouldBeAbleToGenerateAliasedColumnTokens()
+        {
+            Expression<Func<Person, object>> func = (Person p) => new { p.Name, AgeOfPerson = p.Age, Count = Sql.Count() };
+            var tableRefs = new[]
+            {
+                Types.TableReferenceFromType<Person>(),
+            };
+            var ev = ExpressionVisitor.Visit(func, tableRefs.ToContext());
+
+            var expected =
+                ValueNode.NewValueList(
+                    ListModule.OfArray(new[] {
+                        S.Col<Person>("Name"),
+                        S.AliasedCol<Person>("Age", "AgeOfPerson"),
+                        S.AliasedCol<Person>(Stream.AggregateType.Count, S.Null(), "Count")
+                    })).ToOption();
+            Assert.Equal(expected, ev);
+        }
     }
 }

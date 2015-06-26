@@ -9,6 +9,7 @@ using Microsoft.FSharp.Core;
 
 using ValueNode = Hyperboliq.Domain.Stream.ValueNode;
 using AggregateType = Hyperboliq.Domain.Stream.AggregateType;
+using AliasedColumnNode = Hyperboliq.Domain.Stream.AliasedColumnNode;
 using Direction = Hyperboliq.Domain.Stream.Direction;
 using NullsOrdering = Hyperboliq.Domain.Stream.NullsOrdering;
 using JoinType = Hyperboliq.Domain.Stream.JoinType;
@@ -75,6 +76,35 @@ namespace Hyperboliq.Tests
         public static ValueNode Col(ITableReference r, string colDef)
         {
             return ValueNode.NewColumn(new Tuple<string, ITableReference>(colDef, r));
+        }
+
+        public static ValueNode AliasedCol<TTable>(string colDef, string alias) {
+            return ValueNode.NewNamedColumn(
+                new AliasedColumnNode(
+                    ValueNode.NewColumn(
+                        new Tuple<string, ITableReference>(colDef, Types.TableReferenceFromType<TTable>())), 
+                    alias));
+        }
+
+        public static ValueNode AliasedCol<TTable>(AggregateType type, ValueNode parameter, string alias)
+        {
+            return ValueNode.NewNamedColumn(
+                new AliasedColumnNode(
+                    ValueNode.NewAggregate(new Tuple<AggregateType, ValueNode>(type, parameter)),
+                    alias));
+        }
+
+        public static ValueNode AliasedCol(
+            string alias,
+            AggregateType type,
+            ValueNode aggregateParameter,
+            IEnumerable<ValueNode> partitionBy = null,
+            IEnumerable<OrderByClauseNode> orderBy = null)
+        {
+            return ValueNode.NewNamedColumn(
+                new AliasedColumnNode(
+                    WinCol(type, aggregateParameter, partitionBy, orderBy),
+                    alias));
         }
 
         public static ValueNode WinCol(

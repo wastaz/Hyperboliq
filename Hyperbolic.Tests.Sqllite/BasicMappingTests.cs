@@ -167,5 +167,43 @@ namespace Hyperboliq.Tests.Sqllite
                 Assert.Equal(42, person.Age);
             }
         }
+
+        public class MapAliasTestResultSet
+        {
+            public int Age { get; set; }
+            public long Count { get; set; }
+        }
+
+        [Fact]
+        public void ItShouldBePossibleToMapAliasedColumns()
+        {
+            var factory = new HyperboliqConnectionFactory(SqlLite.Dialect, ":memory:");
+            using (var con = factory.OpenDbConnection())
+            {
+                const string createTable = "CREATE TABLE Person (Id INT, Name VARCHAR(50), Age INT, LivesAtHouseId INT, ParentId INT)";
+                var cmd1 = con.AsIDbConnection().CreateCommand();
+                cmd1.CommandText = createTable;
+                cmd1.ExecuteNonQuery();
+
+                var insertQuery = Insert.Into<Person>().AllColumns.Values(
+                    new Person { Id = 1, Name = "Kalle", Age = 42 },
+                    new Person { Id = 2, Name = "Pelle", Age = 42 },
+                    new Person { Id = 3, Name = "Putte", Age = 45 });
+                con.ExecuteNonQuery(insertQuery);
+
+                var selectQuery = Select.Column<Person>(p => new { p.Age, Count = Sql.Count() }).From<Person>().GroupBy<Person>(p => p.Age);
+                var result = con.Query<MapAliasTestResultSet>(selectQuery);
+
+                Assert.Equal(2, result.Count());
+
+                var first = result.ElementAt(0);
+                Assert.Equal(42, first.Age);
+                Assert.Equal(2, first.Count);
+
+                var second = result.ElementAt(1);
+                Assert.Equal(45, second.Age);
+                Assert.Equal(1, second.Count);
+            }
+        }
     }
 }

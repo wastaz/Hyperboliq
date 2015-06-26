@@ -104,7 +104,11 @@ namespace Hyperboliq.Tests
             var result = expr.ToSqlExpression();
             var expected =
                 S.SelectNode(
-                    S.Select(S.Aggregate(AggregateType.Count, ValueNode.NullValue)),
+                    S.Select(
+                        S.AliasedCol<Person>(
+                            AggregateType.Count, 
+                            ValueNode.NullValue,
+                            "NumberOfPersons")),
                     S.From<Person>());
             Assert.Equal(expected, result);
         }

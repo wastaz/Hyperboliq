@@ -130,6 +130,16 @@ module ExpressionVisitor =
         ValueNode.BinaryExpression({ Lhs = lhs; Operation = op; Rhs = rhs })
 
     and VisitNew (exp : NewExpression) (context : EvaluationContext) : ValueNode =
+        let VisitColumnReference (mbr : System.Reflection.MemberInfo) (arg : Expression) (context : EvaluationContext) : ValueNode =
+            let value = InternalVisit arg context
+            match value with
+            | ValueNode.Column(c, _) when c <> mbr.Name ->
+                ValueNode.NamedColumn({ Alias = mbr.Name; Column = value })
+            | ValueNode.Aggregate(_) 
+            | ValueNode.WindowedColumn(_) -> 
+                ValueNode.NamedColumn({ Alias = mbr.Name; Column = value })
+            | _ -> value
+
         let mbr = Expression.Convert(exp, typeof<System.Object>) 
         let lmb = Expression.Lambda<System.Func<System.Object>>(mbr)
         try 
@@ -143,7 +153,11 @@ module ExpressionVisitor =
         with
             | :? System.Collections.Generic.KeyNotFoundException 
             | :? System.InvalidOperationException -> 
-                VisitExpressionList <| List.ofArray (exp.Arguments.ToArray()) <| context
+                let members = List.ofSeq exp.Members
+                let arguments = List.ofSeq exp.Arguments
+                List.zip members arguments 
+                |> List.map (fun (mbr, arg) -> VisitColumnReference mbr arg context)
+                |> ValueNode.ValueList
 
     and VisitExpressionList (expList : Expression list) (context : EvaluationContext) : ValueNode =
         let HandleSingleExpression (context : EvaluationContext) (exp : Expression) : ValueNode =

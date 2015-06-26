@@ -24,7 +24,12 @@ namespace Hyperboliq.Tests
 
             var expected =
                 S.SelectNode(
-                    S.Select(S.Col<Person>("Name"), S.Aggregate(AggregateType.Max, S.Col<Person>("Age"))),
+                    S.Select(
+                        S.Col<Person>("Name"), 
+                        S.AliasedCol<Person>(
+                            AggregateType.Max,
+                            S.Col<Person>("Age"),
+                            "MaxAge")),
                     S.From<Person>(),
                     groupBy: S.GroupBy(S.Col<Person>("Name"))
                     );
@@ -42,7 +47,13 @@ namespace Hyperboliq.Tests
 
             var expected =
                 S.SelectNode(
-                    S.Select(S.Col<Person>("Name"), S.Col<Person>("LivesAtHouseId"), S.Aggregate(AggregateType.Min, S.Col<Person>("Age"))),
+                    S.Select(
+                        S.Col<Person>("Name"), 
+                        S.Col<Person>("LivesAtHouseId"), 
+                        S.AliasedCol<Person>(
+                            AggregateType.Min,
+                            S.Col<Person>("Age"),
+                            "MinAge")),
                     S.From<Person>(),
                     groupBy: S.GroupBy(S.Col<Person>("Name"), S.Col<Person>("LivesAtHouseId"))
                     );
@@ -62,7 +73,13 @@ namespace Hyperboliq.Tests
 
             var expected =
                 S.SelectNode(
-                    S.Select(S.Col<Car>("Brand"), S.Aggregate(AggregateType.Count, ValueNode.NullValue), S.Col<Person>("Age")),
+                    S.Select(
+                        S.Col<Car>("Brand"), 
+                        S.AliasedCol<Person>(
+                            AggregateType.Count,
+                            ValueNode.NullValue,
+                            "NumberOfPersons"),
+                        S.Col<Person>("Age")),
                     S.From<Person>(
                         S.Join<Person, Car>(JoinType.InnerJoin, S.BinExp(S.Col<Person>("Id"), BinaryOperation.Equal, S.Col<Car>("DriverId")))),
                     groupBy: S.GroupBy(S.Col<Person>("Age"), S.Col<Car>("Brand"))
@@ -75,7 +92,7 @@ namespace Hyperboliq.Tests
         public void ItShouldBePossibleToGroupByColumnsFromMultipleTables()
         {
             var expr = Select.Column<Person>(p => new { p.Name, AverageAge = Sql.Avg(p.Age) })
-                             .Column<Car>(c => new { c.Brand, MaxAge = Sql.Min(c.Age) })
+                             .Column<Car>(c => new { c.Brand, MinAge = Sql.Min(c.Age) })
                              .From<Person>()
                              .InnerJoin<Person, Car>((p, c) => p.Id == c.DriverId)
                              .GroupBy<Person>(p => p.Name)
@@ -86,9 +103,15 @@ namespace Hyperboliq.Tests
                 S.SelectNode(
                     S.Select(
                         S.Col<Car>("Brand"),
-                        S.Aggregate(AggregateType.Min, S.Col<Car>("Age")),
+                        S.AliasedCol<Person>(
+                            AggregateType.Min,
+                            S.Col<Car>("Age"), 
+                            "MinAge"),
                         S.Col<Person>("Name"),
-                        S.Aggregate(AggregateType.Avg, S.Col<Person>("Age"))),
+                        S.AliasedCol<Person>(
+                            AggregateType.Avg,
+                            S.Col<Person>("Age"),
+                            "AverageAge")),
                     S.From<Person>(
                         S.Join<Person, Car>(JoinType.InnerJoin, S.BinExp(S.Col<Person>("Id"), BinaryOperation.Equal, S.Col<Car>("DriverId")))),
                     groupBy: S.GroupBy(S.Col<Person>("Name"), S.Col<Car>("Brand"))
@@ -108,7 +131,12 @@ namespace Hyperboliq.Tests
 
             var expected =
                 S.SelectNode(
-                    S.Select(S.Col<Person>("Name"), S.Aggregate(AggregateType.Avg, S.Col<Person>("Age"))),
+                    S.Select(
+                        S.Col<Person>("Name"), 
+                        S.AliasedCol<Person>(
+                            AggregateType.Avg, 
+                            S.Col<Person>("Age"),
+                            "AverageAge")),
                     S.From<Person>(),
                     groupBy: S.GroupBy(
                         new[] { S.Col<Person>("Name") }, 
@@ -122,7 +150,7 @@ namespace Hyperboliq.Tests
         public void ItShouldBePossibleToUseMultipleHavingExpressions()
         {
             var expr = Select.Column<Person>(p => new { p.Name, AverageAge = Sql.Avg(p.Age) })
-                             .Column<Car>(c => new { c.Brand, MaxAge = Sql.Min(c.Age) })
+                             .Column<Car>(c => new { c.Brand, MinAge = Sql.Min(c.Age) })
                              .From<Person>()
                              .InnerJoin<Person, Car>((p, c) => p.Id == c.DriverId)
                              .GroupBy<Person>(p => p.Name).ThenBy<Car>(c => c.Brand)
@@ -134,9 +162,15 @@ namespace Hyperboliq.Tests
                 S.SelectNode(
                     S.Select(
                         S.Col<Car>("Brand"),
-                        S.Aggregate(AggregateType.Min, S.Col<Car>("Age")),
+                        S.AliasedCol<Person>(
+                            AggregateType.Min, 
+                            S.Col<Car>("Age"),
+                            "MinAge"),
                         S.Col<Person>("Name"),
-                        S.Aggregate(AggregateType.Avg, S.Col<Person>("Age"))),
+                        S.AliasedCol<Person>(
+                            AggregateType.Avg, 
+                            S.Col<Person>("Age"),
+                            "AverageAge")),
                     S.From<Person>(
                         S.Join<Person, Car>(JoinType.InnerJoin, S.BinExp(S.Col<Person>("Id"), BinaryOperation.Equal, S.Col<Car>("DriverId")))),
                     groupBy: S.GroupBy(

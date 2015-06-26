@@ -96,6 +96,8 @@ module internal SqlGenUtils =
         match vn with
         | ValueNode.NullValue -> HandleNullValue ()
         | ValueNode.Column(c) -> HandleColumn includeTableRef dialect c
+        | ValueNode.NamedColumn(nc) -> HandleNamedColumn subExprHandler includeTableRef dialect nc
+        | ValueNode.WindowedColumn(wc) -> HandleWindowedColumn subExprHandler includeTableRef dialect wc
         | ValueNode.Constant(c) -> HandleConstant c
         | ValueNode.Parameter(p) -> HandleParameter p
         | ValueNode.Aggregate(a) -> HandleAggregate subExprHandler includeTableRef dialect a
@@ -112,6 +114,39 @@ module internal SqlGenUtils =
         | Min -> sprintf "MIN(%s)" value
         | Max -> sprintf "MAX(%s)" value
         | Sum -> sprintf "SUM(%s)" value
+
+    and HandleNamedColumn (subExprHandler : SubExpressionHandler) (includeTableRef : bool) (dialect : ISqlDialect) (nc : AliasedColumnNode) =
+        HandleValueNode subExprHandler includeTableRef dialect nc.Column
+        |> (fun s -> sprintf "%s AS %s" s nc.Alias)
+
+    and HandleWindowedColumn (subExprHandler : SubExpressionHandler) (includeTableRef : bool)  (dialect : ISqlDialect) ((aggregateToken, windowToken) : WindowedColumnNode) =
+        let HandlePartitionBy dialect partitionNodes =
+            let parts = 
+                partitionNodes
+                |> List.map (fun n -> match n with 
+                                      | ValueNode.Column(c) -> HandleColumn includeTableRef dialect c |> Some
+                                      | ValueNode.Aggregate(a) -> HandleAggregate subExprHandler includeTableRef dialect a |> Some
+                                      | _ -> None)
+                |> List.choose id
+            match parts with 
+            | [] -> None
+            | _ -> parts |> JoinWithComma |> sprintf "PARTITION BY %s" |> Some
+
+        let InternalHandleOrderBy dialect orderByNodes =
+            match orderByNodes with
+            | [] -> None
+            | _ -> orderByNodes |> List.map (HandleOrderByClause subExprHandler includeTableRef dialect) |> JoinWithComma |> sprintf "ORDER BY %s" |> Some
+
+        let HandleWindowToken dialect (wt : WindowNode) =
+            let partition = HandlePartitionBy dialect wt.PartitionBy
+            let order = InternalHandleOrderBy dialect wt.OrderBy
+            [ partition; order ] |> JoinOptionsWithSpace |> sprintf "(%s)"
+
+        [ 
+            HandleAggregate subExprHandler includeTableRef dialect aggregateToken
+            "OVER"
+            HandleWindowToken dialect windowToken
+        ] |> JoinWithSpace
 
     and HandleBinaryExpression (subExprHandler : SubExpressionHandler) (includeTableRef : bool) (dialect : ISqlDialect) (exp : BinaryExpressionNode) =
         let AddParensIfNecessary innerExp sql =
@@ -134,6 +169,18 @@ module internal SqlGenUtils =
             let lhs = HandleValueNode subExprHandler includeTableRef dialect exp.Lhs |> AddParensIfNecessary exp.Lhs
             let rhs = HandleValueNode subExprHandler includeTableRef dialect exp.Rhs |> AddParensIfNecessary exp.Rhs
             sprintf "%s %s %s" lhs op rhs
+
+    and HandleOrderByClause (subExprHandler : SubExpressionHandler) (includeTableRef : bool) (dialect : ISqlDialect) (clause : OrderByClauseNode) =
+        let dir = match clause.Direction with
+                    | Ascending -> "ASC"
+                    | Descending -> "DESC"
+        let nulls = match clause.NullsOrdering with
+                    | NullsFirst -> Some("NULLS FIRST")
+                    | NullsLast -> Some("NULLS LAST")
+                    | NullsUndefined -> None
+        let selector = HandleValueNode subExprHandler includeTableRef dialect clause.Selector
+        [ Some(selector); Some(dir); nulls ]
+        |> JoinOptionsWithSpace
 
     type BinaryExpressionHandler = ISqlDialect -> BinaryExpressionNode -> string
     
@@ -160,42 +207,17 @@ module SelectSqlGen =
     and HandleSelectColumn = HandleColumn true
     and HandleSelectAggregate = HandleAggregate HandlePlainSelectExpression true
     and HandleSelectBinaryExpression = HandleBinaryExpression HandlePlainSelectExpression true
-
-    and HandleWindowedColumn (dialect : ISqlDialect) ((aggregateToken, windowToken) : WindowedColumnNode) =
-        let HandlePartitionBy dialect partitionNodes =
-            let parts = 
-                partitionNodes
-                |> List.map (fun n -> match n with 
-                                      | ValueNode.Column(c) -> HandleSelectColumn dialect c |> Some
-                                      | ValueNode.Aggregate(a) -> HandleSelectAggregate dialect a |> Some
-                                      | _ -> None)
-                |> List.choose id
-            match parts with 
-            | [] -> None
-            | _ -> parts |> JoinWithComma |> sprintf "PARTITION BY %s" |> Some
-
-        let HandleOrderBy dialect orderByNodes =
-            match orderByNodes with
-            | [] -> None
-            | _ -> orderByNodes |> List.map (HandleOrderByClause dialect) |> JoinWithComma |> sprintf "ORDER BY %s" |> Some
-
-        let HandleWindowToken dialect (wt : WindowNode) =
-            let partition = HandlePartitionBy dialect wt.PartitionBy
-            let order = HandleOrderBy dialect wt.OrderBy
-            [ partition; order ] |> JoinOptionsWithSpace |> sprintf "(%s)"
-
-        [ 
-            HandleSelectAggregate dialect aggregateToken
-            "OVER"
-            HandleWindowToken dialect windowToken
-        ] |> JoinWithSpace
+    and HandleSelectOrderByClause = HandleOrderByClause HandlePlainSelectExpression true
+    and HandleSelectWindowedColumn = HandleWindowedColumn HandlePlainSelectExpression true
+    and HandleSelectNamedColumn = HandleNamedColumn HandlePlainSelectExpression true
 
     and HandleSelect (dialect : ISqlDialect) (select : SelectExpressionNode) =
         let HandleValue (dialect : ISqlDialect) value =
             match value with
             | ValueNode.Column(c) -> HandleSelectColumn dialect c
             | ValueNode.Aggregate(a) -> HandleSelectAggregate dialect a
-            | ValueNode.WindowedColumn(wc) -> HandleWindowedColumn dialect wc
+            | ValueNode.WindowedColumn(wc) -> HandleSelectWindowedColumn dialect wc
+            | ValueNode.NamedColumn(nc) -> HandleSelectNamedColumn dialect nc
             | _ -> failwith "Not supported"
 
         select.Values 
@@ -259,24 +281,12 @@ module SelectSqlGen =
         | Some(g) -> Some(HandleGroupByInternal dialect g)
         | None -> None
 
-    and HandleOrderByClause (dialect : ISqlDialect) (clause : OrderByClauseNode) =
-        let dir = match clause.Direction with
-                    | Ascending -> "ASC"
-                    | Descending -> "DESC"
-        let nulls = match clause.NullsOrdering with
-                    | NullsFirst -> Some("NULLS FIRST")
-                    | NullsLast -> Some("NULLS LAST")
-                    | NullsUndefined -> None
-        let selector = HandleSelectValue dialect clause.Selector
-        [ Some(selector); Some(dir); nulls ]
-        |> JoinOptionsWithSpace
-
     and HandleOrderBy (dialect : ISqlDialect) (orderBy : OrderByExpressionNode option) : string option =
         match orderBy with
         | None -> None
         | Some(o) ->
             o.Clauses
-            |> List.map (HandleOrderByClause dialect)
+            |> List.map (HandleSelectOrderByClause dialect)
             |> JoinWithComma
             |> sprintf "ORDER BY %s"
             |> Option.Some
