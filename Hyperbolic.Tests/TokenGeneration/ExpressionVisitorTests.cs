@@ -143,5 +143,23 @@ namespace Hyperboliq.Domain.Tests
                     })).ToOption();
             Assert.Equal(expected, ev);
         }
+
+        [Fact]
+        public void ItShouldNotGenerateAliasColumnsForColumnsBeingAliasedToItsOrdinaryName()
+        {
+            Expression<Func<Person, object>> func = (Person p) => new { Name = p.Name, Age = p.Age };
+            var tableRefs = new[]
+            {
+                Types.TableReferenceFromType<Person>(),
+            };
+            var ev = ExpressionVisitor.Visit(func, tableRefs.ToContext());
+            var expected =
+                ValueNode.NewValueList(
+                    ListModule.OfArray(new[] {
+                        S.Col<Person>("Name"),
+                        S.Col<Person>("Age"),
+                    })).ToOption();
+            Assert.Equal(expected, ev);
+        }
     }
 }
