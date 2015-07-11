@@ -161,5 +161,39 @@ namespace Hyperboliq.Domain.Tests
                     })).ToOption();
             Assert.Equal(expected, ev);
         }
+
+        [Fact]
+        public void ItCanParseToUpper()
+        {
+            Expression<Func<Person, object>> func = (Person p) => p.Name.ToUpper() == "KALLE";
+            var tableRefs = new[]
+            {
+                Types.TableReferenceFromType<Person>(),
+            };
+            var ev = ExpressionVisitor.Visit(func, tableRefs.ToContext());
+            var expected =
+                S.BinExp(
+                    S.Func(Stream.FunctionType.Upper, new[] { S.Col<Person>("Name") }),
+                    BinaryOperation.Equal,
+                    S.Const("'KALLE'")).ToOption();
+            Assert.Equal(expected, ev);
+        }
+
+        [Fact]
+        public void ItCanParseToLower()
+        {
+            Expression<Func<Person, object>> func = (Person p) => p.Name.ToLower() == "kalle";
+            var tableRefs = new[]
+            {
+                Types.TableReferenceFromType<Person>(),
+            };
+            var ev = ExpressionVisitor.Visit(func, tableRefs.ToContext());
+            var expected =
+                S.BinExp(
+                    S.Func(Stream.FunctionType.Lower, new[] { S.Col<Person>("Name") }),
+                    BinaryOperation.Equal,
+                    S.Const("'kalle'")).ToOption();
+            Assert.Equal(expected, ev);
+        }
     }
 }

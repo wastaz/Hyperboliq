@@ -79,6 +79,7 @@
     <Compile Include="SqlGeneration\SimpleSelectTests.cs" />
     <Compile Include="SqlGeneration\SimpleUpdateTests.cs" />
     <Compile Include="SqlGeneration\SimpleWhereTests.cs" />
+    <Compile Include="SqlGeneration\SqlFunctionsTests.cs" />
     <Compile Include="SqlGeneration\SubExpressionTests.cs" />
     <Compile Include="SqlGeneration\SimpleOrderByTests.cs" />
     <Compile Include="SqlGeneration\ParameterizedQueryTests.cs" />

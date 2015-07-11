@@ -98,6 +98,7 @@ module internal SqlGenUtils =
         | ValueNode.Column(c) -> HandleColumn includeTableRef dialect c
         | ValueNode.NamedColumn(nc) -> HandleNamedColumn subExprHandler includeTableRef dialect nc
         | ValueNode.WindowedColumn(wc) -> HandleWindowedColumn subExprHandler includeTableRef dialect wc
+        | ValueNode.FunctionValue(ft) -> HandleFunctionValue subExprHandler includeTableRef dialect ft
         | ValueNode.Constant(c) -> HandleConstant c
         | ValueNode.Parameter(p) -> HandleParameter p
         | ValueNode.Aggregate(a) -> HandleAggregate subExprHandler includeTableRef dialect a
@@ -118,6 +119,16 @@ module internal SqlGenUtils =
     and HandleNamedColumn (subExprHandler : SubExpressionHandler) (includeTableRef : bool) (dialect : ISqlDialect) (nc : AliasedColumnNode) =
         HandleValueNode subExprHandler includeTableRef dialect nc.Column
         |> (fun s -> sprintf "%s AS %s" s nc.Alias)
+
+    and HandleFunctionValue (subExprHandler : SubExpressionHandler) (includeTableRef : bool) (dialect : ISqlDialect) ((fType, args) : FunctionToken) =
+        let GetFunctionCall funType =
+            match funType with
+            | FunctionType.Upper -> "UPPER"
+            | FunctionType.Lower -> "LOWER"
+        args
+        |> List.map (HandleValueNode subExprHandler includeTableRef dialect)
+        |> JoinWithComma
+        |> sprintf "%s(%s)" (GetFunctionCall fType)
 
     and HandleWindowedColumn (subExprHandler : SubExpressionHandler) (includeTableRef : bool)  (dialect : ISqlDialect) ((aggregateToken, windowToken) : WindowedColumnNode) =
         let HandlePartitionBy dialect partitionNodes =
@@ -210,6 +221,7 @@ module SelectSqlGen =
     and HandleSelectOrderByClause = HandleOrderByClause HandlePlainSelectExpression true
     and HandleSelectWindowedColumn = HandleWindowedColumn HandlePlainSelectExpression true
     and HandleSelectNamedColumn = HandleNamedColumn HandlePlainSelectExpression true
+    and HandleSelectFunctionValue = HandleFunctionValue HandlePlainSelectExpression true
 
     and HandleSelect (dialect : ISqlDialect) (select : SelectExpressionNode) =
         let HandleValue (dialect : ISqlDialect) value =
@@ -218,6 +230,7 @@ module SelectSqlGen =
             | ValueNode.Aggregate(a) -> HandleSelectAggregate dialect a
             | ValueNode.WindowedColumn(wc) -> HandleSelectWindowedColumn dialect wc
             | ValueNode.NamedColumn(nc) -> HandleSelectNamedColumn dialect nc
+            | ValueNode.FunctionValue(ft) -> HandleSelectFunctionValue dialect ft
             | _ -> failwith "Not supported"
 
         select.Values 

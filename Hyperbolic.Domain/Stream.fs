@@ -35,9 +35,13 @@ module Stream =
 
     type AggregateType = Max | Min | Avg | Count | Sum | RowNumber
 
+    type FunctionType = Upper | Lower
+
     type ExpressionCombinatorType = And | Or
 
-    type WindowedColumnNode = AggregateToken * WindowNode
+    type FunctionToken = FunctionType * ValueNode list
+
+    and WindowedColumnNode = AggregateToken * WindowNode
 
     and WindowNode = {
         PartitionBy: ValueNode list
@@ -100,6 +104,7 @@ module Stream =
         | Column of ColumnToken
         | WindowedColumn of WindowedColumnNode
         | NamedColumn of AliasedColumnNode
+        | FunctionValue of FunctionToken
         | Parameter of ParameterToken
         | Aggregate of AggregateToken
         | SubExpression of PlainSelectExpression

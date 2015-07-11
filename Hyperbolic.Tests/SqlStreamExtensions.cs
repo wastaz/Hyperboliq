@@ -11,6 +11,7 @@ using ValueNode = Hyperboliq.Domain.Stream.ValueNode;
 using AggregateType = Hyperboliq.Domain.Stream.AggregateType;
 using AliasedColumnNode = Hyperboliq.Domain.Stream.AliasedColumnNode;
 using Direction = Hyperboliq.Domain.Stream.Direction;
+using FunctionType = Hyperboliq.Domain.Stream.FunctionType;
 using NullsOrdering = Hyperboliq.Domain.Stream.NullsOrdering;
 using JoinType = Hyperboliq.Domain.Stream.JoinType;
 using BinaryOperation = Hyperboliq.Domain.Stream.BinaryOperation;
@@ -143,6 +144,12 @@ namespace Hyperboliq.Tests
         public static ValueNode Null()
         {
             return ValueNode.NullValue;
+        }
+
+        public static ValueNode Func(FunctionType type, params ValueNode[] arguments)
+        {
+            return ValueNode.NewFunctionValue(
+                new Tuple<FunctionType, FSharpList<ValueNode>>(type, ListModule.OfArray(arguments)));
         }
 
         public static InsertStatementHeadToken InsHead<TTableType>(params string[] colNames)
