@@ -98,7 +98,7 @@ module internal SqlGenUtils =
         | ValueNode.Column(c) -> HandleColumn includeTableRef dialect c
         | ValueNode.NamedColumn(nc) -> HandleNamedColumn subExprHandler includeTableRef dialect nc
         | ValueNode.WindowedColumn(wc) -> HandleWindowedColumn subExprHandler includeTableRef dialect wc
-        | ValueNode.FunctionValue(ft) -> HandleFunctionValue subExprHandler includeTableRef dialect ft
+        | ValueNode.FunctionCall(ft) -> HandleFunctionValue subExprHandler includeTableRef dialect ft
         | ValueNode.Constant(c) -> HandleConstant c
         | ValueNode.Parameter(p) -> HandleParameter p
         | ValueNode.Aggregate(a) -> HandleAggregate subExprHandler includeTableRef dialect a
@@ -230,7 +230,7 @@ module SelectSqlGen =
             | ValueNode.Aggregate(a) -> HandleSelectAggregate dialect a
             | ValueNode.WindowedColumn(wc) -> HandleSelectWindowedColumn dialect wc
             | ValueNode.NamedColumn(nc) -> HandleSelectNamedColumn dialect nc
-            | ValueNode.FunctionValue(ft) -> HandleSelectFunctionValue dialect ft
+            | ValueNode.FunctionCall(ft) -> HandleSelectFunctionValue dialect ft
             | _ -> failwith "Not supported"
 
         select.Values 

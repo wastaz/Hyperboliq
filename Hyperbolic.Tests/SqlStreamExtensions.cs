@@ -148,7 +148,7 @@ namespace Hyperboliq.Tests
 
         public static ValueNode Func(FunctionType type, params ValueNode[] arguments)
         {
-            return ValueNode.NewFunctionValue(
+            return ValueNode.NewFunctionCall(
                 new Tuple<FunctionType, FSharpList<ValueNode>>(type, ListModule.OfArray(arguments)));
         }
 

@@ -104,7 +104,7 @@ module Stream =
         | Column of ColumnToken
         | WindowedColumn of WindowedColumnNode
         | NamedColumn of AliasedColumnNode
-        | FunctionValue of FunctionToken
+        | FunctionCall of FunctionToken
         | Parameter of ParameterToken
         | Aggregate of AggregateToken
         | SubExpression of PlainSelectExpression

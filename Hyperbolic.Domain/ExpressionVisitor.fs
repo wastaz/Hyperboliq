@@ -109,9 +109,9 @@ module ExpressionVisitor =
         let VisitStringMethodCall (smc : MethodCallExpression) context =
             match smc.Method.Name with
             | "ToUpper" | "ToUpperInvariant" -> 
-                ValueNode.FunctionValue(FunctionType.Upper, [ VisitMemberAccess (smc.Object :?> MemberExpression) context ])
+                ValueNode.FunctionCall(FunctionType.Upper, [ VisitMemberAccess (smc.Object :?> MemberExpression) context ])
             | "ToLower" | "ToLowerInvariant" ->
-                ValueNode.FunctionValue(FunctionType.Lower, [ VisitMemberAccess (smc.Object :?> MemberExpression) context ])
+                ValueNode.FunctionCall(FunctionType.Lower, [ VisitMemberAccess (smc.Object :?> MemberExpression) context ])
             | _ -> failwith "Not implemented"
 
         match exp with
