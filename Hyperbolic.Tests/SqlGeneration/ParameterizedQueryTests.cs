@@ -15,7 +15,7 @@ namespace Hyperboliq.Tests.SqlGeneration
         {
             var stream =
                 S.SelectNode(
-                    S.Select(S.Col<Person>("*")),
+                    S.Select(S.Star<Person>()),
                     S.From<Person>(),
                     S.Where(S.BinExp(S.Col<Person>("Age"), BinaryOperation.GreaterThan, S.Param("age"))));
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
@@ -28,7 +28,7 @@ namespace Hyperboliq.Tests.SqlGeneration
         {
             var stream =
                 S.SelectNode(
-                    S.Select(S.Col<Person>("*")),
+                    S.Select(S.Star<Person>()),
                     S.From<Person>(),
                     S.Where(                    
                         S.BinExp(

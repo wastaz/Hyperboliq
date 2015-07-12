@@ -9,7 +9,8 @@ module Stream =
 
     type ConstantNode = ConstantNode of string
 
-    type ColumnToken = string * ITableReference
+    type StarColumnToken = StarColumnToken of ITableReference
+    type ColumnToken = string * System.Type * ITableReference
 
     type TableToken = TableToken of ITableReference
 
@@ -35,7 +36,7 @@ module Stream =
 
     type AggregateType = Max | Min | Avg | Count | Sum | RowNumber
 
-    type FunctionType = Upper | Lower
+    type FunctionType = Upper | Lower | Concat
 
     type ExpressionCombinatorType = And | Or
 
@@ -101,6 +102,7 @@ module Stream =
     and ValueNode =
         | NullValue
         | Constant of ConstantNode
+        | StarColumn of StarColumnToken
         | Column of ColumnToken
         | WindowedColumn of WindowedColumnNode
         | NamedColumn of AliasedColumnNode

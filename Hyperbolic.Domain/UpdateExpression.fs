@@ -41,7 +41,7 @@ module UpdateExpressionPart =
 
     let private ColumnsByName tbl colSelector =
         ToColumnTokens tbl colSelector
-        |> List.sortByDescending (fun (name, _) -> name)
+        |> List.sortByDescending (fun (name, _, _) -> name)
 
     let private PropertiesByName v =
         v.GetType().GetProperties()

@@ -39,7 +39,7 @@ module ExpressionParts =
         { select with IsDistinct = true }
 
     let SelectAllColumns select (table : ITableIdentifier) =
-        { select with SelectExpressionNode.Values = ValueNode.Column("*", table.Reference) :: select.Values }
+        { select with SelectExpressionNode.Values = ValueNode.StarColumn(StarColumnToken(table.Reference)) :: select.Values }
 
     let SelectColumns select expr (table : ITableIdentifier) =
         let stream = ExpressionVisitor.Visit expr [ table.Reference ]

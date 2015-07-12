@@ -21,7 +21,7 @@ namespace Hyperboliq.Tests
 
             var expected =
                 S.SelectNode(
-                    S.Select(S.Col<Person>("*")),
+                    S.Select(S.Star<Person>()),
                     S.From<Person>(),
                     S.Where(
                         S.BinExp(
@@ -46,7 +46,7 @@ namespace Hyperboliq.Tests
 
             var expected =
                 S.SelectNode(
-                    S.Select(S.Col<Person>("*")),
+                    S.Select(S.Star<Person>()),
                     S.From<Person>(),
                     S.Where(
                         S.BinExp(

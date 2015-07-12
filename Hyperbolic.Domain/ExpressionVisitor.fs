@@ -43,7 +43,7 @@ module ExpressionVisitor =
 
     let (|ParameterExpression|_|) (m : MemberExpression) = 
         match m.Expression with
-        | :? ParameterExpression as pexp -> Some (m.Member.Name, pexp)
+        | :? ParameterExpression as pexp -> Some (m.Member.Name, m.Type, pexp)
         | _ -> None
 
     let VisitSqlParameter mbrName (exp : ConstantExpression) : ValueNode =
@@ -56,9 +56,9 @@ module ExpressionVisitor =
     let VisitMemberAccess (exp : MemberExpression) (context : EvaluationContext) : ValueNode =
         match exp with
         | SqlParameterExpression (mbrName, expr) ->  VisitSqlParameter mbrName expr 
-        | ParameterExpression (mbrName, expr) -> 
+        | ParameterExpression (mbrName, mbrType, expr) -> 
             let binding = FindBinding context expr.Name
-            ValueNode.Column(mbrName, TableRef binding)
+            ValueNode.Column(mbrName, mbrType, TableRef binding)
         | _ -> failwith "Not implemented"
 
     let VisitConstant (exp : ConstantExpression) : ValueNode =
@@ -133,16 +133,20 @@ module ExpressionVisitor =
         
 
     and VisitBinary (exp : BinaryExpression) (context : EvaluationContext) : ValueNode = 
-        let op = ToBinaryOperation exp.NodeType
         let lhs = InternalVisit exp.Left context 
         let rhs = InternalVisit exp.Right context 
-        ValueNode.BinaryExpression({ Lhs = lhs; Operation = op; Rhs = rhs })
+        let op = ToBinaryOperation exp.NodeType
+        match op, lhs, rhs with
+        | BinaryOperation.Add, ValueNode.Column(_, t1, _), ValueNode.Column(_, t2, _) when t1 = typeof<System.String> && t2 = typeof<System.String> ->
+            ValueNode.FunctionCall(FunctionType.Concat, [ lhs; rhs ])
+        | _ ->
+            ValueNode.BinaryExpression({ Lhs = lhs; Operation = op; Rhs = rhs })
 
     and VisitNew (exp : NewExpression) (context : EvaluationContext) : ValueNode =
         let VisitColumnReference (mbr : System.Reflection.MemberInfo) (arg : Expression) (context : EvaluationContext) : ValueNode =
             let value = InternalVisit arg context
             match value with
-            | ValueNode.Column(c, _) when c <> mbr.Name ->
+            | ValueNode.Column(c, _, _) when c <> mbr.Name ->
                 ValueNode.NamedColumn({ Alias = mbr.Name; Column = value })
             | ValueNode.Aggregate(_) 
             | ValueNode.WindowedColumn(_) -> 
@@ -158,7 +162,7 @@ module ExpressionVisitor =
             | :? ExpressionParameter as param -> ValueNode.Parameter(ParameterToken(param.Name))
             | _ -> 
                 let binding = FindBinding context (getter.ToString())
-                ValueNode.Column(ParamName binding, TableRef binding)
+                ValueNode.Column(ParamName binding, result.GetType(), TableRef binding)
         with
             | :? System.Collections.Generic.KeyNotFoundException 
             | :? System.InvalidOperationException -> 

@@ -23,7 +23,7 @@ namespace Hyperboliq.Tests
 
             var expected =
                 S.SelectNode(
-                    S.Select(S.Col<Person>("*")),
+                    S.Select(S.Star<Person>()),
                     S.From<Person>(),
                     orderBy: S.OrderBy(
                         S.OrderClause(S.Col<Person>("Age"), Direction.Ascending, NullsOrdering.NullsFirst))
@@ -42,7 +42,7 @@ namespace Hyperboliq.Tests
 
             var expected =
                 S.SelectNode(
-                    S.Select(S.Col<Person>("*")),
+                    S.Select(S.Star<Person>()),
                     S.From<Person>(),
                     orderBy: S.OrderBy(
                         S.OrderClause(S.Col<Person>("Age"), Direction.Ascending, NullsOrdering.NullsLast))
@@ -62,7 +62,7 @@ namespace Hyperboliq.Tests
 
             var expected =
                 S.SelectNode(
-                    S.Select(S.Col<Person>("*")),
+                    S.Select(S.Star<Person>()),
                     S.From<Person>(),
                     orderBy: S.OrderBy(
                         S.OrderClause(S.Col<Person>("Name"), Direction.Descending, NullsOrdering.NullsFirst),

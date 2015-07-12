@@ -47,5 +47,30 @@ namespace Hyperboliq.Tests.SqlGeneration
             string expected = "SELECT LOWER(PersonRef.Name) FROM Person PersonRef WHERE LOWER(PersonRef.Name) = 'kalle'";
             Assert.Equal(expected, result);
         }
+
+        [Fact]
+        public void ItCanGenerateSqlForAConcatFunctionCall()
+        {
+            var stream =
+                S.SelectNode(
+                    S.Select(S.Func(Stream.FunctionType.Concat, new[] { S.Col<Person>("Name"), S.Col<Car>("Brand"), })),
+                    S.From<Person>(
+                        S.Join<Person, Car>(
+                            Stream.JoinType.InnerJoin, 
+                            S.BinExp(S.Col<Person>("Id"), BinaryOperation.Equal, S.Col<Car>("DriverId")))),
+                    S.Where(
+                        S.BinExp(
+                            S.Func(Stream.FunctionType.Concat, new[] { S.Col<Person>("Name"), S.Col<Car>("Brand"), }),
+                            BinaryOperation.Equal,
+                            S.Const("'kallesaab'"))));
+            var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
+
+            string expected =
+                "SELECT CONCAT(PersonRef.Name, CarRef.Brand) " +
+                "FROM Person PersonRef " +
+                "INNER JOIN Car CarRef ON PersonRef.Id = CarRef.DriverId " +
+                "WHERE CONCAT(PersonRef.Name, CarRef.Brand) = 'kallesaab'";
+            Assert.Equal(expected, result);
+        }
     }
 }

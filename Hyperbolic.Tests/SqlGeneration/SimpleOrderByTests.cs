@@ -17,7 +17,7 @@ namespace Hyperboliq.Tests.SqlGeneration
         {
             var stream =
                 S.SelectNode(
-                    S.Select(S.Col<Person>("*")),
+                    S.Select(S.Star<Person>()),
                     S.From<Person>(),
                     orderBy: S.OrderBy(
                         S.OrderClause(S.Col<Person>("Age"), Direction.Ascending))
@@ -31,7 +31,7 @@ namespace Hyperboliq.Tests.SqlGeneration
         {
             var stream =
                 S.SelectNode(
-                    S.Select(S.Col<Person>("*")),
+                    S.Select(S.Star<Person>()),
                     S.From<Person>(),
                     orderBy: S.OrderBy(S.OrderClause(S.Col<Person>("Age"), Direction.Descending)));
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
@@ -43,7 +43,7 @@ namespace Hyperboliq.Tests.SqlGeneration
         {
             var stream =
                 S.SelectNode(
-                    S.Select(S.Col<Person>("*"), S.Col<Car>("*")),
+                    S.Select(S.Star<Person>(), S.Star<Car>()),
                     S.From<Person>(
                         S.Join<Person, Car>(JoinType.InnerJoin, S.BinExp(S.Col<Person>("Id"), BinaryOperation.Equal, S.Col<Car>("DriverId")))),
                     orderBy: 

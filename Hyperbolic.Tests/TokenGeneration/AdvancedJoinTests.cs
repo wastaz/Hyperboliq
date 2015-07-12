@@ -41,7 +41,7 @@ namespace Hyperboliq.Tests
 
             var expected =
                 S.SelectNode(
-                    S.Select(S.Col<Car>("*")),
+                    S.Select(S.Star<Car>()),
                     S.From<House>(
                         S.Join<House, Person, Car>(
                             JoinType.InnerJoin, 

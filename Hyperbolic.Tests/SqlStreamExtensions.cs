@@ -59,31 +59,44 @@ namespace Hyperboliq.Tests
 
     public static class SqlStreamExtensions
     {
+        private static Type FigureOutTypeFor(string name, ITableReference tref)
+        {
+            return tref.Table.GetProperties().First(p => p.Name == name).PropertyType;
+        }
+
         public static ValueNode Col<TTableType>(string columnDef)
         {
-            return ValueNode.NewColumn(new Tuple<string, ITableReference>(columnDef, Types.TableReferenceFromType<TTableType>()));
+            var tref = Types.TableReferenceFromType<TTableType>();
+            return ValueNode.NewColumn(new Tuple<string, Type, ITableReference>(columnDef, FigureOutTypeFor(columnDef, tref), tref));
         }
 
         public static ValueNode Col<TTable>(ITableIdentifier<TTable> r, string columnDef)
         {
-            return ValueNode.NewColumn(new Tuple<string, ITableReference>(columnDef, r.Reference));
+            return ValueNode.NewColumn(new Tuple<string, Type, ITableReference>(columnDef, FigureOutTypeFor(columnDef, r.Reference), r.Reference));
         }
 
         public static ValueNode Col<TTable>(TableReferenceCreator<TTable> c, string colDef)
         {
-            return ValueNode.NewColumn(new Tuple<string, ITableReference>(colDef, c.ToTableReference().Reference));
+            var tref = c.ToTableReference().Reference;
+            return ValueNode.NewColumn(new Tuple<string, Type, ITableReference>(colDef, FigureOutTypeFor(colDef, tref), tref));
         }
 
         public static ValueNode Col(ITableReference r, string colDef)
         {
-            return ValueNode.NewColumn(new Tuple<string, ITableReference>(colDef, r));
+            return ValueNode.NewColumn(new Tuple<string, Type, ITableReference>(colDef, FigureOutTypeFor(colDef, r), r));
+        }
+
+        public static ValueNode Star<TTable>()
+        {
+            return ValueNode.NewStarColumn(Stream.StarColumnToken.NewStarColumnToken(Types.TableReferenceFromType<TTable>()));
         }
 
         public static ValueNode AliasedCol<TTable>(string colDef, string alias) {
+            var tref = Types.TableReferenceFromType<TTable>();
             return ValueNode.NewNamedColumn(
                 new AliasedColumnNode(
                     ValueNode.NewColumn(
-                        new Tuple<string, ITableReference>(colDef, Types.TableReferenceFromType<TTable>())), 
+                        new Tuple<string, Type, ITableReference>(colDef, FigureOutTypeFor(colDef, tref), tref)), 
                     alias));
         }
 
@@ -158,12 +171,16 @@ namespace Hyperboliq.Tests
                 new InsertStatementHeadToken(
                     Types.TableReferenceFromType<TTableType>(),
                     ListModule.OfSeq(
-                        colNames.Select(n => new Tuple<string, ITableReference>(n, Types.TableReferenceFromType<TTableType>()))));
+                        colNames.Select(n => {
+                            var tref = Types.TableReferenceFromType<TTableType>();
+                            return new Tuple<string, Type, ITableReference>(n, FigureOutTypeFor(n, tref), tref); 
+                        })));
         }
 
         private static UpdateSetToken CreateUpdateSetToken<TTableType>(string colDef, ValueNode stream)
         {
-            return new UpdateSetToken(new Tuple<string, ITableReference>(colDef, Types.TableReferenceFromType<TTableType>()), stream);
+            var tref = Types.TableReferenceFromType<TTableType>();
+            return new UpdateSetToken(new Tuple<string, Type, ITableReference>(colDef, FigureOutTypeFor(colDef, tref), tref), stream);
         }
 
         public static UpdateSetToken Ust<TTableType>(string colDef, object c)
@@ -201,7 +218,8 @@ namespace Hyperboliq.Tests
 
         public static InsertValueNode InsCol<TTableType>(string columnDef)
         {
-            return InsertValueNode.NewColumn(new Tuple<string, ITableReference>(columnDef, Types.TableReferenceFromType<TTableType>()));
+            var tref = Types.TableReferenceFromType<TTableType>();
+            return InsertValueNode.NewColumn(new Tuple<string, Type, ITableReference>(columnDef, FigureOutTypeFor(columnDef, tref), tref));
         }
 
         public static ValueNode SubExp(

@@ -195,5 +195,23 @@ namespace Hyperboliq.Domain.Tests
                     S.Const("'kalle'")).ToOption();
             Assert.Equal(expected, ev);
         }
+
+        [Fact]
+        public void ItParsesStringAdditionAsConcat()
+        {
+            Expression<Func<Person, Car, object>> func = (Person p, Car c) => (p.Name + c.Brand) == "KalleSaab";
+            var tableRefs = new []
+            {
+                (ITableReference)Types.TableReferenceFromType<Person>(),
+                (ITableReference)Types.TableReferenceFromType<Car>(),
+            };
+            var ev = ExpressionVisitor.Visit(func, tableRefs.ToContext());
+            var expected =
+                S.BinExp(
+                    S.Func(Stream.FunctionType.Concat, new[] { S.Col<Person>("Name"), S.Col<Car>("Brand"), }),
+                    BinaryOperation.Equal,
+                    S.Const("'KalleSaab'")).ToOption();
+            Assert.Equal(expected, ev);
+        }
     }
 }

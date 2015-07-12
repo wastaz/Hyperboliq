@@ -80,22 +80,23 @@ module internal SqlGenUtils =
 
     let HandleParameter (ParameterToken(name) : ParameterToken) = sprintf "@%s" name
 
-    let HandleColumn (includeTableRef : bool) (dialect : ISqlDialect) ((col, tbl) : ColumnToken) =
-        let cname =
-            match col with
-            | "*" -> col
-            | _ -> dialect.QuoteColumnName col
+    let HandleColumn (includeTableRef : bool) (dialect : ISqlDialect) ((col, colType, tbl) : ColumnToken) =
+        let cname = dialect.QuoteColumnName col
         if includeTableRef then
             sprintf "%s.%s" (HandleTableRef tbl) cname
         else
             cname
 
+    let HandleStarColumn (includeTableRef : bool) (StarColumnToken(col) : StarColumnToken) = 
+        if includeTableRef then col.ReferenceName + ".*" else "*"
+        
     type SubExpressionHandler = ISqlDialect -> PlainSelectExpression -> string
 
     let rec HandleValueNode (subExprHandler : SubExpressionHandler) (includeTableRef : bool) (dialect : ISqlDialect) (vn : ValueNode) =
         match vn with
         | ValueNode.NullValue -> HandleNullValue ()
         | ValueNode.Column(c) -> HandleColumn includeTableRef dialect c
+        | ValueNode.StarColumn(sc) -> HandleStarColumn includeTableRef sc
         | ValueNode.NamedColumn(nc) -> HandleNamedColumn subExprHandler includeTableRef dialect nc
         | ValueNode.WindowedColumn(wc) -> HandleWindowedColumn subExprHandler includeTableRef dialect wc
         | ValueNode.FunctionCall(ft) -> HandleFunctionValue subExprHandler includeTableRef dialect ft
@@ -125,6 +126,7 @@ module internal SqlGenUtils =
             match funType with
             | FunctionType.Upper -> "UPPER"
             | FunctionType.Lower -> "LOWER"
+            | FunctionType.Concat -> "CONCAT"
         args
         |> List.map (HandleValueNode subExprHandler includeTableRef dialect)
         |> JoinWithComma
@@ -227,6 +229,7 @@ module SelectSqlGen =
         let HandleValue (dialect : ISqlDialect) value =
             match value with
             | ValueNode.Column(c) -> HandleSelectColumn dialect c
+            | ValueNode.StarColumn(sc) -> HandleStarColumn true sc
             | ValueNode.Aggregate(a) -> HandleSelectAggregate dialect a
             | ValueNode.WindowedColumn(wc) -> HandleSelectWindowedColumn dialect wc
             | ValueNode.NamedColumn(nc) -> HandleSelectNamedColumn dialect nc

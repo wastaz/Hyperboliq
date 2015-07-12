@@ -19,7 +19,7 @@ namespace Hyperboliq.Tests
 
             var expected =
                 S.SelectNode(
-                    S.Select(S.Col<Person>("*")),
+                    S.Select(S.Star<Person>()),
                     S.From<Person>(),
                     S.Where(S.BinExp(S.Col<Person>("Age"), BinaryOperation.GreaterThan, S.Const(42))));
 
@@ -36,7 +36,7 @@ namespace Hyperboliq.Tests
 
             var expected =
                 S.SelectNode(
-                    S.Select(S.Col<Person>("*")),
+                    S.Select(S.Star<Person>()),
                     S.From<Person>(),
                     S.Where(
                         S.BinExp(
@@ -63,7 +63,7 @@ namespace Hyperboliq.Tests
 
             var expected =
                 S.SelectNode(
-                     S.Select(S.Col<Person>("*")),
+                     S.Select(S.Star<Person>()),
                     S.From<Person>(),
                     S.Where(
                         S.BinExp(S.Col<Person>("Age"), BinaryOperation.LessThan, S.Const(42)),
@@ -87,7 +87,7 @@ namespace Hyperboliq.Tests
 
             var expected =
                 S.SelectNode(
-                    S.Select(S.Col<Car>("*"), S.Col<Person>("*")),
+                    S.Select(S.Star<Car>(), S.Star<Person>()),
                     S.From<Person>(
                         S.Join<Person, Car>(JoinType.InnerJoin, S.BinExp(S.Col<Person>("Id"), BinaryOperation.Equal, S.Col<Car>("DriverId")))),
                     S.Where(
@@ -108,7 +108,7 @@ namespace Hyperboliq.Tests
 
             var expected =
                 S.SelectNode(
-                    S.Select(S.Col<Car>("*"), S.Col<Person>("*")),
+                    S.Select(S.Star<Car>(), S.Star<Person>()),
                     S.From<Person>(
                         S.Join<Person, Car>(JoinType.InnerJoin, S.BinExp(S.Col<Person>("Id"), BinaryOperation.Equal, S.Col<Car>("DriverId")))),
                     S.Where(S.BinExp(S.Col<Person>("Age"), BinaryOperation.GreaterThan, S.Col<Car>("DriverId"))));
@@ -128,7 +128,7 @@ namespace Hyperboliq.Tests
 
             var expected =
                 S.SelectNode(
-                    S.Select(S.Col<Car>("*"), S.Col<Person>("*")),
+                    S.Select(S.Star<Car>(), S.Star<Person>()),
                     S.From<Person>(
                         S.Join<Person, Car>(JoinType.InnerJoin, S.BinExp(S.Col<Person>("Id"), BinaryOperation.Equal, S.Col<Car>("DriverId")))),
                     S.Where(

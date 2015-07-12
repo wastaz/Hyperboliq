@@ -17,7 +17,7 @@ namespace Hyperboliq.Tests.SqlGeneration
         {
             return
                 S.SelectNode(
-                    S.Select(S.Col<Person>("*"), S.Col<Car>("*")),
+                    S.Select(S.Star<Person>(), S.Star<Car>()),
                     S.From<Person>(
                         S.Join<Person, Car>(joinKeyword, S.BinExp(S.Col<Person>("Id"), BinaryOperation.Equal, S.Col<Car>("DriverId")))
                         ));
@@ -60,7 +60,7 @@ namespace Hyperboliq.Tests.SqlGeneration
         {
             var stream =
                S.SelectNode(
-                   S.Select(S.Col<Person>("*"), S.Col<Car>("*"), S.Col<House>("*")),
+                   S.Select(S.Star<Person>(), S.Star<Car>(), S.Star<House>()),
                    S.From<House>(
                        S.Join<House, Person>(JoinType.InnerJoin, S.BinExp(S.Col<House>("Id"), BinaryOperation.Equal, S.Col<Person>("LivesAtHouseId"))),
                        S.Join<Person, Car>(JoinType.LeftJoin, S.BinExp(S.Col<Person>("Id"), BinaryOperation.Equal, S.Col<Car>("DriverId")))));

@@ -17,7 +17,7 @@ namespace Hyperboliq.Tests
             var result = expr.ToSqlExpression();
             var expected =
                 S.SelectNode(
-                    S.Select(S.Col<Person>("*")),
+                    S.Select(S.Star<Person>()),
                     S.From<Person>(),
                     S.Where(S.BinExp(S.Col<Person>("Age"), BinaryOperation.LessThan, S.Param("age")))
                     );
@@ -36,7 +36,7 @@ namespace Hyperboliq.Tests
 
             var expected =
                 S.SelectNode(
-                    S.Select(S.Col<Person>("*")),
+                    S.Select(S.Star<Person>()),
                     S.From<Person>(),
                     S.Where(S.BinExp(S.Col<Person>("Age"), BinaryOperation.GreaterThan, S.Param("age"))));
 
@@ -55,7 +55,7 @@ namespace Hyperboliq.Tests
 
             var expected =
                 S.SelectNode(
-                    S.Select(S.Col<Person>("*")),
+                    S.Select(S.Star<Person>()),
                     S.From<Person>(),
                     S.Where(
                         S.BinExp(

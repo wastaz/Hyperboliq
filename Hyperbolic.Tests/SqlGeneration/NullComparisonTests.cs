@@ -15,7 +15,7 @@ namespace Hyperboliq.Tests.SqlGeneration
         {
             var stream =
                 S.SelectNode(
-                    S.Select(S.Col<Person>("*")),
+                    S.Select(S.Star<Person>()),
                     S.From<Person>(),
                     S.Where(
                         S.BinExp(S.Col<Person>("Age"), BinaryOperation.Equal, S.Null())));
@@ -29,7 +29,7 @@ namespace Hyperboliq.Tests.SqlGeneration
         {
             var stream =
                 S.SelectNode(
-                    S.Select(S.Col<Person>("*")),
+                    S.Select(S.Star<Person>()),
                     S.From<Person>(),
                     S.Where(
                         S.BinExp(S.Col<Person>("Age"), BinaryOperation.NotEqual, S.Null())));
@@ -43,7 +43,7 @@ namespace Hyperboliq.Tests.SqlGeneration
         {
             var stream =
                 S.SelectNode(
-                    S.Select(S.Col<Person>("*")),
+                    S.Select(S.Star<Person>()),
                     S.From<Person>(),
                     S.Where(
                         S.BinExp(S.Null(), BinaryOperation.Equal, S.Col<Person>("Age"))));
@@ -57,7 +57,7 @@ namespace Hyperboliq.Tests.SqlGeneration
         {
             var stream =
                 S.SelectNode(
-                    S.Select(S.Col<Person>("*")),
+                    S.Select(S.Star<Person>()),
                     S.From<Person>(),
                     S.Where(
                         S.BinExp(S.Null(), BinaryOperation.NotEqual, S.Col<Person>("Age"))));

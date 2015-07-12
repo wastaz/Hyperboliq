@@ -19,7 +19,7 @@ namespace Hyperboliq.Tests
 
             var expected =
                 S.SelectNode(
-                    S.Select(S.Col<Person>("*")),
+                    S.Select(S.Star<Person>()),
                     S.From<Person>());
 
             Assert.Equal(expected, result);
@@ -34,7 +34,7 @@ namespace Hyperboliq.Tests
 
             var expected =
                 S.SelectNode(
-                    S.SelectDistinct(S.Col<Person>("*")),
+                    S.SelectDistinct(S.Star<Person>()),
                     S.From<Person>());
 
             Assert.Equal(expected, result);

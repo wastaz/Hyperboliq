@@ -12,7 +12,7 @@ module InsertExpressionPart =
         |> List.map f
 
     let FilterPropertiesByColumns intoExpr value =
-        let colNames = intoExpr.Columns |> List.map fst |> Set.ofList
+        let colNames = intoExpr.Columns |> List.map (fun (a, _, _) -> a ) |> Set.ofList
         value.GetType().GetProperties()
         |> Array.filter (fun p -> Set.contains p.Name colNames)
         |> List.ofArray
@@ -29,7 +29,7 @@ module InsertExpressionPart =
 
         let idxMap =
             intoExpr.Columns
-            |> List.mapi (fun i (col, _) -> (col, i))
+            |> List.mapi (fun i (col, _, _) -> (col, i))
             |> Map.ofList
         
         ApplyOnProperties (FilterPropertiesByColumns intoExpr value) (FindIndex idxMap) (PropertyToConstant value)
@@ -50,5 +50,5 @@ module InsertExpressionPart =
         | _ -> insertExpr
 
     let AddAllColumns (insertExpr : InsertStatementHeadToken) =
-        ApplyOnProperties (List.ofArray (insertExpr.Table.Table.GetProperties())) PropertySortByName (fun p -> (p.Name, insertExpr.Table))
+        ApplyOnProperties (List.ofArray (insertExpr.Table.Table.GetProperties())) PropertySortByName (fun p -> (p.Name, p.PropertyType, insertExpr.Table))
         |> fun cols -> { insertExpr with InsertStatementHeadToken.Columns = cols }

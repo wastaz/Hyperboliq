@@ -14,7 +14,7 @@ namespace Hyperboliq.Tests
         private SqlExpression GetExpectedStream(JoinType joinKeyword)
         {
             return S.SelectNode(
-                S.Select(S.Col<Car>("*"), S.Col<Person>("*")),
+                S.Select(S.Star<Car>(), S.Star<Person>()),
                 S.From<Person>(
                     S.Join<Person, Car>(joinKeyword, S.BinExp(S.Col<Person>("Id"), BinaryOperation.Equal, S.Col<Car>("DriverId")))));
         }
@@ -83,7 +83,7 @@ namespace Hyperboliq.Tests
 
             var expected =
                 S.SelectNode(
-                    S.Select(S.Col<House>("*"), S.Col<Car>("*"), S.Col<Person>("*")),
+                    S.Select(S.Star<House>(), S.Star<Car>(), S.Star<Person>()),
                     S.From<House>(
                         S.Join<Person, Car>(JoinType.LeftJoin, S.BinExp(S.Col<Person>("Id"), BinaryOperation.Equal, S.Col<Car>("DriverId"))),
                         S.Join<House, Person>(JoinType.InnerJoin, S.BinExp(S.Col<House>("Id"), BinaryOperation.Equal, S.Col<Person>("LivesAtHouseId")))));
