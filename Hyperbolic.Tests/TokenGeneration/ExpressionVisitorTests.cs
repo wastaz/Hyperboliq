@@ -9,7 +9,9 @@ using Hyperboliq.Tests;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
 using BinaryOperation = Hyperboliq.Domain.Stream.BinaryOperation;
 using ValueNode = Hyperboliq.Domain.Stream.ValueNode;
-
+using System.Collections.Generic;
+using Xunit.Extensions;
+using System.Collections;
 
 namespace Hyperboliq.Domain.Tests
 {
@@ -209,6 +211,39 @@ namespace Hyperboliq.Domain.Tests
             var expected =
                 S.BinExp(
                     S.Func(Stream.FunctionType.Concat, new[] { S.Col<Person>("Name"), S.Col<Car>("Brand"), }),
+                    BinaryOperation.Equal,
+                    S.Const("'KalleSaab'")).ToOption();
+            Assert.Equal(expected, ev);
+        }
+
+        public static IEnumerable ConcatTestData
+        {
+            get
+            {
+                yield return new object[] {
+                    (Expression<Func<Person, Car, object>>)((Person p, Car c) => (p.Name + c.Brand + p.Name + c.Brand) == "KalleSaab")
+                };
+                yield return new object[] {
+                    (Expression<Func<Person, Car, object>>)((Person p, Car c) => (p.Name + c.Brand + (p.Name + c.Brand)) == "KalleSaab")
+                };
+                yield return new object[] {
+                    (Expression<Func<Person, Car, object>>)((Person p, Car c) => (p.Name + (c.Brand + p.Name + c.Brand)) == "KalleSaab")
+                };
+            }
+        }
+
+        [Theory, MemberData("ConcatTestData")]
+        public void ItParsesSeveralStringAdditionsIntoASingleConcat(Expression<Func<Person, Car, object>> testcase)
+        {
+            var tableRefs = new[]
+            {
+                (ITableReference)Types.TableReferenceFromType<Person>(),
+                (ITableReference)Types.TableReferenceFromType<Car>(),
+            };
+            var ev = ExpressionVisitor.Visit(testcase, tableRefs.ToContext());
+            var expected =
+                S.BinExp(
+                    S.Func(Stream.FunctionType.Concat, new[] { S.Col<Person>("Name"), S.Col<Car>("Brand"), S.Col<Person>("Name"), S.Col<Car>("Brand"), }),
                     BinaryOperation.Equal,
                     S.Const("'KalleSaab'")).ToOption();
             Assert.Equal(expected, ev);

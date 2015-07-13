@@ -46,6 +46,21 @@ module ExpressionVisitor =
         | :? ParameterExpression as pexp -> Some (m.Member.Name, m.Type, pexp)
         | _ -> None
 
+    let (|StringConcatenation|_|) (op : BinaryOperation, lhs : ValueNode, rhs : ValueNode) =
+        match op with
+        | Add -> 
+            match lhs, rhs with 
+            | ValueNode.Column(_, t1, _), ValueNode.Column(_, t2, _) when t1 = typeof<System.String> && t2 = typeof<System.String> ->
+                Some([ lhs; rhs ])
+            | ValueNode.FunctionCall(FunctionType.Concat, args), ValueNode.Column(_, t, _) when t = typeof<System.String> ->
+                Some(args @ [ rhs ])
+            | ValueNode.FunctionCall(FunctionType.Concat, args1), ValueNode.FunctionCall(FunctionType.Concat, args2) ->
+                Some(args1 @ args2)
+            | ValueNode.Column(_, t, _), ValueNode.FunctionCall(FunctionType.Concat, args) when t = typeof<System.String> ->
+                Some(lhs :: args)
+            | _ -> None
+        | _ -> None
+
     let VisitSqlParameter mbrName (exp : ConstantExpression) : ValueNode =
         let flags = System.Reflection.BindingFlags.Instance ||| System.Reflection.BindingFlags.Public ||| System.Reflection.BindingFlags.NonPublic
         let fieldInfo = exp.Value.GetType().GetField(mbrName, flags)
@@ -137,10 +152,8 @@ module ExpressionVisitor =
         let rhs = InternalVisit exp.Right context 
         let op = ToBinaryOperation exp.NodeType
         match op, lhs, rhs with
-        | BinaryOperation.Add, ValueNode.Column(_, t1, _), ValueNode.Column(_, t2, _) when t1 = typeof<System.String> && t2 = typeof<System.String> ->
-            ValueNode.FunctionCall(FunctionType.Concat, [ lhs; rhs ])
-        | _ ->
-            ValueNode.BinaryExpression({ Lhs = lhs; Operation = op; Rhs = rhs })
+        | StringConcatenation args -> ValueNode.FunctionCall(FunctionType.Concat, args)
+        | _ -> ValueNode.BinaryExpression({ Lhs = lhs; Operation = op; Rhs = rhs })
 
     and VisitNew (exp : NewExpression) (context : EvaluationContext) : ValueNode =
         let VisitColumnReference (mbr : System.Reflection.MemberInfo) (arg : Expression) (context : EvaluationContext) : ValueNode =

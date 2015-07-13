@@ -53,7 +53,7 @@ namespace Hyperboliq.Tests.SqlGeneration
         {
             var stream =
                 S.SelectNode(
-                    S.Select(S.Func(Stream.FunctionType.Concat, new[] { S.Col<Person>("Name"), S.Col<Car>("Brand"), })),
+                    S.Select(S.Func(Stream.FunctionType.Concat, new[] { S.Col<Person>("Name"), S.Col<Car>("Brand"), S.Col<Person>("Name") })),
                     S.From<Person>(
                         S.Join<Person, Car>(
                             Stream.JoinType.InnerJoin, 
@@ -66,7 +66,7 @@ namespace Hyperboliq.Tests.SqlGeneration
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
 
             string expected =
-                "SELECT CONCAT(PersonRef.Name, CarRef.Brand) " +
+                "SELECT CONCAT(PersonRef.Name, CarRef.Brand, PersonRef.Name) " +
                 "FROM Person PersonRef " +
                 "INNER JOIN Car CarRef ON PersonRef.Id = CarRef.DriverId " +
                 "WHERE CONCAT(PersonRef.Name, CarRef.Brand) = 'kallesaab'";
