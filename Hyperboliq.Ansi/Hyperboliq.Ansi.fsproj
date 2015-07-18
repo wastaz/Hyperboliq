@@ -48,6 +48,7 @@
     <Compile Include="AnsiDialect.fs" />
     <Compile Include="PartitionApi.fs" />
     <Compile Include="SelectApi.fs" />
+    <Compile Include="SetOperationApi.fs" />
     <Compile Include="DeleteApi.fs" />
     <Compile Include="InsertApi.fs" />
     <Compile Include="UpdateApi.fs" />

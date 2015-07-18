@@ -51,6 +51,13 @@ module internal SqlGenUtils =
         | ExpressionCombinatorType.And -> "AND"
         | ExpressionCombinatorType.Or -> "OR"
     
+    let TranslateSetOperation op =
+        match op with
+        | SetOperationType.Union -> "UNION"
+        | SetOperationType.UnionAll -> "UNION ALL"
+        | SetOperationType.Intersect -> "INTERSECT"
+        | SetOperationType.Minus -> "MINUS"
+
     let Join sep (l : System.String seq) =
         System.String.Join(sep, l)
 
@@ -317,6 +324,12 @@ module SelectSqlGen =
         ]
         |> JoinOptionsWithSpace
 
+    and HandleSetExpression dialect (exp : SetSelectExpression) =
+        let joinToken = TranslateSetOperation exp.Operation |> sprintf " %s "
+        exp.Operands
+        |> List.map (HandlePlainSelectExpression dialect)
+        |> Join joinToken 
+
     and HandleCommonTableExpression dialect (cte : CommonTableExpression) =
         let HandleDefinition dialect (definition : ICommonTableDefinition) = 
             let query = HandlePlainSelectExpression dialect definition.Query
@@ -339,6 +352,8 @@ module SelectSqlGen =
                 HandlePlainSelectExpression dialect selectPart
             ] 
             |> JoinWithSpace
+        | Set(exp) ->
+            HandleSetExpression dialect exp
 
 module UpdateSqlGen =
     open Stream

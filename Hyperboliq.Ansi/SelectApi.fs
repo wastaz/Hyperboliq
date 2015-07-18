@@ -13,6 +13,10 @@ open Hyperboliq.Domain.SqlGen
 type FluentSelectBase(expr : PlainSelectExpression) =
     member x.Expression with internal get() = expr
 
+    member x.ToPlainSelectExpression () = (x :> IPlainSelectExpressionTransformable).ToPlainSelectExpression ()
+    interface IPlainSelectExpressionTransformable with
+        member x.ToPlainSelectExpression () = x.Expression
+
     member x.ToSelectExpression () = (x :> ISelectExpressionTransformable).ToSelectExpression ()
     interface ISelectExpressionTransformable with
         member x.ToSelectExpression () = Plain(x.Expression)

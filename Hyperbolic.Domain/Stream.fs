@@ -38,6 +38,8 @@ module Stream =
 
     type FunctionType = Upper | Lower | Concat
 
+    type SetOperationType = Union | UnionAll | Intersect | Minus
+
     type ExpressionCombinatorType = And | Or
 
     type FunctionToken = FunctionType * ValueNode list
@@ -144,11 +146,18 @@ module Stream =
             GroupBy : GroupByExpressionNode option
             OrderBy : OrderByExpressionNode option
         }
+
     and CommonTableValuedSelectExpression = CommonTableExpression * PlainSelectExpression
+    
+    and SetSelectExpression = {
+        Operation : SetOperationType
+        Operands : PlainSelectExpression list
+    }
 
     and SelectExpression =
         | Plain of PlainSelectExpression
         | Complex of CommonTableValuedSelectExpression
+        | Set of SetSelectExpression
 
     and ICommonTableDefinition =
         abstract Query : PlainSelectExpression with get
@@ -192,6 +201,9 @@ module Stream =
         | Insert of InsertExpression
         | Delete of DeleteExpression
         | Update of UpdateExpression
+
+    type IPlainSelectExpressionTransformable =
+        abstract member ToPlainSelectExpression : unit -> PlainSelectExpression
 
     type ISelectExpressionTransformable =
         abstract member ToSelectExpression : unit -> SelectExpression

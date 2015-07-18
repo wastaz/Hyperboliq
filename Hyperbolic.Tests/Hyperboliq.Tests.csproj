@@ -73,6 +73,7 @@
     <Compile Include="SqlGeneration\OperatorPredecenceTests.cs" />
     <Compile Include="SqlGeneration\OrderByNullsTests.cs" />
     <Compile Include="SqlGeneration\SelectPartitionsTests.cs" />
+    <Compile Include="SqlGeneration\SetOperationTests.cs" />
     <Compile Include="SqlGeneration\SimpleDeleteTests.cs" />
     <Compile Include="SqlGeneration\SimpleGroupByTests.cs" />
     <Compile Include="SqlGeneration\SimpleJoinTests.cs" />
@@ -88,6 +89,7 @@
     <Compile Include="TokenGeneration\ExpressionVisitorTests.cs" />
     <Compile Include="TokenGeneration\OrderByNullsTests.cs" />
     <Compile Include="TokenGeneration\SelectPartitionsTests.cs" />
+    <Compile Include="TokenGeneration\SetOperationTests.cs" />
     <Compile Include="TokenGeneration\SimpleDeleteTests.cs" />
     <Compile Include="TokenGeneration\SimpleInsertTests.cs" />
     <Compile Include="TokenGeneration\SimpleSelectTests.cs" />

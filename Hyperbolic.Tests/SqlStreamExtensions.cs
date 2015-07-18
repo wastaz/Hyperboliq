@@ -39,6 +39,7 @@ using OrderByExpressionNode = Hyperboliq.Domain.Stream.OrderByExpressionNode;
 using OrderByClauseNode = Hyperboliq.Domain.Stream.OrderByClauseNode;
 using JoinClauseNode = Hyperboliq.Domain.Stream.JoinClauseNode;
 using WhereClauseNode = Hyperboliq.Domain.Stream.WhereClauseNode;
+using SetSelectExpression = Hyperboliq.Domain.Stream.SetSelectExpression;
 
 #endregion
 
@@ -367,12 +368,7 @@ namespace Hyperboliq.Tests
         {
             return SqlExpression.NewSelect(
                 SelectExpression.NewPlain(
-                    new PlainSelectExpression(
-                        select,
-                        from,
-                        where.ToOption(),
-                        groupBy.ToOption(),
-                        orderBy.ToOption())));
+                    PlainSelect(select, from, where, groupBy, orderBy)));
         }
 
         public static SqlExpression SelectNode(
@@ -386,13 +382,23 @@ namespace Hyperboliq.Tests
             return SqlExpression.NewSelect(
                 SelectExpression.NewComplex(
                     new Tuple<CommonTableExpression, PlainSelectExpression>(
-                        with,
-                        new PlainSelectExpression(
-                            select,
-                            from,
-                            where.ToOption(),
-                            groupBy.ToOption(),
-                            orderBy.ToOption()))));
+                        with, PlainSelect(select, from, where, groupBy, orderBy))));
+        }
+
+
+        public static PlainSelectExpression PlainSelect(
+            SelectExpressionNode select,
+            FromExpressionNode from,
+            WhereExpressionNode where = null,
+            GroupByExpressionNode groupBy = null,
+            OrderByExpressionNode orderBy = null)
+        {
+            return new PlainSelectExpression(
+                select,
+                from,
+                where.ToOption(),
+                groupBy.ToOption(),
+                orderBy.ToOption());
         }
 
         public static SqlExpression DeleteNode(FromExpressionNode from, WhereExpressionNode where = null)
@@ -455,6 +461,11 @@ namespace Hyperboliq.Tests
         public static CommonTableExpression With(params Stream.ICommonTableDefinition[] definitions)
         {
             return new CommonTableExpression(ListModule.OfArray(definitions));
+        }
+
+        public static SetSelectExpression Union(params PlainSelectExpression[] expr)
+        {
+            return new SetSelectExpression(Stream.SetOperationType.Union, ListModule.OfArray(expr));
         }
     }
 }
