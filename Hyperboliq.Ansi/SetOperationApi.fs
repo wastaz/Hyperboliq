@@ -2,6 +2,7 @@
 
 open System
 open Hyperboliq.Domain.Stream
+open Hyperboliq.Domain.SqlGen
 
 type Union internal (expressions : IPlainSelectExpressionTransformable array) =
     let union = { 
@@ -16,6 +17,10 @@ type Union internal (expressions : IPlainSelectExpressionTransformable array) =
     member x.ToSqlExpression () = (x :> ISqlExpressionTransformable).ToSqlExpression ()
     interface ISqlExpressionTransformable with
         member x.ToSqlExpression () = Select(x.ToSelectExpression ())
+
+    member x.ToSql (dialect : ISqlDialect) = (x :> ISqlQuery).ToSql dialect
+    interface ISqlQuery with
+        member x.ToSql (dialect : ISqlDialect) = x.ToSqlExpression () |> SqlifyExpression dialect
 
 type SetOperations private () =
     static member Union ([<System.ParamArray>] expressions : IPlainSelectExpressionTransformable array) = Union(expressions)

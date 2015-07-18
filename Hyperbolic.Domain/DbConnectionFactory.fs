@@ -87,6 +87,16 @@ type HyperboliqConnectionFactory(dialect : ISqlDialect, connectionString : strin
 module internal Mapper =
     open System.Data
 
+    let private (|Downcastable|_|) (targetType : System.Type) (targetValue : obj) (prop : System.Reflection.PropertyInfo option) =
+        match prop with
+        | None -> None
+        | Some(p) ->
+            // If it fits, I sits. Maybe we shouldn't do this. It's a nice utility thing, but it can blow up at an inopportune moment...
+            if targetType = typeof<int64> && p.PropertyType = typeof<int> && (targetValue :?> int64) < int64(System.Int32.MaxValue) then
+                Some(p, int32(targetValue :?> int64) :> obj)
+            else
+                None
+     
     let private MapRow<'a> (reader : IDataReader) (namingStrategies : IColumnMappingStrategy seq) : 'a =
         let instance = System.Activator.CreateInstance<'a>()
         let targetType = typeof<'a>
@@ -99,8 +109,12 @@ module internal Mapper =
                 |> Seq.choose (fun strat -> strat.MapColumn properties name)
                 |> Seq.tryHead
             match prop with
-            | Some(p) -> p.GetSetMethod().Invoke(instance, [| value |]) |> ignore
-            | None -> ()
+            | Some(p) when p.PropertyType = value.GetType() ->
+                p.GetSetMethod().Invoke(instance, [| value |]) |> ignore
+            | Downcastable (value.GetType()) value (p, dval) -> 
+                p.GetSetMethod().Invoke(instance, [| dval |]) |> ignore
+            | _ -> ()
+            
         instance
 
     let private DynamicMapRow (reader : IDataReader) : DynamicQueryResult =
