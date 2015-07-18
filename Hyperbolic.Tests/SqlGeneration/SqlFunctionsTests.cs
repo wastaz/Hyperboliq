@@ -7,6 +7,7 @@ using BinaryOperation = Hyperboliq.Domain.Stream.BinaryOperation;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
+    [Trait("SqlGeneration", "StandardFunctions")]
     public class SqlGeneration_SqlFunctionsTests
     {
 
