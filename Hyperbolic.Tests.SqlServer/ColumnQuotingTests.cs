@@ -4,7 +4,7 @@ using Hyperboliq.Domain;
 using Hyperboliq.Dialects;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
 
-namespace Hyperboliq.Tests.Sqllite
+namespace Hyperboliq.Tests.SqlServer
 {
     [Trait("SqlServer", "Quoting")]
     public class SqlServer_ColumnQuotingTests
@@ -20,7 +20,7 @@ namespace Hyperboliq.Tests.Sqllite
                         S.Col<Person>("Id")),
                     S.From<Person>());
 
-            var result = SqlGen.SqlifyExpression(SqlServer.Dialect, stream);
+            var result = SqlGen.SqlifyExpression(Dialects.SqlServer.Dialect, stream);
             Assert.Equal(@"SELECT PersonRef.[Name], PersonRef.[Age], PersonRef.[Id] FROM Person PersonRef", result);
         }
     }
