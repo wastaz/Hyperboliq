@@ -31,7 +31,8 @@ using UpdateExpression = Hyperboliq.Domain.Stream.UpdateExpression;
 using InsertExpression = Hyperboliq.Domain.Stream.InsertExpression;
 using DeleteExpression = Hyperboliq.Domain.Stream.DeleteExpression;
 using CommonTableExpression = Hyperboliq.Domain.Stream.CommonTableExpression;
-using SelectExpressionNode = Hyperboliq.Domain.Stream.SelectExpressionNode;
+using SelectValuesExpressionNode = Hyperboliq.Domain.Stream.SelectValuesExpressionNode;
+using SelectExpressionToken = Hyperboliq.Domain.Stream.SelectExpressionToken;
 using FromExpressionNode = Hyperboliq.Domain.Stream.FromExpressionNode;
 using WhereExpressionNode = Hyperboliq.Domain.Stream.WhereExpressionNode;
 using GroupByExpressionNode = Hyperboliq.Domain.Stream.GroupByExpressionNode;
@@ -224,19 +225,20 @@ namespace Hyperboliq.Tests
         }
 
         public static ValueNode SubExp(
-            SelectExpressionNode select,
+            SelectValuesExpressionNode select,
             FromExpressionNode from,
             WhereExpressionNode where = null,
             GroupByExpressionNode groupBy = null,
             OrderByExpressionNode orderBy = null)
         {
             return ValueNode.NewSubExpression(
-                new PlainSelectExpression(
-                    select,
-                    from,
-                    where.ToOption(),
-                    groupBy.ToOption(),
-                    orderBy.ToOption()));
+                PlainSelectExpression.NewPlain(
+                    new SelectExpressionToken(
+                        select,
+                        from,
+                        where.ToOption(),
+                        groupBy.ToOption(),
+                        orderBy.ToOption())));
         }
 
         public static OrderByClauseNode OrderClause(ValueNode col, Direction direction, NullsOrdering nullsOrdering = null)
@@ -252,14 +254,14 @@ namespace Hyperboliq.Tests
             return new OrderByExpressionNode(ListModule.OfArray(clauses));
         }
         
-        public static SelectExpressionNode Select(params ValueNode[] columns)
+        public static SelectValuesExpressionNode Select(params ValueNode[] columns)
         {
-            return new SelectExpressionNode(false, ListModule.OfArray(columns));
+            return new SelectValuesExpressionNode(false, ListModule.OfArray(columns));
         }
 
-        public static SelectExpressionNode SelectDistinct(params ValueNode[] columns)
+        public static SelectValuesExpressionNode SelectDistinct(params ValueNode[] columns)
         {
-            return new SelectExpressionNode(true, ListModule.OfArray(columns));
+            return new SelectValuesExpressionNode(true, ListModule.OfArray(columns));
         }
 
         public static FromExpressionNode From<TType>(ITableIdentifier<TType> table)
@@ -360,7 +362,19 @@ namespace Hyperboliq.Tests
         }
 
         public static SqlExpression SelectNode(
-            SelectExpressionNode select,
+            CommonTableExpression with,
+            SetSelectExpression select)
+        {
+            return
+                SqlExpression.NewSelect(
+                    SelectExpression.NewComplex(
+                        new Tuple<CommonTableExpression, PlainSelectExpression>(
+                            with,
+                            PlainSelectExpression.NewSet(select))));
+        }
+
+        public static SqlExpression SelectNode(
+            SelectValuesExpressionNode select,
             FromExpressionNode from,
             WhereExpressionNode where = null,
             GroupByExpressionNode groupBy = null,
@@ -368,12 +382,13 @@ namespace Hyperboliq.Tests
         {
             return SqlExpression.NewSelect(
                 SelectExpression.NewPlain(
-                    PlainSelect(select, from, where, groupBy, orderBy)));
+                    PlainSelectExpression.NewPlain(
+                        PlainSelect(select, from, where, groupBy, orderBy))));
         }
 
         public static SqlExpression SelectNode(
             CommonTableExpression with,
-            SelectExpressionNode select,
+            SelectValuesExpressionNode select,
             FromExpressionNode from,
             WhereExpressionNode where = null,
             GroupByExpressionNode groupBy = null,
@@ -382,23 +397,25 @@ namespace Hyperboliq.Tests
             return SqlExpression.NewSelect(
                 SelectExpression.NewComplex(
                     new Tuple<CommonTableExpression, PlainSelectExpression>(
-                        with, PlainSelect(select, from, where, groupBy, orderBy))));
+                        with, 
+                        PlainSelectExpression.NewPlain(PlainSelect(select, from, where, groupBy, orderBy)))));
         }
 
 
-        public static PlainSelectExpression PlainSelect(
-            SelectExpressionNode select,
+        public static SelectExpressionToken PlainSelect(
+            SelectValuesExpressionNode select,
             FromExpressionNode from,
             WhereExpressionNode where = null,
             GroupByExpressionNode groupBy = null,
             OrderByExpressionNode orderBy = null)
         {
-            return new PlainSelectExpression(
-                select,
-                from,
-                where.ToOption(),
-                groupBy.ToOption(),
-                orderBy.ToOption());
+            return
+                new SelectExpressionToken(
+                    select,
+                    from,
+                    where.ToOption(),
+                    groupBy.ToOption(),
+                    orderBy.ToOption());
         }
 
         public static SqlExpression DeleteNode(FromExpressionNode from, WhereExpressionNode where = null)
@@ -425,7 +442,15 @@ namespace Hyperboliq.Tests
 
         public static Stream.ICommonTableDefinition TableDef<TType>(
             TableReferenceCreator<TType> c,
-            SelectExpressionNode select,
+            SetSelectExpression expr)
+        {
+            return
+                new Stream.CommonTableDefinition<TType>(PlainSelectExpression.NewSet(expr), c);
+        }
+
+        public static Stream.ICommonTableDefinition TableDef<TType>(
+            TableReferenceCreator<TType> c,
+            SelectValuesExpressionNode select,
             FromExpressionNode from,
             WhereExpressionNode where = null,
             GroupByExpressionNode groupBy = null,
@@ -436,7 +461,7 @@ namespace Hyperboliq.Tests
 
         public static Stream.ICommonTableDefinition TableDef<TType>(
             TableIdentifier<TType> tdef,
-            SelectExpressionNode select,
+            SelectValuesExpressionNode select,
             FromExpressionNode from,
             WhereExpressionNode where = null,
             GroupByExpressionNode groupBy = null,
@@ -444,12 +469,13 @@ namespace Hyperboliq.Tests
         {
             return
                 new Stream.CommonTableDefinition<TType>(
-                    new PlainSelectExpression(select, from, where.ToOption(), groupBy.ToOption(), orderBy.ToOption()),
+                    PlainSelectExpression.NewPlain(
+                        new SelectExpressionToken(select, from, where.ToOption(), groupBy.ToOption(), orderBy.ToOption())),
                     tdef);
         }
 
         public static Stream.ICommonTableDefinition TableDef<TType>(
-            SelectExpressionNode select,
+            SelectValuesExpressionNode select,
             FromExpressionNode from,
             WhereExpressionNode where = null,
             GroupByExpressionNode groupBy = null,
@@ -463,9 +489,11 @@ namespace Hyperboliq.Tests
             return new CommonTableExpression(ListModule.OfArray(definitions));
         }
 
-        public static SetSelectExpression Union(params PlainSelectExpression[] expr)
+        public static SetSelectExpression Union(params SelectExpressionToken[] expr)
         {
-            return new SetSelectExpression(Stream.SetOperationType.Union, ListModule.OfArray(expr));
+            return new SetSelectExpression(
+                Stream.SetOperationType.Union, 
+                ListModule.OfSeq(expr.Select(e => PlainSelectExpression.NewPlain(e))));
         }
     }
 }

@@ -19,19 +19,20 @@ namespace Hyperboliq.Tests.SqlGeneration
         {
             var stream =
                 Stream.SqlExpression.NewSelect(
-                    Stream.SelectExpression.NewSet(
-                        S.Union(
-                            S.PlainSelect(
-                                S.Select(S.Star<Person>()),
-                                S.From<Person>(),
-                                S.Where(
-                                    S.BinExp(S.Col<Person>("Age"), Stream.BinaryOperation.GreaterThan, S.Const(42)))),
-                            S.PlainSelect(
-                                S.Select(S.Star<Person>()),
-                                S.From<Person>(),
-                                S.Where(
-                                    S.BinExp(S.Col<Person>("Name"), Stream.BinaryOperation.Equal, S.Const("'Kalle'"))))
-                        )));
+                    Stream.SelectExpression.NewPlain(
+                        Stream.PlainSelectExpression.NewSet(
+                            S.Union(
+                                S.PlainSelect(
+                                    S.Select(S.Star<Person>()),
+                                    S.From<Person>(),
+                                    S.Where(
+                                        S.BinExp(S.Col<Person>("Age"), Stream.BinaryOperation.GreaterThan, S.Const(42)))),
+                                S.PlainSelect(
+                                    S.Select(S.Star<Person>()),
+                                    S.From<Person>(),
+                                    S.Where(
+                                        S.BinExp(S.Col<Person>("Name"), Stream.BinaryOperation.Equal, S.Const("'Kalle'"))))
+                            ))));
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
 
             var expected = 

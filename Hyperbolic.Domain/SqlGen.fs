@@ -232,7 +232,7 @@ module SelectSqlGen =
     and HandleSelectNamedColumn = HandleNamedColumn HandlePlainSelectExpression true
     and HandleSelectFunctionValue = HandleFunctionValue HandlePlainSelectExpression true
 
-    and HandleSelect (dialect : ISqlDialect) (select : SelectExpressionNode) =
+    and HandleSelect (dialect : ISqlDialect) (select : SelectValuesExpressionNode) =
         let HandleValue (dialect : ISqlDialect) value =
             match value with
             | ValueNode.Column(c) -> HandleSelectColumn dialect c
@@ -314,7 +314,7 @@ module SelectSqlGen =
             |> sprintf "ORDER BY %s"
             |> Option.Some
 
-    and HandlePlainSelectExpression dialect (select : PlainSelectExpression) =
+    and HandleSelectExpressionToken dialect (select : SelectExpressionToken) =
         [
             Some(HandleSelect dialect select.Select)
             Some(HandleFrom dialect select.From)
@@ -342,18 +342,19 @@ module SelectSqlGen =
         |> JoinWithComma
         |> sprintf "WITH %s"
 
+    and HandlePlainSelectExpression dialect (plainSelect : PlainSelectExpression) =
+        match plainSelect with
+        | PlainSelectExpression.Plain(exp) -> HandleSelectExpressionToken dialect exp
+        | PlainSelectExpression.Set(exp) -> HandleSetExpression dialect exp
+
     and HandleSelectExpression dialect (select : SelectExpression) =
         match select with
-        | Plain(exp) -> 
+        | Plain(exp) ->
             HandlePlainSelectExpression dialect exp
-        | Complex(withPart, selectPart) -> 
-            [ 
-                HandleCommonTableExpression dialect withPart
-                HandlePlainSelectExpression dialect selectPart
-            ] 
-            |> JoinWithSpace
-        | Set(exp) ->
-            HandleSetExpression dialect exp
+        | Complex(withPart, selectPart) ->
+            let withPartStr = HandleCommonTableExpression dialect withPart 
+            let selectPartStr = HandlePlainSelectExpression dialect selectPart
+            [ withPartStr; selectPartStr ] |> JoinWithSpace
 
 module UpdateSqlGen =
     open Stream

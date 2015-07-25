@@ -10,9 +10,18 @@ type Union internal (expressions : IPlainSelectExpressionTransformable array) =
         Operands = expressions |> Array.map (fun e -> e.ToPlainSelectExpression()) |> Array.toList
     }
 
+    member x.Union (additional : IPlainSelectExpressionTransformable array) =
+        [ expressions; additional ] 
+        |> Array.concat
+        |> (fun ex -> Union(ex))
+
+    member x.ToPlainSelectExpression () = (x :> IPlainSelectExpressionTransformable).ToPlainSelectExpression ()
+    interface IPlainSelectExpressionTransformable with
+        member x.ToPlainSelectExpression () = PlainSelectExpression.Set(union)
+
     member x.ToSelectExpression () = (x :> ISelectExpressionTransformable).ToSelectExpression ()
     interface ISelectExpressionTransformable with
-        member x.ToSelectExpression () = Set(union)
+        member x.ToSelectExpression () = SelectExpression.Plain(x.ToPlainSelectExpression ())
 
     member x.ToSqlExpression () = (x :> ISqlExpressionTransformable).ToSqlExpression ()
     interface ISqlExpressionTransformable with

@@ -39,20 +39,20 @@ module ExpressionParts =
         { select with IsDistinct = true }
 
     let SelectAllColumns select (table : ITableIdentifier) =
-        { select with SelectExpressionNode.Values = ValueNode.StarColumn(StarColumnToken(table.Reference)) :: select.Values }
+        { select with SelectValuesExpressionNode.Values = ValueNode.StarColumn(StarColumnToken(table.Reference)) :: select.Values }
 
     let SelectColumns select expr (table : ITableIdentifier) =
         let stream = ExpressionVisitor.Visit expr [ table.Reference ]
         match stream with
         | None -> select
-        | Some(ValueList(v)) -> { select with SelectExpressionNode.Values = v @ select.Values }
+        | Some(ValueList(v)) -> { select with SelectValuesExpressionNode.Values = v @ select.Values }
         | Some(v) -> { select with Values = select.Values @ [ v ] }
 
     let SelectColumnWithPartition select expr (table : ITableIdentifier) partition =
         let stream = ExpressionVisitor.Visit expr [ table.Reference ] 
         match stream with
         | Some(Aggregate(a)) ->
-            { select with SelectExpressionNode.Values = select.Values @ [ WindowedColumn(a, partition) ] }
+            { select with SelectValuesExpressionNode.Values = select.Values @ [ WindowedColumn(a, partition) ] }
         | _ -> select
 
     let private NewOrderByExpression () = { OrderByExpressionNode.Clauses = [] }

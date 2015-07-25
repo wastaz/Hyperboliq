@@ -78,7 +78,7 @@ module Stream =
         Clauses : OrderByClauseNode list
     }
 
-    and SelectExpressionNode = {
+    and SelectValuesExpressionNode = {
         IsDistinct : bool
         Values : ValueNode list
     }
@@ -138,26 +138,29 @@ module Stream =
 
     and InsertValueToken = { Values : InsertValueNode list }
     
-    and PlainSelectExpression = 
+    and SelectExpressionToken = 
         {
-            Select : SelectExpressionNode
+            Select : SelectValuesExpressionNode
             From : FromExpressionNode
             Where : WhereExpressionNode option
             GroupBy : GroupByExpressionNode option
             OrderBy : OrderByExpressionNode option
         }
-
-    and CommonTableValuedSelectExpression = CommonTableExpression * PlainSelectExpression
     
     and SetSelectExpression = {
         Operation : SetOperationType
         Operands : PlainSelectExpression list
     }
 
+    and PlainSelectExpression =
+        | Plain of SelectExpressionToken
+        | Set of SetSelectExpression
+
+    and CommonTableValuedSelectExpression = CommonTableExpression * PlainSelectExpression
+    
     and SelectExpression =
         | Plain of PlainSelectExpression
         | Complex of CommonTableValuedSelectExpression
-        | Set of SetSelectExpression
 
     and ICommonTableDefinition =
         abstract Query : PlainSelectExpression with get
@@ -210,4 +213,3 @@ module Stream =
 
     type ISqlExpressionTransformable =
         abstract member ToSqlExpression : unit -> SqlExpression
-
