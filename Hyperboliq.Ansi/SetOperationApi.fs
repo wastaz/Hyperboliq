@@ -10,6 +10,14 @@ type OtherSetOperation internal (opType : SetOperationType, expressions : IPlain
         Operands = expressions |> List.map (fun e -> e.ToPlainSelectExpression())
     }
 
+    member x.Union ([<System.ParamArray>] additional : IPlainSelectExpressionTransformable array) =
+        Array.append [| (x.ToPlainSelectExpression() :> IPlainSelectExpressionTransformable) |] additional
+        |> fun a -> Union(false, a)
+
+    member x.UnionAll ([<System.ParamArray>] additional : IPlainSelectExpressionTransformable array) =
+        Array.append [| (x.ToPlainSelectExpression() :> IPlainSelectExpressionTransformable) |] additional
+        |> fun a -> Union(true, a)
+
     member x.Intersect ([<System.ParamArray>] additional : IPlainSelectExpressionTransformable array) =
         OtherSetOperation(SetOperationType.Intersect, (x.ToPlainSelectExpression() :> IPlainSelectExpressionTransformable) :: (Array.toList additional))
 
@@ -32,16 +40,19 @@ type OtherSetOperation internal (opType : SetOperationType, expressions : IPlain
     interface ISqlQuery with
         member x.ToSql (dialect : ISqlDialect) = x.ToSqlExpression () |> SqlifyExpression dialect
 
-type Union internal (expressions : IPlainSelectExpressionTransformable array) =
+and Union internal (isUnionAll : bool, expressions : IPlainSelectExpressionTransformable array) =
     let union = { 
-        Operation = SetOperationType.Union
+        Operation = if isUnionAll then SetOperationType.UnionAll else SetOperationType.Union
         Operands = expressions |> Array.map (fun e -> e.ToPlainSelectExpression()) |> Array.toList
     }
 
-    member x.Union ([<System.ParamArray>] additional : IPlainSelectExpressionTransformable array) =
+    let createUnion isUnionAll additional =
         [ expressions; additional ] 
         |> Array.concat
-        |> (fun ex -> Union(ex))
+        |> (fun ex -> Union(isUnionAll, ex))
+
+    member x.Union ([<System.ParamArray>] additional : IPlainSelectExpressionTransformable array) = createUnion false additional
+    member x.UnionAll ([<System.ParamArray>] additional : IPlainSelectExpressionTransformable array) = createUnion true additional
 
     member x.ToPlainSelectExpression () = (x :> IPlainSelectExpressionTransformable).ToPlainSelectExpression ()
     interface IPlainSelectExpressionTransformable with
@@ -60,9 +71,8 @@ type Union internal (expressions : IPlainSelectExpressionTransformable array) =
         member x.ToSql (dialect : ISqlDialect) = x.ToSqlExpression () |> SqlifyExpression dialect
 
 type SetOperations private () =
-    static member Union ([<System.ParamArray>] expressions : IPlainSelectExpressionTransformable array) = 
-        Union(expressions)
-    static member UnionAll ([<System.ParamArray>] expressions : IPlainSelectExpressionTransformable array) = ()
+    static member Union ([<System.ParamArray>] expressions : IPlainSelectExpressionTransformable array) = Union(false, expressions)
+    static member UnionAll ([<System.ParamArray>] expressions : IPlainSelectExpressionTransformable array) = Union(true, expressions)
     static member Intersect (source : IPlainSelectExpressionTransformable, [<System.ParamArray>] expressions : IPlainSelectExpressionTransformable array) = 
         OtherSetOperation(SetOperationType.Intersect, source :: (List.ofArray expressions))
     static member Minus (source : IPlainSelectExpressionTransformable, [<System.ParamArray>] expressions : IPlainSelectExpressionTransformable array) = 

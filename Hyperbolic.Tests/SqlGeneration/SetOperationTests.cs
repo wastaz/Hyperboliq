@@ -43,6 +43,34 @@ namespace Hyperboliq.Tests.SqlGeneration
         }
 
         [Fact]
+        public void ItShouldHandleASimpleUnionAll()
+        {
+            var stream =
+               Stream.SqlExpression.NewSelect(
+                   Stream.SelectExpression.NewPlain(
+                       Stream.PlainSelectExpression.NewSet(
+                           S.UnionAll(
+                               S.PlainSelect(
+                                   S.Select(S.Star<Person>()),
+                                   S.From<Person>(),
+                                   S.Where(
+                                       S.BinExp(S.Col<Person>("Age"), Stream.BinaryOperation.GreaterThan, S.Const(42)))),
+                               S.PlainSelect(
+                                   S.Select(S.Star<Person>()),
+                                   S.From<Person>(),
+                                   S.Where(
+                                       S.BinExp(S.Col<Person>("Name"), Stream.BinaryOperation.Equal, S.Const("'Kalle'"))))
+                           ))));
+            var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
+
+            var expected =
+                "SELECT PersonRef.* FROM Person PersonRef WHERE PersonRef.Age > 42 " +
+                "UNION ALL " +
+                "SELECT PersonRef.* FROM Person PersonRef WHERE PersonRef.Name = 'Kalle'";
+            Assert.Equal(expected, result);
+        }
+
+        [Fact]
         public void ItShouldHandleASimpleIntersect()
         {
             var stream =

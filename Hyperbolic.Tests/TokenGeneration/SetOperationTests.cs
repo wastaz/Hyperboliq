@@ -48,6 +48,40 @@ namespace Hyperboliq.Tests.TokenGeneration
         }
 
         [Fact]
+        public void ItCanDoASimpleUnionAll()
+        {
+            var expr =
+                SetOperations.UnionAll(
+                    Select.Star<Person>()
+                          .From<Person>()
+                          .Where<Person>(p => p.Age > 42),
+                    Select.Star<Person>()
+                          .From<Person>()
+                          .Where<Person>(p => p.Name == "Kalle")
+                    );
+            var result = expr.ToSqlExpression();
+
+            var expected =
+                Domain.Stream.SqlExpression.NewSelect(
+                    Domain.Stream.SelectExpression.NewPlain(
+                        Domain.Stream.PlainSelectExpression.NewSet(
+                            S.UnionAll(
+                                S.PlainSelect(
+                                    S.Select(S.Star<Person>()),
+                                    S.From<Person>(),
+                                    S.Where(
+                                        S.BinExp(S.Col<Person>("Age"), Domain.Stream.BinaryOperation.GreaterThan, S.Const(42)))),
+                                S.PlainSelect(
+                                    S.Select(S.Star<Person>()),
+                                    S.From<Person>(),
+                                    S.Where(
+                                        S.BinExp(S.Col<Person>("Name"), Domain.Stream.BinaryOperation.Equal, S.Const("'Kalle'"))))
+                            ))));
+
+            Assert.Equal(expected, result);
+        }
+
+        [Fact]
         public void ItCanDoASimpleIntersect()
         {
             var expr = SetOperations.Intersect(
