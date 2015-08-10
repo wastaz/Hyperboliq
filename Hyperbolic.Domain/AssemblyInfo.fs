@@ -39,5 +39,6 @@ by using the '*' as shown below:
 
 [<assembly: InternalsVisibleTo("Hyperboliq.Ansi")>]
 [<assembly: InternalsVisibleTo("Hyperboliq.Tests")>]
+[<assembly: InternalsVisibleToAttribute("Hyperboliq.Migration.Tests")>]
 do
     ()

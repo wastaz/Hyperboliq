@@ -11,21 +11,6 @@ namespace Hyperboliq.Tests
     public class TokenGeneration_SimpleSelectTests
     {
         [Fact]
-        public void ItShouldBeAbleToSelectAllFromATable()
-        {
-            var expr = Select.Star<Person>()
-                             .From<Person>();
-            var result = expr.ToSqlExpression();
-
-            var expected =
-                S.SelectNode(
-                    S.Select(S.Star<Person>()),
-                    S.From<Person>());
-
-            Assert.Equal(expected, result);
-        }
-
-        [Fact]
         public void ItShouldBeAbleToSelectDistinctFromATable()
         {
             var expr = Select.Distinct.Star<Person>()
