@@ -2,9 +2,9 @@
 using Hyperboliq.Tests.Model;
 using Hyperboliq.Dialects;
 using Hyperboliq.Domain;
-using AggregateType = Hyperboliq.Domain.Stream.AggregateType;
-using BinaryOperation = Hyperboliq.Domain.Stream.BinaryOperation;
-using JoinType = Hyperboliq.Domain.Stream.JoinType;
+using AggregateType = Hyperboliq.Domain.AST.AggregateType;
+using BinaryOperation = Hyperboliq.Domain.AST.BinaryOperation;
+using JoinType = Hyperboliq.Domain.AST.JoinType;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
 
 namespace Hyperboliq.Tests.SqlGeneration

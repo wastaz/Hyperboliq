@@ -2,7 +2,7 @@
 using Hyperboliq.Tests.Model;
 using Hyperboliq.Domain;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
-using BinaryOperation = Hyperboliq.Domain.Stream.BinaryOperation;
+using BinaryOperation = Hyperboliq.Domain.AST.BinaryOperation;
 
 namespace Hyperboliq.Tests
 {

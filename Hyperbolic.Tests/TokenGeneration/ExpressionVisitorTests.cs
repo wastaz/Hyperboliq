@@ -7,8 +7,8 @@ using Hyperboliq.Domain;
 using Xunit;
 using Hyperboliq.Tests;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
-using BinaryOperation = Hyperboliq.Domain.Stream.BinaryOperation;
-using ValueNode = Hyperboliq.Domain.Stream.ValueNode;
+using BinaryOperation = Hyperboliq.Domain.AST.BinaryOperation;
+using ValueNode = Hyperboliq.Domain.AST.ValueNode;
 using System.Collections.Generic;
 using Xunit.Extensions;
 using System.Collections;
@@ -141,7 +141,7 @@ namespace Hyperboliq.Domain.Tests
                     ListModule.OfArray(new[] {
                         S.Col<Person>("Name"),
                         S.AliasedCol<Person>("Age", "AgeOfPerson"),
-                        S.AliasedCol<Person>(Stream.AggregateType.Count, S.Null(), "Count")
+                        S.AliasedCol<Person>(AST.AggregateType.Count, S.Null(), "Count")
                     })).ToOption();
             Assert.Equal(expected, ev);
         }
@@ -211,7 +211,7 @@ namespace Hyperboliq.Domain.Tests
             var ev = ExpressionVisitor.Visit(func, tableRefs.ToContext());
             var expected =
                 S.BinExp(
-                    S.Func(Stream.FunctionType.Upper, new[] { S.Col<Person>("Name") }),
+                    S.Func(AST.FunctionType.Upper, new[] { S.Col<Person>("Name") }),
                     BinaryOperation.Equal,
                     S.Const("'KALLE'")).ToOption();
             Assert.Equal(expected, ev);
@@ -228,7 +228,7 @@ namespace Hyperboliq.Domain.Tests
             var ev = ExpressionVisitor.Visit(func, tableRefs.ToContext());
             var expected =
                 S.BinExp(
-                    S.Func(Stream.FunctionType.Lower, new[] { S.Col<Person>("Name") }),
+                    S.Func(AST.FunctionType.Lower, new[] { S.Col<Person>("Name") }),
                     BinaryOperation.Equal,
                     S.Const("'kalle'")).ToOption();
             Assert.Equal(expected, ev);
@@ -246,7 +246,7 @@ namespace Hyperboliq.Domain.Tests
             var ev = ExpressionVisitor.Visit(func, tableRefs.ToContext());
             var expected =
                 S.BinExp(
-                    S.Func(Stream.FunctionType.Concat, new[] { S.Col<Person>("Name"), S.Col<Car>("Brand"), }),
+                    S.Func(AST.FunctionType.Concat, new[] { S.Col<Person>("Name"), S.Col<Car>("Brand"), }),
                     BinaryOperation.Equal,
                     S.Const("'KalleSaab'")).ToOption();
             Assert.Equal(expected, ev);
@@ -279,7 +279,7 @@ namespace Hyperboliq.Domain.Tests
             var ev = ExpressionVisitor.Visit(testcase, tableRefs.ToContext());
             var expected =
                 S.BinExp(
-                    S.Func(Stream.FunctionType.Concat, new[] { S.Col<Person>("Name"), S.Col<Car>("Brand"), S.Col<Person>("Name"), S.Col<Car>("Brand"), }),
+                    S.Func(AST.FunctionType.Concat, new[] { S.Col<Person>("Name"), S.Col<Car>("Brand"), S.Col<Person>("Name"), S.Col<Car>("Brand"), }),
                     BinaryOperation.Equal,
                     S.Const("'KalleSaab'")).ToOption();
             Assert.Equal(expected, ev);

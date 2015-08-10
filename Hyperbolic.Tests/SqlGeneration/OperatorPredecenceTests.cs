@@ -3,7 +3,7 @@ using S = Hyperboliq.Tests.SqlStreamExtensions;
 using Hyperboliq.Tests.Model;
 using Hyperboliq.Dialects;
 using Hyperboliq.Domain;
-using BinaryOperation = Hyperboliq.Domain.Stream.BinaryOperation;
+using BinaryOperation = Hyperboliq.Domain.AST.BinaryOperation;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {

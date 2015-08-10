@@ -2,7 +2,7 @@
 
 module ExpressionVisitor =
     open Hyperboliq
-    open Stream
+    open AST
     open System.Linq
     open System.Linq.Expressions
 

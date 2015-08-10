@@ -18,20 +18,20 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItShouldHandleASimpleUnion()
         {
             var stream =
-                Stream.SqlExpression.NewSelect(
-                    Stream.SelectExpression.NewPlain(
-                        Stream.PlainSelectExpression.NewSet(
+                AST.SqlExpression.NewSelect(
+                    AST.SelectExpression.NewPlain(
+                        AST.PlainSelectExpression.NewSet(
                             S.Union(
                                 S.PlainSelect(
                                     S.Select(S.Star<Person>()),
                                     S.From<Person>(),
                                     S.Where(
-                                        S.BinExp(S.Col<Person>("Age"), Stream.BinaryOperation.GreaterThan, S.Const(42)))),
+                                        S.BinExp(S.Col<Person>("Age"), AST.BinaryOperation.GreaterThan, S.Const(42)))),
                                 S.PlainSelect(
                                     S.Select(S.Star<Person>()),
                                     S.From<Person>(),
                                     S.Where(
-                                        S.BinExp(S.Col<Person>("Name"), Stream.BinaryOperation.Equal, S.Const("'Kalle'"))))
+                                        S.BinExp(S.Col<Person>("Name"), AST.BinaryOperation.Equal, S.Const("'Kalle'"))))
                             ))));
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
 
@@ -46,20 +46,20 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItShouldHandleASimpleUnionAll()
         {
             var stream =
-               Stream.SqlExpression.NewSelect(
-                   Stream.SelectExpression.NewPlain(
-                       Stream.PlainSelectExpression.NewSet(
+               AST.SqlExpression.NewSelect(
+                   AST.SelectExpression.NewPlain(
+                       AST.PlainSelectExpression.NewSet(
                            S.UnionAll(
                                S.PlainSelect(
                                    S.Select(S.Star<Person>()),
                                    S.From<Person>(),
                                    S.Where(
-                                       S.BinExp(S.Col<Person>("Age"), Stream.BinaryOperation.GreaterThan, S.Const(42)))),
+                                       S.BinExp(S.Col<Person>("Age"), AST.BinaryOperation.GreaterThan, S.Const(42)))),
                                S.PlainSelect(
                                    S.Select(S.Star<Person>()),
                                    S.From<Person>(),
                                    S.Where(
-                                       S.BinExp(S.Col<Person>("Name"), Stream.BinaryOperation.Equal, S.Const("'Kalle'"))))
+                                       S.BinExp(S.Col<Person>("Name"), AST.BinaryOperation.Equal, S.Const("'Kalle'"))))
                            ))));
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
 
@@ -74,9 +74,9 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItShouldHandleASimpleIntersect()
         {
             var stream =
-                Stream.SqlExpression.NewSelect(
-                    Stream.SelectExpression.NewPlain(
-                        Stream.PlainSelectExpression.NewSet(
+                AST.SqlExpression.NewSelect(
+                    AST.SelectExpression.NewPlain(
+                        AST.PlainSelectExpression.NewSet(
                             S.Intersect(
                                 S.PlainSelect(
                                     S.Select(S.Star<Person>()),
@@ -85,7 +85,7 @@ namespace Hyperboliq.Tests.SqlGeneration
                                     S.Select(S.Star<Person>()),
                                     S.From<Person>(),
                                     S.Where(
-                                        S.BinExp(S.Col<Person>("Age"), Stream.BinaryOperation.GreaterThan, S.Const(42))))))));
+                                        S.BinExp(S.Col<Person>("Age"), AST.BinaryOperation.GreaterThan, S.Const(42))))))));
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
 
             var expected =
@@ -99,9 +99,9 @@ namespace Hyperboliq.Tests.SqlGeneration
         public void ItShouldHandleASimpleMinus()
         {
             var stream =
-                Stream.SqlExpression.NewSelect(
-                    Stream.SelectExpression.NewPlain(
-                        Stream.PlainSelectExpression.NewSet(
+                AST.SqlExpression.NewSelect(
+                    AST.SelectExpression.NewPlain(
+                        AST.PlainSelectExpression.NewSet(
                             S.Minus(
                                 S.PlainSelect(
                                     S.Select(S.Star<Person>()),
@@ -110,7 +110,7 @@ namespace Hyperboliq.Tests.SqlGeneration
                                     S.Select(S.Star<Person>()),
                                     S.From<Person>(),
                                     S.Where(
-                                        S.BinExp(S.Col<Person>("Age"), Stream.BinaryOperation.GreaterThan, S.Const(42))))))));
+                                        S.BinExp(S.Col<Person>("Age"), AST.BinaryOperation.GreaterThan, S.Const(42))))))));
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
 
             var expected =

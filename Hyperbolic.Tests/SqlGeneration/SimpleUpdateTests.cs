@@ -3,8 +3,8 @@ using Hyperboliq.Tests.Model;
 using Hyperboliq.Dialects;
 using Hyperboliq.Domain;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
-using AggregateType = Hyperboliq.Domain.Stream.AggregateType;
-using BinaryOperation = Hyperboliq.Domain.Stream.BinaryOperation;
+using AggregateType = Hyperboliq.Domain.AST.AggregateType;
+using BinaryOperation = Hyperboliq.Domain.AST.BinaryOperation;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {

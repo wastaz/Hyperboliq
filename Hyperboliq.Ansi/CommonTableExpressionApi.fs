@@ -3,7 +3,7 @@
 open System
 open System.Linq.Expressions
 open Hyperboliq
-open Hyperboliq.Domain.Stream
+open Hyperboliq.Domain.AST
 open Hyperboliq.Domain.SqlGen
 
 type WithSelect internal (expr : CommonTableValuedSelectExpression) =

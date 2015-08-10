@@ -2,8 +2,8 @@
 using Hyperboliq.Tests.Model;
 using Hyperboliq.Domain;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
-using BinaryOperation = Hyperboliq.Domain.Stream.BinaryOperation;
-using AggregateType = Hyperboliq.Domain.Stream.AggregateType;
+using BinaryOperation = Hyperboliq.Domain.AST.BinaryOperation;
+using AggregateType = Hyperboliq.Domain.AST.AggregateType;
 
 namespace Hyperboliq.Tests.TokenGeneration
 {

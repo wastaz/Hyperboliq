@@ -1,8 +1,8 @@
 ﻿using Xunit;
 using Hyperboliq.Tests.Model;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
-using Direction = Hyperboliq.Domain.Stream.Direction;
-using NullsOrdering = Hyperboliq.Domain.Stream.NullsOrdering;
+using Direction = Hyperboliq.Domain.AST.Direction;
+using NullsOrdering = Hyperboliq.Domain.AST.NullsOrdering;
 
 namespace Hyperboliq.Tests
 {

@@ -50,7 +50,7 @@
     <Compile Include="Types.fs" />
     <Compile Include="TableIdentifier.fs" />
     <Compile Include="TableApi.fs" />
-    <Compile Include="Stream.fs" />
+    <Compile Include="AbstractSyntaxTree.fs" />
     <Compile Include="AggregateFunctions.fs" />
     <Compile Include="ExpressionVisitor.fsi" />
     <Compile Include="ExpressionVisitor.fs" />

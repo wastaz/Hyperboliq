@@ -1,7 +1,7 @@
 ﻿using Xunit;
 using Hyperboliq.Tests.Model;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
-using BinaryOperation = Hyperboliq.Domain.Stream.BinaryOperation;
+using BinaryOperation = Hyperboliq.Domain.AST.BinaryOperation;
 
 namespace Hyperboliq.Tests
 {

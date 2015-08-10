@@ -7,9 +7,9 @@ using Xunit;
 using Hyperboliq.Domain;
 using Hyperboliq.Dialects;
 using Hyperboliq.Tests.Model;
-using AggregateType = Hyperboliq.Domain.Stream.AggregateType;
-using Direction = Hyperboliq.Domain.Stream.Direction;
-using NullsOrdering = Hyperboliq.Domain.Stream.NullsOrdering;
+using AggregateType = Hyperboliq.Domain.AST.AggregateType;
+using Direction = Hyperboliq.Domain.AST.Direction;
+using NullsOrdering = Hyperboliq.Domain.AST.NullsOrdering;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
 
 namespace Hyperboliq.Tests.TokenGeneration

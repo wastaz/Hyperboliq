@@ -4,10 +4,10 @@ using Xunit;
 using Hyperboliq.Tests.Model;
 using Hyperboliq.Domain;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
-using AggregateType = Hyperboliq.Domain.Stream.AggregateType;
-using BinaryOperation = Hyperboliq.Domain.Stream.BinaryOperation;
-using JoinType = Hyperboliq.Domain.Stream.JoinType;
-using ValueNode = Hyperboliq.Domain.Stream.ValueNode;
+using AggregateType = Hyperboliq.Domain.AST.AggregateType;
+using BinaryOperation = Hyperboliq.Domain.AST.BinaryOperation;
+using JoinType = Hyperboliq.Domain.AST.JoinType;
+using ValueNode = Hyperboliq.Domain.AST.ValueNode;
 
 namespace Hyperboliq.Tests
 {

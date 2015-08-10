@@ -4,7 +4,7 @@ open System
 open System.Linq.Expressions
 open Hyperboliq
 open Hyperboliq.Types
-open Hyperboliq.Domain.Stream
+open Hyperboliq.Domain.AST
 open Hyperboliq.Domain.ExpressionParts
 
 [<AbstractClass>]

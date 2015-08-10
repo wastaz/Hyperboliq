@@ -3,8 +3,8 @@ using Xunit;
 using Hyperboliq.Dialects;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
 using Hyperboliq.Domain;
-using AggregateType = Hyperboliq.Domain.Stream.AggregateType;
-using ValueNode = Hyperboliq.Domain.Stream.ValueNode;
+using AggregateType = Hyperboliq.Domain.AST.AggregateType;
+using ValueNode = Hyperboliq.Domain.AST.ValueNode;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {

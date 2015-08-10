@@ -3,7 +3,7 @@ using Hyperboliq.Domain;
 using Hyperboliq.Dialects;
 using Xunit;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
-using BinaryOperation = Hyperboliq.Domain.Stream.BinaryOperation;
+using BinaryOperation = Hyperboliq.Domain.AST.BinaryOperation;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
@@ -16,11 +16,11 @@ namespace Hyperboliq.Tests.SqlGeneration
         {
             var stream =
                 S.SelectNode(
-                    S.Select(S.Func(Stream.FunctionType.Upper, new[] { S.Col<Person>("Name") })),
+                    S.Select(S.Func(AST.FunctionType.Upper, new[] { S.Col<Person>("Name") })),
                     S.From<Person>(),
                     S.Where(
                         S.BinExp(
-                            S.Func(Stream.FunctionType.Upper, new[] { S.Col<Person>("Name") }),
+                            S.Func(AST.FunctionType.Upper, new[] { S.Col<Person>("Name") }),
                             BinaryOperation.Equal,
                             S.Const("'KALLE'"))
                     ));
@@ -35,11 +35,11 @@ namespace Hyperboliq.Tests.SqlGeneration
         {
             var stream =
                 S.SelectNode(
-                    S.Select(S.Func(Stream.FunctionType.Lower, new[] { S.Col<Person>("Name") })),
+                    S.Select(S.Func(AST.FunctionType.Lower, new[] { S.Col<Person>("Name") })),
                     S.From<Person>(),
                     S.Where(
                         S.BinExp(
-                            S.Func(Stream.FunctionType.Lower, new[] { S.Col<Person>("Name") }),
+                            S.Func(AST.FunctionType.Lower, new[] { S.Col<Person>("Name") }),
                             BinaryOperation.Equal,
                             S.Const("'kalle'"))
                     ));
@@ -54,14 +54,14 @@ namespace Hyperboliq.Tests.SqlGeneration
         {
             var stream =
                 S.SelectNode(
-                    S.Select(S.Func(Stream.FunctionType.Concat, new[] { S.Col<Person>("Name"), S.Col<Car>("Brand"), S.Col<Person>("Name") })),
+                    S.Select(S.Func(AST.FunctionType.Concat, new[] { S.Col<Person>("Name"), S.Col<Car>("Brand"), S.Col<Person>("Name") })),
                     S.From<Person>(
                         S.Join<Person, Car>(
-                            Stream.JoinType.InnerJoin, 
+                            AST.JoinType.InnerJoin, 
                             S.BinExp(S.Col<Person>("Id"), BinaryOperation.Equal, S.Col<Car>("DriverId")))),
                     S.Where(
                         S.BinExp(
-                            S.Func(Stream.FunctionType.Concat, new[] { S.Col<Person>("Name"), S.Col<Car>("Brand"), }),
+                            S.Func(AST.FunctionType.Concat, new[] { S.Col<Person>("Name"), S.Col<Car>("Brand"), }),
                             BinaryOperation.Equal,
                             S.Const("'kallesaab'"))));
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);

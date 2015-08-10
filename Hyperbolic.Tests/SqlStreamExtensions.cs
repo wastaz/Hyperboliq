@@ -1,46 +1,46 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Hyperboliq.Domain;
 using Microsoft.FSharp.Collections;
 using Microsoft.FSharp.Core;
 
 #region Stupid usings since using static isn't available until C#6
 
-using ValueNode = Hyperboliq.Domain.Stream.ValueNode;
-using AggregateType = Hyperboliq.Domain.Stream.AggregateType;
-using AliasedColumnNode = Hyperboliq.Domain.Stream.AliasedColumnNode;
-using Direction = Hyperboliq.Domain.Stream.Direction;
-using FunctionType = Hyperboliq.Domain.Stream.FunctionType;
-using NullsOrdering = Hyperboliq.Domain.Stream.NullsOrdering;
-using JoinType = Hyperboliq.Domain.Stream.JoinType;
-using BinaryOperation = Hyperboliq.Domain.Stream.BinaryOperation;
-using ExpressionCombinatorType = Hyperboliq.Domain.Stream.ExpressionCombinatorType;
-using BinaryExpressionNode = Hyperboliq.Domain.Stream.BinaryExpressionNode;
-using ParameterToken = Hyperboliq.Domain.Stream.ParameterToken;
-using ConstantNode = Hyperboliq.Domain.Stream.ConstantNode;
-using InsertStatementHeadToken = Hyperboliq.Domain.Stream.InsertStatementHeadToken;
-using UpdateSetToken = Hyperboliq.Domain.Stream.UpdateSetToken;
-using UpdateStatementHeadToken = Hyperboliq.Domain.Stream.UpdateStatementHeadToken;
-using InsertValueToken = Hyperboliq.Domain.Stream.InsertValueToken;
-using InsertValueNode = Hyperboliq.Domain.Stream.InsertValueNode;
-using SqlExpression = Hyperboliq.Domain.Stream.SqlExpression;
-using SelectExpression = Hyperboliq.Domain.Stream.SelectExpression;
-using PlainSelectExpression = Hyperboliq.Domain.Stream.PlainSelectExpression;
-using UpdateExpression = Hyperboliq.Domain.Stream.UpdateExpression;
-using InsertExpression = Hyperboliq.Domain.Stream.InsertExpression;
-using DeleteExpression = Hyperboliq.Domain.Stream.DeleteExpression;
-using CommonTableExpression = Hyperboliq.Domain.Stream.CommonTableExpression;
-using SelectValuesExpressionNode = Hyperboliq.Domain.Stream.SelectValuesExpressionNode;
-using SelectExpressionToken = Hyperboliq.Domain.Stream.SelectExpressionToken;
-using FromExpressionNode = Hyperboliq.Domain.Stream.FromExpressionNode;
-using WhereExpressionNode = Hyperboliq.Domain.Stream.WhereExpressionNode;
-using GroupByExpressionNode = Hyperboliq.Domain.Stream.GroupByExpressionNode;
-using OrderByExpressionNode = Hyperboliq.Domain.Stream.OrderByExpressionNode;
-using OrderByClauseNode = Hyperboliq.Domain.Stream.OrderByClauseNode;
-using JoinClauseNode = Hyperboliq.Domain.Stream.JoinClauseNode;
-using WhereClauseNode = Hyperboliq.Domain.Stream.WhereClauseNode;
-using SetSelectExpression = Hyperboliq.Domain.Stream.SetSelectExpression;
+using ValueNode = Hyperboliq.Domain.AST.ValueNode;
+using AggregateType = Hyperboliq.Domain.AST.AggregateType;
+using AliasedColumnNode = Hyperboliq.Domain.AST.AliasedColumnNode;
+using Direction = Hyperboliq.Domain.AST.Direction;
+using FunctionType = Hyperboliq.Domain.AST.FunctionType;
+using NullsOrdering = Hyperboliq.Domain.AST.NullsOrdering;
+using JoinType = Hyperboliq.Domain.AST.JoinType;
+using BinaryOperation = Hyperboliq.Domain.AST.BinaryOperation;
+using ExpressionCombinatorType = Hyperboliq.Domain.AST.ExpressionCombinatorType;
+using BinaryExpressionNode = Hyperboliq.Domain.AST.BinaryExpressionNode;
+using ParameterToken = Hyperboliq.Domain.AST.ParameterToken;
+using ConstantNode = Hyperboliq.Domain.AST.ConstantNode;
+using InsertStatementHeadToken = Hyperboliq.Domain.AST.InsertStatementHeadToken;
+using UpdateSetToken = Hyperboliq.Domain.AST.UpdateSetToken;
+using UpdateStatementHeadToken = Hyperboliq.Domain.AST.UpdateStatementHeadToken;
+using InsertValueToken = Hyperboliq.Domain.AST.InsertValueToken;
+using InsertValueNode = Hyperboliq.Domain.AST.InsertValueNode;
+using SqlExpression = Hyperboliq.Domain.AST.SqlExpression;
+using SelectExpression = Hyperboliq.Domain.AST.SelectExpression;
+using PlainSelectExpression = Hyperboliq.Domain.AST.PlainSelectExpression;
+using UpdateExpression = Hyperboliq.Domain.AST.UpdateExpression;
+using InsertExpression = Hyperboliq.Domain.AST.InsertExpression;
+using DeleteExpression = Hyperboliq.Domain.AST.DeleteExpression;
+using CommonTableExpression = Hyperboliq.Domain.AST.CommonTableExpression;
+using SelectValuesExpressionNode = Hyperboliq.Domain.AST.SelectValuesExpressionNode;
+using SelectExpressionToken = Hyperboliq.Domain.AST.SelectExpressionToken;
+using FromExpressionNode = Hyperboliq.Domain.AST.FromExpressionNode;
+using WhereExpressionNode = Hyperboliq.Domain.AST.WhereExpressionNode;
+using GroupByExpressionNode = Hyperboliq.Domain.AST.GroupByExpressionNode;
+using OrderByExpressionNode = Hyperboliq.Domain.AST.OrderByExpressionNode;
+using OrderByClauseNode = Hyperboliq.Domain.AST.OrderByClauseNode;
+using JoinClauseNode = Hyperboliq.Domain.AST.JoinClauseNode;
+using WhereClauseNode = Hyperboliq.Domain.AST.WhereClauseNode;
+using SetSelectExpression = Hyperboliq.Domain.AST.SetSelectExpression;
+using Hyperboliq.Domain;
 
 #endregion
 
@@ -90,7 +90,7 @@ namespace Hyperboliq.Tests
 
         public static ValueNode Star<TTable>()
         {
-            return ValueNode.NewStarColumn(Stream.StarColumnToken.NewStarColumnToken(Types.TableReferenceFromType<TTable>()));
+            return ValueNode.NewStarColumn(AST.StarColumnToken.NewStarColumnToken(Types.TableReferenceFromType<TTable>()));
         }
 
         public static ValueNode AliasedCol(ValueNode node, string alias)
@@ -131,9 +131,9 @@ namespace Hyperboliq.Tests
             IEnumerable<OrderByClauseNode> orderBy = null)
         {
             return ValueNode.NewWindowedColumn(
-                new Tuple<Tuple<AggregateType, ValueNode>, Stream.WindowNode>(
+                new Tuple<Tuple<AggregateType, ValueNode>, AST.WindowNode>(
                     new Tuple<AggregateType, ValueNode>(type, aggregateParameter),
-                    new Stream.WindowNode(
+                    new AST.WindowNode(
                         partitionBy == null ? ListModule.Empty<ValueNode>() : ListModule.OfSeq(partitionBy),
                         orderBy == null ? ListModule.Empty<OrderByClauseNode>() : ListModule.OfSeq(orderBy))));
         }
@@ -450,20 +450,20 @@ namespace Hyperboliq.Tests
                     ListModule.OfArray(values)));
         }
 
-        public static Stream.ICommonTableDefinition TableDef<TType>(SetSelectExpression expr)
+        public static AST.ICommonTableDefinition TableDef<TType>(SetSelectExpression expr)
         {
-            return new Stream.CommonTableDefinition<TType>(PlainSelectExpression.NewSet(expr), new TableIdentifier<TType>());
+            return new AST.CommonTableDefinition<TType>(PlainSelectExpression.NewSet(expr), new TableIdentifier<TType>());
         }
 
-        public static Stream.ICommonTableDefinition TableDef<TType>(
+        public static AST.ICommonTableDefinition TableDef<TType>(
             TableReferenceCreator<TType> c,
             SetSelectExpression expr)
         {
             return
-                new Stream.CommonTableDefinition<TType>(PlainSelectExpression.NewSet(expr), c);
+                new AST.CommonTableDefinition<TType>(PlainSelectExpression.NewSet(expr), c);
         }
 
-        public static Stream.ICommonTableDefinition TableDef<TType>(
+        public static AST.ICommonTableDefinition TableDef<TType>(
             TableReferenceCreator<TType> c,
             SelectValuesExpressionNode select,
             FromExpressionNode from,
@@ -474,7 +474,7 @@ namespace Hyperboliq.Tests
             return TableDef(c.ToTableReference(), select, from, where, groupBy, orderBy);
         }
 
-        public static Stream.ICommonTableDefinition TableDef<TType>(
+        public static AST.ICommonTableDefinition TableDef<TType>(
             TableIdentifier<TType> tdef,
             SelectValuesExpressionNode select,
             FromExpressionNode from,
@@ -483,13 +483,13 @@ namespace Hyperboliq.Tests
             OrderByExpressionNode orderBy = null)
         {
             return
-                new Stream.CommonTableDefinition<TType>(
+                new AST.CommonTableDefinition<TType>(
                     PlainSelectExpression.NewPlain(
                         new SelectExpressionToken(select, from, where.ToOption(), groupBy.ToOption(), orderBy.ToOption())),
                     tdef);
         }
 
-        public static Stream.ICommonTableDefinition TableDef<TType>(
+        public static AST.ICommonTableDefinition TableDef<TType>(
             SelectValuesExpressionNode select,
             FromExpressionNode from,
             WhereExpressionNode where = null,
@@ -499,7 +499,7 @@ namespace Hyperboliq.Tests
             return TableDef(new TableIdentifier<TType>(), select, from, where, groupBy, orderBy);
         }
 
-        public static CommonTableExpression With(params Stream.ICommonTableDefinition[] definitions)
+        public static CommonTableExpression With(params AST.ICommonTableDefinition[] definitions)
         {
             return new CommonTableExpression(ListModule.OfArray(definitions));
         }
@@ -507,28 +507,28 @@ namespace Hyperboliq.Tests
         public static SetSelectExpression Union(params SelectExpressionToken[] expr)
         {
             return new SetSelectExpression(
-                Stream.SetOperationType.Union, 
+                AST.SetOperationType.Union, 
                 ListModule.OfSeq(expr.Select(e => PlainSelectExpression.NewPlain(e))));
         }
 
         public static SetSelectExpression UnionAll(params SelectExpressionToken[] expr)
         {
             return new SetSelectExpression(
-                Stream.SetOperationType.UnionAll,
+                AST.SetOperationType.UnionAll,
                 ListModule.OfSeq(expr.Select(e => PlainSelectExpression.NewPlain(e))));
         }
 
         public static SetSelectExpression Intersect(params SelectExpressionToken[] expr)
         {
             return new SetSelectExpression(
-                Stream.SetOperationType.Intersect,
+                AST.SetOperationType.Intersect,
                 ListModule.OfSeq(expr.Select(e => PlainSelectExpression.NewPlain(e))));
         }
 
         public static SetSelectExpression Minus(params SelectExpressionToken[] expr)
         {
             return new SetSelectExpression(
-                Stream.SetOperationType.Minus,
+                AST.SetOperationType.Minus,
                 ListModule.OfSeq(expr.Select(e => PlainSelectExpression.NewPlain(e))));
         }
 

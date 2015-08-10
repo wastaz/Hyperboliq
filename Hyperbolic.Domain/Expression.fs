@@ -2,7 +2,7 @@
 
 module ExpressionParts =
     open Hyperboliq
-    open Stream
+    open AST
 
     let AddPartitionBy window selector tblRef =
         let v = ExpressionVisitor.Visit selector [ tblRef ]

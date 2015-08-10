@@ -1,6 +1,6 @@
 ﻿namespace Hyperboliq.Domain
 
-module Stream =
+module AST =
     open Hyperboliq
 
     type BinaryOperation =

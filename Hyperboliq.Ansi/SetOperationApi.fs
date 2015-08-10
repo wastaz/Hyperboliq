@@ -1,7 +1,7 @@
 ﻿namespace Hyperboliq
 
 open System
-open Hyperboliq.Domain.Stream
+open Hyperboliq.Domain.AST
 open Hyperboliq.Domain.SqlGen
 
 type OtherSetOperation internal (opType : SetOperationType, expressions : IPlainSelectExpressionTransformable list) =

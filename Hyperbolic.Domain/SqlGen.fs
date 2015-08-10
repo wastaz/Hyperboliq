@@ -5,7 +5,7 @@
 [<AutoOpen>]
 module internal SqlGenUtils =
     open Hyperboliq
-    open Stream
+    open AST
     
     let ToPredecenceNumber op =
         match op with
@@ -221,7 +221,7 @@ module internal SqlGenUtils =
 
 module SelectSqlGen =
     open Hyperboliq
-    open Stream
+    open AST
      
     let rec HandleSelectValue = HandleValueNode HandlePlainSelectExpression true
     and HandleSelectColumn = HandleColumn true
@@ -357,7 +357,7 @@ module SelectSqlGen =
             [ withPartStr; selectPartStr ] |> JoinWithSpace
 
 module UpdateSqlGen =
-    open Stream
+    open AST
 
     let HandleUpdateSetToken dialect (token : UpdateSetToken) =
         let col = HandleColumn false dialect token.Column
@@ -378,7 +378,7 @@ module UpdateSqlGen =
         |> JoinOptionsWithSpace
 
 module DeleteSqlGen =
-    open Stream
+    open AST
 
     let HandleFrom dialect (from : FromExpressionNode) =
         from.Tables
@@ -394,7 +394,7 @@ module DeleteSqlGen =
         |> JoinOptionsWithSpace
 
 module InsertSqlGen =
-    open Stream
+    open AST
 
     let HandleInsertInto dialect (into : InsertStatementHeadToken) =
         into.Columns
@@ -429,7 +429,7 @@ module InsertSqlGen =
         |> JoinWithSpace
 
 module SqlGen =
-    open Stream
+    open AST
 
     let SqlifyExpression dialect expression =
         match expression with

@@ -1,9 +1,9 @@
 ﻿using Xunit;
 using Hyperboliq.Domain;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
-using JoinType = Hyperboliq.Domain.Stream.JoinType;
-using Direction = Hyperboliq.Domain.Stream.Direction;
-using BinaryOperation = Hyperboliq.Domain.Stream.BinaryOperation;
+using JoinType = Hyperboliq.Domain.AST.JoinType;
+using Direction = Hyperboliq.Domain.AST.Direction;
+using BinaryOperation = Hyperboliq.Domain.AST.BinaryOperation;
 using Hyperboliq.Tests.Model;
 using Hyperboliq.Dialects;
 

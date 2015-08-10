@@ -1,7 +1,7 @@
 ﻿namespace Hyperboliq.Domain
 
 module UpdateExpressionPart =
-    open Stream
+    open AST
 
     let NewUpdateExpression tbl =
         { 

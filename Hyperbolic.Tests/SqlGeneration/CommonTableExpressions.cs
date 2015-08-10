@@ -2,9 +2,9 @@
 using Hyperboliq.Domain;
 using Hyperboliq.Tests.Model;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
-using BinaryOperation = Hyperboliq.Domain.Stream.BinaryOperation;
+using BinaryOperation = Hyperboliq.Domain.AST.BinaryOperation;
 using SqlGen = Hyperboliq.Domain.SqlGen;
-using AggregateType = Hyperboliq.Domain.Stream.AggregateType;
+using AggregateType = Hyperboliq.Domain.AST.AggregateType;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
@@ -72,7 +72,7 @@ namespace Hyperboliq.Tests.SqlGeneration
                         S.Join(
                             oldies,
                             younglings,
-                            Domain.Stream.JoinType.InnerJoin,
+                            Domain.AST.JoinType.InnerJoin,
                             S.BinExp(
                                 S.BinExp(S.Col(oldies, "Age"), BinaryOperation.Subtract, S.Const(30)),
                                 BinaryOperation.Equal,
@@ -123,7 +123,7 @@ namespace Hyperboliq.Tests.SqlGeneration
                                     "RowNumber",
                                     AggregateType.RowNumber,
                                     S.Null(),
-                                    orderBy: new[] { S.OrderClause(S.Col<Person>("Age"), Stream.Direction.Ascending) })),
+                                    orderBy: new[] { S.OrderClause(S.Col<Person>("Age"), AST.Direction.Ascending) })),
                             S.From<Person>())
                     ),
                     S.Select(S.Col<PersonLitePagingResult>("Name"), S.Col<PersonLitePagingResult>("Age")),
@@ -181,7 +181,7 @@ namespace Hyperboliq.Tests.SqlGeneration
                                         S.Col<Person>("ParentId")),
                                     S.From<Person>(
                                         S.Join<Person, RecursivePerson>(
-                                            Stream.JoinType.InnerJoin,
+                                            AST.JoinType.InnerJoin,
                                             S.BinExp(S.Col<Person>("Id"), BinaryOperation.Equal, S.Col<RecursivePerson>("ParentId")))))))),
                     S.PlainSelect(
                         S.Select(S.Star<RecursivePerson>()),

@@ -29,20 +29,20 @@ namespace Hyperboliq.Tests.TokenGeneration
             var result = expr.ToSqlExpression();
 
             var expected =
-                Domain.Stream.SqlExpression.NewSelect(
-                    Domain.Stream.SelectExpression.NewPlain(
-                        Domain.Stream.PlainSelectExpression.NewSet(
+                Domain.AST.SqlExpression.NewSelect(
+                    Domain.AST.SelectExpression.NewPlain(
+                        Domain.AST.PlainSelectExpression.NewSet(
                             S.Union(
                                 S.PlainSelect(
                                     S.Select(S.Star<Person>()),
                                     S.From<Person>(),
                                     S.Where(
-                                        S.BinExp(S.Col<Person>("Age"), Domain.Stream.BinaryOperation.GreaterThan, S.Const(42)))),
+                                        S.BinExp(S.Col<Person>("Age"), Domain.AST.BinaryOperation.GreaterThan, S.Const(42)))),
                                 S.PlainSelect(
                                     S.Select(S.Star<Person>()),
                                     S.From<Person>(),
                                     S.Where(
-                                        S.BinExp(S.Col<Person>("Name"), Domain.Stream.BinaryOperation.Equal, S.Const("'Kalle'"))))
+                                        S.BinExp(S.Col<Person>("Name"), Domain.AST.BinaryOperation.Equal, S.Const("'Kalle'"))))
                             ))));
 
             Assert.Equal(expected, result);
@@ -63,20 +63,20 @@ namespace Hyperboliq.Tests.TokenGeneration
             var result = expr.ToSqlExpression();
 
             var expected =
-                Domain.Stream.SqlExpression.NewSelect(
-                    Domain.Stream.SelectExpression.NewPlain(
-                        Domain.Stream.PlainSelectExpression.NewSet(
+                Domain.AST.SqlExpression.NewSelect(
+                    Domain.AST.SelectExpression.NewPlain(
+                        Domain.AST.PlainSelectExpression.NewSet(
                             S.UnionAll(
                                 S.PlainSelect(
                                     S.Select(S.Star<Person>()),
                                     S.From<Person>(),
                                     S.Where(
-                                        S.BinExp(S.Col<Person>("Age"), Domain.Stream.BinaryOperation.GreaterThan, S.Const(42)))),
+                                        S.BinExp(S.Col<Person>("Age"), Domain.AST.BinaryOperation.GreaterThan, S.Const(42)))),
                                 S.PlainSelect(
                                     S.Select(S.Star<Person>()),
                                     S.From<Person>(),
                                     S.Where(
-                                        S.BinExp(S.Col<Person>("Name"), Domain.Stream.BinaryOperation.Equal, S.Const("'Kalle'"))))
+                                        S.BinExp(S.Col<Person>("Name"), Domain.AST.BinaryOperation.Equal, S.Const("'Kalle'"))))
                             ))));
 
             Assert.Equal(expected, result);
@@ -94,9 +94,9 @@ namespace Hyperboliq.Tests.TokenGeneration
             var result = expr.ToSqlExpression();
 
             var expected =
-                Domain.Stream.SqlExpression.NewSelect(
-                    Domain.Stream.SelectExpression.NewPlain(
-                        Domain.Stream.PlainSelectExpression.NewSet(
+                Domain.AST.SqlExpression.NewSelect(
+                    Domain.AST.SelectExpression.NewPlain(
+                        Domain.AST.PlainSelectExpression.NewSet(
                             S.Intersect(
                                 S.PlainSelect(
                                     S.Select(S.Star<Person>()),
@@ -105,7 +105,7 @@ namespace Hyperboliq.Tests.TokenGeneration
                                     S.Select(S.Star<Person>()),
                                     S.From<Person>(),
                                     S.Where(
-                                        S.BinExp(S.Col<Person>("Age"), Domain.Stream.BinaryOperation.GreaterThan, S.Const(42))))))));
+                                        S.BinExp(S.Col<Person>("Age"), Domain.AST.BinaryOperation.GreaterThan, S.Const(42))))))));
             Assert.Equal(expected, result);
         }
 
@@ -121,9 +121,9 @@ namespace Hyperboliq.Tests.TokenGeneration
             var result = expr.ToSqlExpression();
 
             var expected =
-                Domain.Stream.SqlExpression.NewSelect(
-                    Domain.Stream.SelectExpression.NewPlain(
-                        Domain.Stream.PlainSelectExpression.NewSet(
+                Domain.AST.SqlExpression.NewSelect(
+                    Domain.AST.SelectExpression.NewPlain(
+                        Domain.AST.PlainSelectExpression.NewSet(
                             S.Minus(
                                 S.PlainSelect(
                                     S.Select(S.Star<Person>()),
@@ -132,7 +132,7 @@ namespace Hyperboliq.Tests.TokenGeneration
                                     S.Select(S.Star<Person>()),
                                     S.From<Person>(),
                                     S.Where(
-                                        S.BinExp(S.Col<Person>("Age"), Domain.Stream.BinaryOperation.GreaterThan, S.Const(42))))))));
+                                        S.BinExp(S.Col<Person>("Age"), Domain.AST.BinaryOperation.GreaterThan, S.Const(42))))))));
             Assert.Equal(expected, result);
         }
 
@@ -160,12 +160,12 @@ namespace Hyperboliq.Tests.TokenGeneration
                         S.Select(S.Star<Person>()),
                         S.From(identifier),
                         S.Where(
-                            S.BinExp(S.Col<Person>("Age"), Domain.Stream.BinaryOperation.Equal, S.Const(50)))),
+                            S.BinExp(S.Col<Person>("Age"), Domain.AST.BinaryOperation.Equal, S.Const(50)))),
                     S.PlainSelect(
                         S.Select(S.Star<Person>()),
                         S.From(identifier),
                         S.Where(
-                            S.BinExp(S.Col<Person>("Name"), Domain.Stream.BinaryOperation.Equal, S.Const("'Kalle'")))));
+                            S.BinExp(S.Col<Person>("Name"), Domain.AST.BinaryOperation.Equal, S.Const("'Kalle'")))));
             var with =
                     S.With(
                         S.TableDef(
@@ -175,12 +175,12 @@ namespace Hyperboliq.Tests.TokenGeneration
                                     S.Select(S.Star<Person>()),
                                     S.From<Person>(),
                                     S.Where(
-                                        S.BinExp(S.Col<Person>("Age"), Domain.Stream.BinaryOperation.GreaterThan, S.Const(42)))),
+                                        S.BinExp(S.Col<Person>("Age"), Domain.AST.BinaryOperation.GreaterThan, S.Const(42)))),
                                 S.PlainSelect(
                                     S.Select(S.Star<Person>()),
                                     S.From<Person>(),
                                     S.Where(
-                                        S.BinExp(S.Col<Person>("Name"), Domain.Stream.BinaryOperation.Equal, S.Const("'Kalle'")))))));
+                                        S.BinExp(S.Col<Person>("Name"), Domain.AST.BinaryOperation.Equal, S.Const("'Kalle'")))))));
             var expected = S.SelectNode(with, union);
             Assert.Equal(expected, result);
         }
