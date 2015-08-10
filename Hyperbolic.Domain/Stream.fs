@@ -155,6 +155,11 @@ module Stream =
     and PlainSelectExpression =
         | Plain of SelectExpressionToken
         | Set of SetSelectExpression
+        interface IPlainSelectExpressionTransformable with
+            member x.ToPlainSelectExpression () = x
+
+    and  IPlainSelectExpressionTransformable =
+        abstract member ToPlainSelectExpression : unit -> PlainSelectExpression
 
     and CommonTableValuedSelectExpression = CommonTableExpression * PlainSelectExpression
     
@@ -204,9 +209,6 @@ module Stream =
         | Insert of InsertExpression
         | Delete of DeleteExpression
         | Update of UpdateExpression
-
-    type IPlainSelectExpressionTransformable =
-        abstract member ToPlainSelectExpression : unit -> PlainSelectExpression
 
     type ISelectExpressionTransformable =
         abstract member ToSelectExpression : unit -> SelectExpression
