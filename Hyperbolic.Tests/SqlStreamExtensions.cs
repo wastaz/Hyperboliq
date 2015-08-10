@@ -502,5 +502,13 @@ namespace Hyperboliq.Tests
                 Stream.SetOperationType.Intersect,
                 ListModule.OfSeq(expr.Select(e => PlainSelectExpression.NewPlain(e))));
         }
+
+        public static SetSelectExpression Minus(params SelectExpressionToken[] expr)
+        {
+            return new SetSelectExpression(
+                Stream.SetOperationType.Minus,
+                ListModule.OfSeq(expr.Select(e => PlainSelectExpression.NewPlain(e))));
+        }
+
     }
 }

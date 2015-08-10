@@ -66,5 +66,30 @@ namespace Hyperboliq.Tests.SqlGeneration
                 "SELECT PersonRef.* FROM Person PersonRef WHERE PersonRef.Age > 42";
             Assert.Equal(expected, result);
         }
+
+        [Fact]
+        public void ItShouldHandleASimpleMinus()
+        {
+            var stream =
+                Stream.SqlExpression.NewSelect(
+                    Stream.SelectExpression.NewPlain(
+                        Stream.PlainSelectExpression.NewSet(
+                            S.Minus(
+                                S.PlainSelect(
+                                    S.Select(S.Star<Person>()),
+                                    S.From<Person>()),
+                                S.PlainSelect(
+                                    S.Select(S.Star<Person>()),
+                                    S.From<Person>(),
+                                    S.Where(
+                                        S.BinExp(S.Col<Person>("Age"), Stream.BinaryOperation.GreaterThan, S.Const(42))))))));
+            var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
+
+            var expected =
+                "SELECT PersonRef.* FROM Person PersonRef " +
+                "MINUS " +
+                "SELECT PersonRef.* FROM Person PersonRef WHERE PersonRef.Age > 42";
+            Assert.Equal(expected, result);
+        }
     }
 }

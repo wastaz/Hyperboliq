@@ -75,6 +75,33 @@ namespace Hyperboliq.Tests.TokenGeneration
         }
 
         [Fact]
+        public void ItCanDoASimpleMinus()
+        {
+            var expr = SetOperations.Minus(
+                Select.Star<Person>()
+                      .From<Person>(),
+                Select.Star<Person>()
+                      .From<Person>()
+                      .Where<Person>(p => p.Age > 42));
+            var result = expr.ToSqlExpression();
+
+            var expected =
+                Domain.Stream.SqlExpression.NewSelect(
+                    Domain.Stream.SelectExpression.NewPlain(
+                        Domain.Stream.PlainSelectExpression.NewSet(
+                            S.Minus(
+                                S.PlainSelect(
+                                    S.Select(S.Star<Person>()),
+                                    S.From<Person>()),
+                                S.PlainSelect(
+                                    S.Select(S.Star<Person>()),
+                                    S.From<Person>(),
+                                    S.Where(
+                                        S.BinExp(S.Col<Person>("Age"), Domain.Stream.BinaryOperation.GreaterThan, S.Const(42))))))));
+            Assert.Equal(expected, result);
+        }
+
+        [Fact]
         public void ItCanDoAUnionsWithCommonTableExpressions()
         {
             
