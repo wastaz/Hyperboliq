@@ -147,6 +147,24 @@ namespace Hyperboliq.Domain.Tests
         }
 
         [Fact]
+        public void ItShouldBeAbleToGenerateAliasesForConstants()
+        {
+            Expression<Func<Person, object>> func = (Person p) => new { FavoriteNumber = 42 };
+            var tableRefs = new[]
+            {
+                Types.TableReferenceFromType<Person>(),
+            };
+            var ev = ExpressionVisitor.Visit(func, tableRefs.ToContext());
+
+            var expected =
+                ValueNode.NewValueList(
+                    ListModule.OfArray(new[] {
+                        S.AliasedCol(S.Const(42), "FavoriteNumber"),
+                    })).ToOption();
+            Assert.Equal(expected, ev);
+        }
+
+        [Fact]
         public void ItShouldNotGenerateAliasColumnsForColumnsBeingAliasedToItsOrdinaryName()
         {
             Expression<Func<Person, object>> func = (Person p) => new { Name = p.Name, Age = p.Age };

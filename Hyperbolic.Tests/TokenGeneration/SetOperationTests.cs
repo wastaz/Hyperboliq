@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Hyperboliq.Tests.Model;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
+using Hyperboliq.Domain;
 
 namespace Hyperboliq.Tests.TokenGeneration
 {

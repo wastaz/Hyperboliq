@@ -93,13 +93,14 @@ namespace Hyperboliq.Tests
             return ValueNode.NewStarColumn(Stream.StarColumnToken.NewStarColumnToken(Types.TableReferenceFromType<TTable>()));
         }
 
+        public static ValueNode AliasedCol(ValueNode node, string alias)
+        {
+            return ValueNode.NewNamedColumn(new AliasedColumnNode(node, alias));
+        }
+
         public static ValueNode AliasedCol<TTable>(string colDef, string alias) {
             var tref = Types.TableReferenceFromType<TTable>();
-            return ValueNode.NewNamedColumn(
-                new AliasedColumnNode(
-                    ValueNode.NewColumn(
-                        new Tuple<string, Type, ITableReference>(colDef, FigureOutTypeFor(colDef, tref), tref)), 
-                    alias));
+            return AliasedCol(ValueNode.NewColumn(new Tuple<string, Type, ITableReference>(colDef, FigureOutTypeFor(colDef, tref), tref)), alias);
         }
 
         public static ValueNode AliasedCol<TTable>(AggregateType type, ValueNode parameter, string alias)

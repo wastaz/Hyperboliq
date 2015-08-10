@@ -162,7 +162,8 @@ module ExpressionVisitor =
             | ValueNode.Column(c, _, _) when c <> mbr.Name ->
                 ValueNode.NamedColumn({ Alias = mbr.Name; Column = value })
             | ValueNode.Aggregate(_) 
-            | ValueNode.WindowedColumn(_) -> 
+            | ValueNode.WindowedColumn(_)
+            | ValueNode.Constant(_) ->
                 ValueNode.NamedColumn({ Alias = mbr.Name; Column = value })
             | _ -> value
 

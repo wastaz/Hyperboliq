@@ -41,6 +41,20 @@ namespace Hyperboliq.Tests
         }
 
         [Fact]
+        public void ItShouldBePossibleToSelectAConstant()
+        {
+            var expr = Select.Column<Person>(p => new { FavoriteNumber = 42, Name = p.Name })
+                             .From<Person>();
+            var result = expr.ToSqlExpression();
+
+            var expected =
+                S.SelectNode(
+                    S.Select(S.AliasedCol(S.Const(42), "FavoriteNumber"), S.Col<Person>("Name")),
+                    S.From<Person>());
+            Assert.Equal(expected, result);
+        }
+
+        [Fact]
         public void ItShouldBeAbleToSelectSingleColumnsFromATable()
         {
             var expr = Select.Column<Person>(p => new { p.Name, p.Age })
