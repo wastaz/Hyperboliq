@@ -13,7 +13,7 @@ Hyperboliq is a .NET based ORM with the following main goals
 
 # Building Hyperboliq
 
-Hyperboliq uses C# 6 and F# 4.4, and thus may require you to download and install the latest Roslyn and Visual Studio.
+Hyperboliq targets the .NET framework version 4.5.1 and F# 4.3.1.
 Currently there are no plans to support older versions, though this may change.
 Apart from this, Hyperboliq does not require anything special to build. Simply restore nuget packages and build the solution with Visual Studio.
 
