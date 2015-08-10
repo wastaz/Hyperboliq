@@ -364,6 +364,15 @@ namespace Hyperboliq.Tests
 
         public static SqlExpression SelectNode(
             CommonTableExpression with,
+            SelectExpressionToken select)
+        {
+            return SqlExpression.NewSelect(
+                SelectExpression.NewComplex(
+                    new Tuple<CommonTableExpression, PlainSelectExpression>(with, PlainSelectExpression.NewPlain(select))));
+        }
+
+        public static SqlExpression SelectNode(
+            CommonTableExpression with,
             SetSelectExpression select)
         {
             return
@@ -439,6 +448,11 @@ namespace Hyperboliq.Tests
                 new InsertExpression(
                     head,
                     ListModule.OfArray(values)));
+        }
+
+        public static Stream.ICommonTableDefinition TableDef<TType>(SetSelectExpression expr)
+        {
+            return new Stream.CommonTableDefinition<TType>(PlainSelectExpression.NewSet(expr), new TableIdentifier<TType>());
         }
 
         public static Stream.ICommonTableDefinition TableDef<TType>(

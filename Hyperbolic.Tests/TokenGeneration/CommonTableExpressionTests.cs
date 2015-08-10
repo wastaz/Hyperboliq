@@ -150,5 +150,58 @@ namespace Hyperboliq.Tests.TokenGeneration
 
             Assert.Equal(expected, result);
         }
+
+
+        public class RecursivePerson
+        {
+            public int Level { get; set; }
+            public string Name { get; set; }
+            public int ParentId { get; set; }
+        }
+
+        [Fact]
+        public void ItShouldBePossibleToDoARecursiveCommonTableExpression()
+        {
+            var expr =
+                With.Table<RecursivePerson>(
+                    SetOperations.UnionAll(
+                        Select.Column<Person>(p => new { Level = 0, p.Name, p.ParentId, })
+                              .From<Person>()
+                              .Where<Person>(p => p.Name == "Kalle"),
+                        Select.Column<RecursivePerson>(rp => new { Level = rp.Level + 1 })
+                              .Column<Person>(p => new { p.Name, p.ParentId })
+                              .From<Person>()
+                              .InnerJoin<Person, RecursivePerson>((p, rp) => p.Id == rp.ParentId)))
+                    .Query(Select.Star<RecursivePerson>().From<RecursivePerson>());
+            var result = expr.ToSqlExpression();
+
+            var expected =
+                S.SelectNode(
+                    S.With(
+                        S.TableDef<RecursivePerson>(
+                            S.UnionAll(
+                                S.PlainSelect(
+                                    S.Select(
+                                        S.AliasedCol(S.Const(0), "Level"),
+                                        S.Col<Person>("Name"),
+                                        S.Col<Person>("ParentId")),
+                                    S.From<Person>(),
+                                    S.Where(
+                                        S.BinExp(S.Col<Person>("Name"), BinaryOperation.Equal, S.Const("'Kalle'")))),
+                                S.PlainSelect(
+                                    S.Select(
+                                        S.Col<Person>("Name"),
+                                        S.Col<Person>("ParentId"), 
+                                        S.AliasedCol(S.BinExp(S.Col<RecursivePerson>("Level"), BinaryOperation.Add, S.Const(1)), "Level")),
+                                    S.From<Person>(
+                                        S.Join<Person, RecursivePerson>(
+                                            Stream.JoinType.InnerJoin,
+                                            S.BinExp(S.Col<Person>("Id"), BinaryOperation.Equal, S.Col<RecursivePerson>("ParentId")))))))),
+                    S.PlainSelect(
+                        S.Select(S.Star<RecursivePerson>()),
+                        S.From<RecursivePerson>()));
+
+            Assert.Equal(expected, result);
+        }
     }
 }

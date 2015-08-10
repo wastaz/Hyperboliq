@@ -6,6 +6,10 @@ module ExpressionVisitor =
     open System.Linq
     open System.Linq.Expressions
 
+    type ExpressionVisitorConfig = {
+        IsUpdate : bool
+    }
+
     let ToBinaryOperation et =
         match et with
         | ExpressionType.Equal -> Equal
@@ -68,9 +72,9 @@ module ExpressionVisitor =
         | :? ExpressionParameter as p -> ValueNode.Parameter(ParameterToken(p.Name))
         | _ -> failwith "Not implemented"
 
-    let VisitMemberAccess (exp : MemberExpression) (context : EvaluationContext) : ValueNode =
+    let VisitMemberAccess (cfg : ExpressionVisitorConfig) (exp : MemberExpression) (context : EvaluationContext) : ValueNode =
         match exp with
-        | SqlParameterExpression (mbrName, expr) ->  VisitSqlParameter mbrName expr 
+        | SqlParameterExpression (mbrName, expr) -> VisitSqlParameter mbrName expr 
         | ParameterExpression (mbrName, mbrType, expr) -> 
             let binding = FindBinding context expr.Name
             ValueNode.Column(mbrName, mbrType, TableRef binding)
@@ -107,8 +111,8 @@ module ExpressionVisitor =
         with
             | _ -> None
 
-    let rec VisitSqlMethodCall (exp : MethodCallExpression) (context : EvaluationContext) : ValueNode = 
-        let args = VisitExpressionList <| List.ofArray (exp.Arguments.ToArray()) <| context
+    let rec VisitSqlMethodCall (cfg : ExpressionVisitorConfig) (exp : MethodCallExpression) (context : EvaluationContext) : ValueNode = 
+        let args = VisitExpressionList cfg <| List.ofArray (exp.Arguments.ToArray()) <| context
         match exp.Method.Name, args with
         | "In", ValueList([ lhs; rhs ]) -> ValueNode.BinaryExpression({ Lhs = lhs; Rhs = rhs; Operation = BinaryOperation.In })
         | "SubExpr", ValueList([ expr ]) -> expr
@@ -120,50 +124,50 @@ module ExpressionVisitor =
         | "RowNumber", ValueList(_) -> ValueNode.Aggregate(RowNumber, ValueNode.NullValue)
         | _ -> failwith "Not implemented"
 
-    and VisitMethodCall (exp : MethodCallExpression) context : ValueNode =
+    and VisitMethodCall (cfg : ExpressionVisitorConfig) (exp : MethodCallExpression) context : ValueNode =
         let VisitStringMethodCall (smc : MethodCallExpression) context =
             match smc.Method.Name with
             | "ToUpper" | "ToUpperInvariant" -> 
-                ValueNode.FunctionCall(FunctionType.Upper, [ VisitMemberAccess (smc.Object :?> MemberExpression) context ])
+                ValueNode.FunctionCall(FunctionType.Upper, [ VisitMemberAccess cfg (smc.Object :?> MemberExpression) context ])
             | "ToLower" | "ToLowerInvariant" ->
-                ValueNode.FunctionCall(FunctionType.Lower, [ VisitMemberAccess (smc.Object :?> MemberExpression) context ])
+                ValueNode.FunctionCall(FunctionType.Lower, [ VisitMemberAccess cfg (smc.Object :?> MemberExpression) context ])
             | _ -> failwith "Not implemented"
 
         match exp with
-        | x when x.Method.DeclaringType = typeof<Sql> -> VisitSqlMethodCall exp context
+        | x when x.Method.DeclaringType = typeof<Sql> -> VisitSqlMethodCall cfg exp context
         | x when x.Method.DeclaringType = typeof<System.String> -> VisitStringMethodCall x context
         | CompiledNullLambda stream -> stream
         | _ -> failwith "Not implemented"
 
         
-    and VisitUnary (exp : UnaryExpression) context =
+    and VisitUnary (cfg : ExpressionVisitorConfig) (exp : UnaryExpression) context =
         match exp with
         | x when x.NodeType = ExpressionType.Convert && typeof<ExpressionParameter>.IsAssignableFrom(x.Operand.Type) -> 
-            InternalVisit exp.Operand context
+            InternalVisit cfg exp.Operand context
         | x when x.NodeType = ExpressionType.Convert && x.Method <> null ->
             match Expression.Lambda(x).Compile().DynamicInvoke() with
             | null -> ValueNode.NullValue
             | x -> ValueNode.Constant(ConstantNode(x.ToString()))
-        | _ -> InternalVisit exp.Operand context
-        
+        | _ -> InternalVisit cfg exp.Operand context
 
-    and VisitBinary (exp : BinaryExpression) (context : EvaluationContext) : ValueNode = 
-        let lhs = InternalVisit exp.Left context 
-        let rhs = InternalVisit exp.Right context 
+    and VisitBinary cfg (exp : BinaryExpression) (context : EvaluationContext) : ValueNode = 
+        let lhs = InternalVisit cfg exp.Left context 
+        let rhs = InternalVisit cfg exp.Right context 
         let op = ToBinaryOperation exp.NodeType
         match op, lhs, rhs with
         | StringConcatenation args -> ValueNode.FunctionCall(FunctionType.Concat, args)
         | _ -> ValueNode.BinaryExpression({ Lhs = lhs; Operation = op; Rhs = rhs })
 
-    and VisitNew (exp : NewExpression) (context : EvaluationContext) : ValueNode =
+    and VisitNew cfg (exp : NewExpression) (context : EvaluationContext) : ValueNode =
         let VisitColumnReference (mbr : System.Reflection.MemberInfo) (arg : Expression) (context : EvaluationContext) : ValueNode =
-            let value = InternalVisit arg context
-            match value with
-            | ValueNode.Column(c, _, _) when c <> mbr.Name ->
+            let value = InternalVisit cfg arg context
+            match value, cfg.IsUpdate with
+            | ValueNode.Column(c, _, _), _ when c <> mbr.Name ->
                 ValueNode.NamedColumn({ Alias = mbr.Name; Column = value })
-            | ValueNode.Aggregate(_) 
-            | ValueNode.WindowedColumn(_)
-            | ValueNode.Constant(_) ->
+            | ValueNode.Aggregate(_), _
+            | ValueNode.WindowedColumn(_), _
+            | ValueNode.Constant(_), _
+            | ValueNode.BinaryExpression(_), false ->
                 ValueNode.NamedColumn({ Alias = mbr.Name; Column = value })
             | _ -> value
 
@@ -186,26 +190,26 @@ module ExpressionVisitor =
                 |> List.map (fun (mbr, arg) -> VisitColumnReference mbr arg context)
                 |> ValueNode.ValueList
 
-    and VisitExpressionList (expList : Expression list) (context : EvaluationContext) : ValueNode =
+    and VisitExpressionList (cfg : ExpressionVisitorConfig) (expList : Expression list) (context : EvaluationContext) : ValueNode =
         let HandleSingleExpression (context : EvaluationContext) (exp : Expression) : ValueNode =
             match exp with
             | :? NewArrayExpression as arrayExp -> 
-                VisitExpressionList <| List.ofArray (arrayExp.Expressions.ToArray()) <| context 
-            | _ -> InternalVisit exp context
+                VisitExpressionList cfg <| List.ofArray (arrayExp.Expressions.ToArray()) <| context 
+            | _ -> InternalVisit cfg exp context
 
         ValueNode.ValueList(List.map (HandleSingleExpression context) expList)
         
 
-    and InternalVisit (exp : Expression) context : ValueNode =
+    and InternalVisit (cfg : ExpressionVisitorConfig) (exp : Expression) context : ValueNode =
         match exp with
         | null -> ValueNode.NullValue
-        | :? LambdaExpression as x -> InternalVisit x.Body context
-        | :? NewExpression as x -> VisitNew x context
-        | :? MemberExpression as x -> VisitMemberAccess x context
-        | :? BinaryExpression as x -> VisitBinary x context
+        | :? LambdaExpression as x -> InternalVisit cfg x.Body context
+        | :? NewExpression as x -> VisitNew cfg x context
+        | :? MemberExpression as x -> VisitMemberAccess cfg x context
+        | :? BinaryExpression as x -> VisitBinary cfg x context
         | :? ConstantExpression as x -> VisitConstant x
-        | :? UnaryExpression as x -> VisitUnary x context
-        | :? MethodCallExpression as x -> VisitMethodCall x context
+        | :? UnaryExpression as x -> VisitUnary cfg x context
+        | :? MethodCallExpression as x -> VisitMethodCall cfg x context
         | _ -> failwith "Not implemented"
 
     let BindEvaluationContext (exp : LambdaExpression) (context : ITableReference seq) : EvaluationContext =
@@ -214,8 +218,11 @@ module ExpressionVisitor =
         |> Seq.zip <| context
         |> List.ofSeq
 
-    let Visit (exp : Expression) (context : ITableReference seq) : ValueNode option =
+
+    let VisitWithCustomConfig (cfg : ExpressionVisitorConfig) (exp : Expression) (context : ITableReference seq) : ValueNode option =
         match exp with
         | null -> None
-        | :? LambdaExpression as x -> BindEvaluationContext x context |> InternalVisit exp |> fun r -> Some(r)
+        | :? LambdaExpression as x -> BindEvaluationContext x context |> InternalVisit cfg exp |> fun r -> Some(r)
         | _ -> failwith "Not implemented"
+
+    let Visit exp ctx = VisitWithCustomConfig { IsUpdate = false } exp ctx

@@ -148,5 +148,57 @@ namespace Hyperboliq.Tests.SqlGeneration
 
             Assert.Equal(expected, result);
         }
+
+
+        public class RecursivePerson
+        {
+            public int Level { get; set; }
+            public string Name { get; set; }
+            public int ParentId { get; set; }
+        }
+
+        [Fact]
+        public void ItShouldBePossibleToDoARecursiveCommonTableExpression()
+        {
+            var stream =
+                S.SelectNode(
+                    S.With(
+                        S.TableDef<RecursivePerson>(
+                            S.UnionAll(
+                                S.PlainSelect(
+                                    S.Select(
+                                        S.AliasedCol(S.Const(0), "Level"),
+                                        S.Col<Person>("Name"),
+                                        S.Col<Person>("ParentId")),
+                                    S.From<Person>(),
+                                    S.Where(
+                                        S.BinExp(S.Col<Person>("Name"), BinaryOperation.Equal, S.Const("'Kalle'")))),
+                                S.PlainSelect(
+                                    S.Select(
+                                        S.AliasedCol(
+                                            S.BinExp(S.Col<RecursivePerson>("Level"), BinaryOperation.Add, S.Const(1)), "Level"),
+                                        S.Col<Person>("Name"),
+                                        S.Col<Person>("ParentId")),
+                                    S.From<Person>(
+                                        S.Join<Person, RecursivePerson>(
+                                            Stream.JoinType.InnerJoin,
+                                            S.BinExp(S.Col<Person>("Id"), BinaryOperation.Equal, S.Col<RecursivePerson>("ParentId")))))))),
+                    S.PlainSelect(
+                        S.Select(S.Star<RecursivePerson>()),
+                        S.From<RecursivePerson>()));
+            var result = SqlGen.SqlifyExpression(Dialects.AnsiSql.Dialect, stream);
+
+            var expected =
+                "WITH RecursivePerson AS (" +
+                    "SELECT 0 AS Level, PersonRef.Name, PersonRef.ParentId FROM Person PersonRef WHERE PersonRef.Name = 'Kalle' " + 
+                    "UNION ALL " +
+                    "SELECT RecursivePersonRef.Level + 1 AS Level, PersonRef.Name, PersonRef.ParentId " +
+                    "FROM Person PersonRef " +
+                    "INNER JOIN RecursivePerson RecursivePersonRef ON PersonRef.Id = RecursivePersonRef.ParentId" +
+                ") " +
+                "SELECT RecursivePersonRef.* FROM RecursivePerson RecursivePersonRef";
+
+            Assert.Equal(expected, result);
+        }
     }
 }

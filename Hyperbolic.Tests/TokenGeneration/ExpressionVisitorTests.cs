@@ -165,6 +165,24 @@ namespace Hyperboliq.Domain.Tests
         }
 
         [Fact]
+        public void ItShouldBeAbleToGenerateAliasesForBinaryExpressions()
+        {
+            Expression<Func<Person, object>> func = (Person p) => new { AgePlusTen = p.Age + 10 };
+            var tableRefs = new[]
+            {
+                Types.TableReferenceFromType<Person>(),
+            };
+            var ev = ExpressionVisitor.Visit(func, tableRefs.ToContext());
+
+            var expected =
+                ValueNode.NewValueList(
+                    ListModule.OfArray(new[] {
+                        S.AliasedCol(S.BinExp(S.Col<Person>("Age"), BinaryOperation.Add, S.Const(10)), "AgePlusTen"),
+                    })).ToOption();
+            Assert.Equal(expected, ev);
+        }
+
+        [Fact]
         public void ItShouldNotGenerateAliasColumnsForColumnsBeingAliasedToItsOrdinaryName()
         {
             Expression<Func<Person, object>> func = (Person p) => new { Name = p.Name, Age = p.Age };

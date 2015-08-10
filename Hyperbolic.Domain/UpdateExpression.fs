@@ -67,7 +67,7 @@ module UpdateExpressionPart =
 
     let AddValueExpression head colSelector valueSelector =
         let cols = ColumnsByName head.Table colSelector
-        let values = ExpressionVisitor.Visit valueSelector [ head.Table ]
+        let values = ExpressionVisitor.VisitWithCustomConfig { IsUpdate = true } valueSelector [ head.Table ]
         match values with
         | None -> head
         | Some(ValueList(valueList)) ->
