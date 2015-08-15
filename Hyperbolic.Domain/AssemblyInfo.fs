@@ -40,5 +40,6 @@ by using the '*' as shown below:
 [<assembly: InternalsVisibleTo("Hyperboliq.Ansi")>]
 [<assembly: InternalsVisibleTo("Hyperboliq.Tests")>]
 [<assembly: InternalsVisibleToAttribute("Hyperboliq.Migration.Tests")>]
+[<assembly: InternalsVisibleTo("Hyperboliq.Tests.FSharp")>]
 do
     ()

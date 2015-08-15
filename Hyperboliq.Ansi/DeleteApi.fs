@@ -7,6 +7,7 @@ open Hyperboliq.Types
 open Hyperboliq.Domain.AST
 open Hyperboliq.Domain.SqlGen
 open Hyperboliq.Domain.ExpressionParts
+open Hyperboliq.Domain.ExpressionVisitor
 
 type FluentDeleteBase(expr : DeleteExpression) =
     member x.Expression with internal get() = expr
@@ -24,17 +25,17 @@ type DeleteWhere internal (expr : DeleteExpression) =
     let New expr = DeleteWhere(expr)
 
     member x.And<'a>(predicate : Expression<Func<'a, bool>>) =
-        { expr with Where = Some(AddOrCreateWhereAndClause expr.Where predicate [| TableReferenceFromType<'a> |]) }
+        { expr with Where = Some(AddOrCreateWhereAndClause expr.Where (LinqExpression(predicate)) [| TableReferenceFromType<'a> |]) }
         |> New
     member x.And<'a, 'b>(predicate : Expression<Func<'a, 'b, bool>>) =
-        { expr with Where = Some(AddOrCreateWhereAndClause expr.Where predicate [| TableReferenceFromType<'a>; TableReferenceFromType<'b> |]) }
+        { expr with Where = Some(AddOrCreateWhereAndClause expr.Where (LinqExpression(predicate)) [| TableReferenceFromType<'a>; TableReferenceFromType<'b> |]) }
         |> New
 
     member x.Or<'a>(predicate : Expression<Func<'a, bool>>) =
-        { expr with Where = Some(AddOrCreateWhereOrClause expr.Where predicate [| TableReferenceFromType<'a> |]) }
+        { expr with Where = Some(AddOrCreateWhereOrClause expr.Where (LinqExpression(predicate)) [| TableReferenceFromType<'a> |]) }
         |> New
     member x.Or<'a, 'b>(predicate : Expression<Func<'a, 'b, bool>>) =
-        { expr with Where = Some(AddOrCreateWhereOrClause expr.Where predicate [| TableReferenceFromType<'a>; TableReferenceFromType<'b> |]) }
+        { expr with Where = Some(AddOrCreateWhereOrClause expr.Where (LinqExpression(predicate)) [| TableReferenceFromType<'a>; TableReferenceFromType<'b> |]) }
         |> New
 
 

@@ -8,6 +8,7 @@ open Hyperboliq.Types
 open Hyperboliq.Domain.AST
 open Hyperboliq.Domain.ExpressionParts
 open Hyperboliq.Domain.SqlGen
+open Hyperboliq.Domain.ExpressionVisitor
 
 [<AbstractClass>]
 type FluentSelectBase(expr : SelectExpressionToken) =
@@ -36,7 +37,7 @@ type SelectOrderBy internal (expr : SelectExpressionToken) =
     member private x.InternalThenBy<'a>(selector : Expression<Func<'a, obj>>, ?direction : Direction, ?nullsOrdering : NullsOrdering) =
         let dir = defaultArg direction Direction.Ascending
         let nullsOrder = defaultArg nullsOrdering NullsOrdering.NullsUndefined
-        { expr with OrderBy = Some(AddOrCreateOrderingClause expr.OrderBy TableReferenceFromType<'a> dir nullsOrder selector) }
+        { expr with OrderBy = Some(AddOrCreateOrderingClause expr.OrderBy TableReferenceFromType<'a> dir nullsOrder (LinqExpression(selector))) }
 
     member x.ThenBy<'a>(selector : Expression<Func<'a, obj>>) = 
         x.InternalThenBy(selector) |> New
@@ -50,19 +51,19 @@ type SelectHaving internal  (expr : SelectExpressionToken) =
     static let New expr = SelectHaving(expr)
 
     member x.And<'a>(predicate : Expression<Func<'a, bool>>) = 
-        { expr with GroupBy = Some(AddHavingAndClause expr.GroupBy predicate [| TableReferenceFromType<'a> |])}
+        { expr with GroupBy = Some(AddHavingAndClause expr.GroupBy (LinqExpression(predicate)) [| TableReferenceFromType<'a> |])}
         |> New
 
     member x.And<'a, 'b>(predicate : Expression<Func<'a, 'b, bool>>) =
-        { expr with GroupBy = Some(AddHavingAndClause expr.GroupBy predicate [| TableReferenceFromType<'a>; TableReferenceFromType<'b> |])}
+        { expr with GroupBy = Some(AddHavingAndClause expr.GroupBy (LinqExpression(predicate)) [| TableReferenceFromType<'a>; TableReferenceFromType<'b> |])}
         |> New
 
     member x.Or<'a>(predicate : Expression<Func<'a, bool>>) =
-        { expr with GroupBy = Some(AddHavingOrClause expr.GroupBy predicate [| TableReferenceFromType<'a> |]) }
+        { expr with GroupBy = Some(AddHavingOrClause expr.GroupBy (LinqExpression(predicate)) [| TableReferenceFromType<'a> |]) }
         |> New
 
     member x.Or<'a, 'b>(predicate : Expression<Func<'a, 'b, bool>>) =
-        { expr with GroupBy = Some(AddHavingOrClause expr.GroupBy predicate [| TableReferenceFromType<'a>; TableReferenceFromType<'b> |]) }
+        { expr with GroupBy = Some(AddHavingOrClause expr.GroupBy (LinqExpression(predicate)) [| TableReferenceFromType<'a>; TableReferenceFromType<'b> |]) }
         |> New
 
     member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>) =
@@ -77,7 +78,7 @@ type SelectGroupBy internal (expr : SelectExpressionToken) =
     static let New expr = SelectGroupBy(expr)
 
     member x.ThenBy<'a>(selector : Expression<Func<'a, obj>>) =
-        { expr with GroupBy = Some(AddOrCreateGroupByClause expr.GroupBy selector [| TableReferenceFromType<'a> |])}
+        { expr with GroupBy = Some(AddOrCreateGroupByClause expr.GroupBy (LinqExpression(selector)) [| TableReferenceFromType<'a> |])}
         |> New
 
     member x.Having<'a>(predicate : Expression<Func<'a, bool>>) = SelectHaving(expr).And(predicate)
@@ -95,16 +96,16 @@ type SelectWhere internal (expr : SelectExpressionToken) =
     static let New expr = SelectWhere(expr)
 
     member x.And<'a>(predicate : Expression<Func<'a, bool>>) =
-        { expr with Where = AddOrCreateWhereAndClause expr.Where predicate [| TableReferenceFromType<'a> |] |> Some }
+        { expr with Where = AddOrCreateWhereAndClause expr.Where (LinqExpression(predicate)) [| TableReferenceFromType<'a> |] |> Some }
         |> New
     member x.And<'a, 'b>(predicate : Expression<Func<'a, 'b, bool>>) =
-        { expr with Where = AddOrCreateWhereAndClause expr.Where predicate [| TableReferenceFromType<'a>; TableReferenceFromType<'b> |] |> Some }
+        { expr with Where = AddOrCreateWhereAndClause expr.Where (LinqExpression(predicate)) [| TableReferenceFromType<'a>; TableReferenceFromType<'b> |] |> Some }
         |> New
     member x.Or<'a>(predicate : Expression<Func<'a, bool>>) =
-        { expr with Where = AddOrCreateWhereOrClause expr.Where predicate [| TableReferenceFromType<'a> |] |> Some }
+        { expr with Where = AddOrCreateWhereOrClause expr.Where (LinqExpression(predicate)) [| TableReferenceFromType<'a> |] |> Some }
         |> New
     member x.Or<'a, 'b>(predicate : Expression<Func<'a, 'b, bool>>) =
-        { expr with Where = AddOrCreateWhereOrClause expr.Where predicate [| TableReferenceFromType<'a>; TableReferenceFromType<'b> |] |> Some }
+        { expr with Where = AddOrCreateWhereOrClause expr.Where (LinqExpression(predicate)) [| TableReferenceFromType<'a>; TableReferenceFromType<'b> |] |> Some }
         |> New
 
     member x.GroupBy<'a>(selector : Expression<Func<'a, obj>>) =
@@ -127,37 +128,37 @@ type Join internal (expr : SelectExpressionToken) =
     let Join3 joinType src1 src2 tgt predicate = JoinWithArray joinType [| src1; src2 |] tgt predicate
 
     member x.InnerJoin<'src, 'tgt>(predicate : Expression<Func<'src, 'tgt, bool>>) =
-        Join2 JoinType.InnerJoin (TableIdentifier<'src>()) (TableIdentifier<'tgt>()) predicate
+        Join2 JoinType.InnerJoin (TableIdentifier<'src>()) (TableIdentifier<'tgt>()) (LinqExpression(predicate))
         |> New
     member x.InnerJoin<'src, 'tgt>(source : ITableIdentifier<'src>, target : ITableIdentifier<'tgt>, predicate : Expression<Func<'src, 'tgt, bool>>) =
-        Join2 JoinType.InnerJoin source target predicate
+        Join2 JoinType.InnerJoin source target (LinqExpression(predicate))
         |> New
     member x.InnerJoin<'src1, 'src2, 'tgt>(predicate : Expression<Func<'src1, 'src2, 'tgt, bool>>) =
-        Join3 JoinType.InnerJoin (TableIdentifier<'src1>()) (TableIdentifier<'src2>()) (TableIdentifier<'tgt>()) predicate
+        Join3 JoinType.InnerJoin (TableIdentifier<'src1>()) (TableIdentifier<'src2>()) (TableIdentifier<'tgt>()) (LinqExpression(predicate))
         |> New
     member x.InnerJoin<'src1, 'src2, 'tgt>(source1 : ITableIdentifier<'src1>, source2 : ITableIdentifier<'src2>, target : ITableIdentifier<'tgt>, predicate : Expression<Func<'src1, 'src2, 'tgt, bool>>) =
-        Join3 JoinType.InnerJoin source1 source2 target predicate
+        Join3 JoinType.InnerJoin source1 source2 target (LinqExpression(predicate))
         |> New
 
     member x.LeftJoin<'src, 'tgt>(predicate : Expression<Func<'src, 'tgt, bool>>) =
-        Join2 JoinType.LeftJoin (TableIdentifier<'src>()) (TableIdentifier<'tgt>()) predicate
+        Join2 JoinType.LeftJoin (TableIdentifier<'src>()) (TableIdentifier<'tgt>()) (LinqExpression(predicate))
         |> New
     member x.LeftJoin<'src1, 'src2, 'tgt>(predicate : Expression<Func<'src1, 'src2, 'tgt, bool>>) =
-        Join3 JoinType.LeftJoin (TableIdentifier<'src1>()) (TableIdentifier<'src2>()) (TableIdentifier<'tgt>()) predicate
+        Join3 JoinType.LeftJoin (TableIdentifier<'src1>()) (TableIdentifier<'src2>()) (TableIdentifier<'tgt>()) (LinqExpression(predicate))
         |> New
 
     member x.RightJoin<'src, 'tgt>(predicate : Expression<Func<'src, 'tgt, bool>>) =
-        Join2 JoinType.RightJoin (TableIdentifier<'src>()) (TableIdentifier<'tgt>()) predicate
+        Join2 JoinType.RightJoin (TableIdentifier<'src>()) (TableIdentifier<'tgt>()) (LinqExpression(predicate))
         |> New
     member x.RightJoin<'src1, 'src2, 'tgt>(predicate : Expression<Func<'src1, 'src2, 'tgt, bool>>) =
-        Join3 JoinType.RightJoin (TableIdentifier<'src1>()) (TableIdentifier<'src2>()) (TableIdentifier<'tgt>()) predicate
+        Join3 JoinType.RightJoin (TableIdentifier<'src1>()) (TableIdentifier<'src2>()) (TableIdentifier<'tgt>()) (LinqExpression(predicate))
         |> New
 
     member x.FullJoin<'src, 'tgt>(predicate : Expression<Func<'src, 'tgt, bool>>) =
-        Join2 JoinType.FullJoin (TableIdentifier<'src>()) (TableIdentifier<'tgt>()) predicate
+        Join2 JoinType.FullJoin (TableIdentifier<'src>()) (TableIdentifier<'tgt>()) (LinqExpression(predicate))
         |> New
     member x.FullJoin<'src1, 'src2, 'tgt>(predicate : Expression<Func<'src1, 'src2, 'tgt, bool>>) =
-        Join3 JoinType.FullJoin (TableIdentifier<'src1>()) (TableIdentifier<'src2>()) (TableIdentifier<'tgt>()) predicate
+        Join3 JoinType.FullJoin (TableIdentifier<'src1>()) (TableIdentifier<'src2>()) (TableIdentifier<'tgt>()) (LinqExpression(predicate))
         |> New
 
     member x.Where<'a>(predicate : Expression<Func<'a, bool>>) = SelectWhere(expr).And(predicate)
@@ -221,9 +222,9 @@ type SelectImpl internal (expr : SelectValuesExpressionNode) =
         SelectImpl(SelectAllColumns expr (TableIdentifier<'a>()))
 
     member x.Column<'a>(tbl : ITableIdentifier<'a>, selector : Expression<Func<'a, obj>>) = 
-        SelectImpl(SelectColumns expr selector tbl)
+        SelectImpl(SelectColumns expr (LinqExpression(selector)) tbl)
     member x.Column<'a>(selector : Expression<Func<'a, obj>>, partition : FluentOverPartitionBase) = 
-        SelectImpl(SelectColumnWithPartition expr selector (TableIdentifier<'a>()) partition.Partition)
+        SelectImpl(SelectColumnWithPartition expr (LinqExpression(selector)) (TableIdentifier<'a>()) partition.Partition)
 
     member x.Column<'a>(selector : Expression<Func<'a, obj>>) = x.Column(TableIdentifier<'a>(), selector)
 

@@ -13,6 +13,11 @@ type ISqlQuery =
 type ISqlStatement =
     inherit ISqlTransformable
 
+    
+type ExpressionVisitorConfig = {
+    IsUpdate : bool
+}
+
 type ExpressionParameter(name : string) =
     member val internal Value = None with get, set
     member x.Name = name

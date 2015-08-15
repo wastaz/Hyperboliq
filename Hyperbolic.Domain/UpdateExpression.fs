@@ -2,6 +2,7 @@
 
 module UpdateExpressionPart =
     open AST
+    open ExpressionVisitor
 
     let NewUpdateExpression tbl =
         { 
@@ -61,9 +62,9 @@ module UpdateExpressionPart =
 
     let AddObjectSetExpression<'a, 'b> expr (colSelector : System.Linq.Expressions.Expression<System.Func<'a, 'b>>) (objVal : 'b) =
         if(typeof<'b>.IsValueType || typeof<'b> = typeof<System.String>) then
-            AddSingleValueSetExpression expr colSelector objVal
+            AddSingleValueSetExpression expr <| LinqExpression(colSelector) <| objVal
         else
-            AddMultipleValueSetExpression expr colSelector objVal
+            AddMultipleValueSetExpression expr <| LinqExpression(colSelector) <| objVal
 
     let AddValueExpression head colSelector valueSelector =
         let cols = ColumnsByName head.Table colSelector

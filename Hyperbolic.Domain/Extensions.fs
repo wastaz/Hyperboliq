@@ -20,3 +20,7 @@ module Option =
         match o with
         | null -> None
         | _ -> Some o
+
+module String =
+    let join sep (strs : string list) =
+        System.String.Join(sep, (List.toArray strs))

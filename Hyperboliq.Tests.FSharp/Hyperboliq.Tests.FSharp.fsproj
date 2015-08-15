@@ -5,14 +5,14 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>904f54e2-f3da-492c-8758-6b7122f4debc</ProjectGuid>
+    <ProjectGuid>f229a32f-2b67-4014-b647-50f5a10a69f0</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Hyperboliq.Migration.Tests</RootNamespace>
-    <AssemblyName>Hyperboliq.Migration.Tests</AssemblyName>
+    <RootNamespace>Hyperboliq.Tests.FSharp</RootNamespace>
+    <AssemblyName>Hyperboliq.Tests.FSharp</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <Name>Hyperboliq.Migration.Tests</Name>
+    <Name>Hyperboliq.Tests.FSharp</Name>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -23,7 +23,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Debug\Hyperboliq.Migration.Tests.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\Hyperboliq.Tests.FSharp.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -32,7 +32,7 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Release\Hyperboliq.Migration.Tests.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\Hyperboliq.Tests.FSharp.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
@@ -52,8 +52,8 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="TestModel.fs" />
-    <Compile Include="SimpleSelectTests.fs" />
+    <Compile Include="TokenGeneration_SimpleSelectTests.fs" />
+    <Compile Include="TokenGeneration_ExpressionVisitorTests.fs" />
     <Content Include="packages.config" />
     <Content Include="app.config" />
   </ItemGroup>

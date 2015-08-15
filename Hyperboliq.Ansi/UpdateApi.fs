@@ -8,15 +8,16 @@ open Hyperboliq.Domain.AST
 open Hyperboliq.Domain.ExpressionParts
 open Hyperboliq.Domain.UpdateExpressionPart
 open Hyperboliq.Domain.SqlGen
+open Hyperboliq.Domain.ExpressionVisitor
 
 type UpdateWhere<'a> internal (expr : UpdateExpression) =
     static let New expr = UpdateWhere<'a>(expr)
 
     member x.And(predicate : Expression<Func<'a, bool>>) =
-        { expr with Where = Some(AddOrCreateWhereAndClause expr.Where predicate [| TableReferenceFromType<'a> |]) }
+        { expr with Where = Some(AddOrCreateWhereAndClause expr.Where (LinqExpression(predicate)) [| TableReferenceFromType<'a> |]) }
         |> New
     member x.Or(predicate : Expression<Func<'a, bool>>) =
-        { expr with Where = Some(AddOrCreateWhereOrClause expr.Where predicate [| TableReferenceFromType<'a> |]) }
+        { expr with Where = Some(AddOrCreateWhereOrClause expr.Where (LinqExpression(predicate)) [| TableReferenceFromType<'a> |]) }
         |> New
 
     member x.ToSqlExpression () = (x :> ISqlExpressionTransformable).ToSqlExpression ()
@@ -37,11 +38,11 @@ type UpdateSet<'a> internal (expr : UpdateExpression) =
         |> New
 
     member x.Set<'b>(selector : Expression<Func<'a, 'b>>, valueUpdate : Expression<Func<'a, 'b>>) =
-        { expr with UpdateSet = (AddValueExpression expr.UpdateSet selector valueUpdate)}
+        { expr with UpdateSet = (AddValueExpression expr.UpdateSet (LinqExpression(selector)) (LinqExpression(valueUpdate))) }
         |> New
 
     member x.Set<'b>(selector : Expression<Func<'a, 'b>>, selectExpr : SelectExpression) = 
-        { expr with UpdateSet = (AddSingleValueSetExpression expr.UpdateSet selector selectExpr) }
+        { expr with UpdateSet = (AddSingleValueSetExpression expr.UpdateSet (LinqExpression(selector)) selectExpr) }
         |> New
 
     member x.Set<'b>(selector : Expression<Func<'a, 'b>>, selectExpr : ISelectExpressionTransformable) =

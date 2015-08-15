@@ -1,4 +1,4 @@
-﻿namespace Hyperboliq.Migration.Tests.AssemblyInfo
+﻿namespace Hyperboliq.Tests.FSharp.AssemblyInfo
 
 open System.Reflection
 open System.Runtime.CompilerServices
@@ -7,11 +7,11 @@ open System.Runtime.InteropServices
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[<assembly: AssemblyTitle("Hyperboliq.Migration.Tests")>]
+[<assembly: AssemblyTitle("Hyperboliq.Tests.FSharp")>]
 [<assembly: AssemblyDescription("")>]
 [<assembly: AssemblyConfiguration("")>]
 [<assembly: AssemblyCompany("")>]
-[<assembly: AssemblyProduct("Hyperboliq.Migration.Tests")>]
+[<assembly: AssemblyProduct("Hyperboliq.Tests.FSharp")>]
 [<assembly: AssemblyCopyright("Copyright ©  2015")>]
 [<assembly: AssemblyTrademark("")>]
 [<assembly: AssemblyCulture("")>]
@@ -22,7 +22,7 @@ open System.Runtime.InteropServices
 [<assembly: ComVisible(false)>]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[<assembly: Guid("904f54e2-f3da-492c-8758-6b7122f4debc")>]
+[<assembly: Guid("f229a32f-2b67-4014-b647-50f5a10a69f0")>]
 
 // Version information for an assembly consists of the following four values:
 // 

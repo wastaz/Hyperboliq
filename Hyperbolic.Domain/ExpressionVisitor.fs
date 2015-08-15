@@ -1,14 +1,10 @@
 ﻿namespace Hyperboliq.Domain
 
-module ExpressionVisitor =
+module internal LinqExpressionVisitor =
     open Hyperboliq
     open AST
     open System.Linq
     open System.Linq.Expressions
-
-    type ExpressionVisitorConfig = {
-        IsUpdate : bool
-    }
 
     let ToBinaryOperation et =
         match et with
@@ -226,3 +222,149 @@ module ExpressionVisitor =
         | _ -> failwith "Not implemented"
 
     let Visit exp ctx = VisitWithCustomConfig { IsUpdate = false } exp ctx
+
+module internal QuotationVisitor =
+    open Hyperboliq
+    open Hyperboliq.Domain.AST
+    open Microsoft.FSharp.Quotations
+    open Microsoft.FSharp.Quotations.Patterns
+
+    type PropertyGetExpression = Expr option * System.Reflection.PropertyInfo * Expr list
+    type LetExpression = Var * Expr * Expr
+
+    type ParameterBinding = string * ITableReference
+    type LetBinding = string * ParameterBinding
+
+    type EvaluationBinding =
+    | ParamBinding of ParameterBinding
+    | LetBinding of LetBinding
+
+    type EvaluationContext = EvaluationBinding list
+
+    let ParamName (binding : EvaluationBinding) = 
+        match binding with
+        | ParamBinding(p) -> fst p
+        | LetBinding(l) -> fst l
+
+    let rec TableRef (binding : EvaluationBinding) = 
+        match binding with
+        | ParamBinding(p) -> snd p
+        | LetBinding(l) -> snd l |> ParamBinding |> TableRef
+
+    let FindBinding ctx paramName =
+        Seq.find (fun b -> (ParamName b) = paramName) ctx
+
+    let BindEvaluationContext (parameters : string list) (context : ITableReference seq) : EvaluationContext =
+        parameters
+        |> Seq.zip <| context
+        |> Seq.map ParamBinding
+        |> List.ofSeq
+
+    let RecursiveCollect (selector : Expr -> ('a * Expr) option) (exp : Expr) : 'a list * Expr =
+        let rec InternalRecursiveCollect exp res =
+            let selectorResult = selector exp
+            match selectorResult with
+            | Some(current, body) ->
+                InternalRecursiveCollect body (current :: (fst res), body)
+            | None ->
+                fst res
+                |> List.rev
+                |> fun l -> l, (snd res)
+        InternalRecursiveCollect exp ([], exp)
+
+    let CollectLet (exp : Expr) : (Var * Expr) list * Expr =
+        let selector e =
+            match e with
+            | Let(var, body, expr) -> Some((var, body), expr)
+            | _ -> None
+        RecursiveCollect selector exp
+
+    let CollectParameters (exp : Expr) : string list * Expr =
+        let paramSelector e =
+            match e with
+            | Lambda(p, b) -> Some(p.Name, b)
+            | _ -> None
+        RecursiveCollect paramSelector exp
+
+    let rec VisitProperty (context : EvaluationContext) ((obj, property, l) : PropertyGetExpression) =
+        match obj with
+        | Some(Var(x)) -> 
+            let binding = FindBinding context x.Name
+            match binding with
+            | ParamBinding(_) -> 
+                ValueNode.Column(property.Name, property.DeclaringType, TableRef binding)
+            | LetBinding(lb) ->
+                ValueNode.NamedColumn(
+                    { Alias = fst lb
+                      Column = ValueNode.Column(property.Name, property.DeclaringType, TableRef binding)
+                    })
+        | _ -> failwith "Huh?"
+
+    and VisitNewTuple (context : EvaluationContext) (expressions : Expr list) =
+        expressions
+        |> List.map (VisitQuotation context)
+        |> ValueNode.ValueList
+
+    and VisitLet (context : EvaluationContext) ((var, body, expr) : LetExpression) =
+        match body with
+        | PropertyGet(Some(Var(x)), prop, _) ->
+            let binding = FindBinding context x.Name
+            let tref = TableRef binding
+            LetBinding(var.Name, (prop.Name, tref)) :: context
+            |> fun ctx -> VisitQuotation ctx expr
+        | NewTuple(exprs) -> 
+            let cols = 
+                exprs
+                |> List.map (VisitQuotation context)
+                |> List.choose (function ValueNode.Column(c) -> Some(c) | _ -> None)
+            let (tupleBindings, next) = CollectLet expr
+            let newContext =
+                List.zip cols tupleBindings
+                |> List.map (fun ((colName, _, tref), (var, _)) -> LetBinding(var.Name, (colName, tref)))
+                |> fun l -> List.concat [ l; context ]
+            VisitQuotation newContext next
+        | _ -> failwith "Not implemented"
+    
+    and VisitVar (context : EvaluationContext) (v : Var) =
+        let binding = FindBinding context v.Name
+        match binding with
+        | ParamBinding(n, t) -> ValueNode.Column(n, t.Table, t)
+        | LetBinding(n, (pn, pt)) -> ValueNode.NamedColumn({ Alias = n; Column = ValueNode.Column(pn, pt.Table, pt) })
+
+    and VisitQuotation (context : EvaluationContext) (exp : Expr) =
+        match exp with
+        | Lambda(_, body) -> VisitQuotation context body 
+        | Let(ln) -> VisitLet context ln
+        | PropertyGet(pge) -> VisitProperty context pge
+        | NewTuple(exprs) -> VisitNewTuple context exprs
+        | Var(v) -> VisitVar context v
+        | _ -> failwith "Not implemented"
+
+    let Visit (exp : Expr) (context : ITableReference seq) : ValueNode option =
+        match exp with
+        | Lambda(_) -> 
+            let (parameters, body) = CollectParameters exp
+            let evaluationContext = BindEvaluationContext parameters context
+            VisitQuotation evaluationContext body |> Some
+        | _ -> failwith "Not implemented"
+
+
+module ExpressionVisitor =
+    open Hyperboliq
+    
+
+    type VisitableExpression = 
+    | LinqExpression of System.Linq.Expressions.Expression
+    | Quotation of Quotations.Expr
+
+    type ExpressionContext = ITableReference seq
+
+    let Visit exp ctx =
+        match exp with
+        | LinqExpression(linqExpression) -> LinqExpressionVisitor.Visit linqExpression ctx
+        | Quotation(quotation) -> QuotationVisitor.Visit quotation ctx
+       
+    let VisitWithCustomConfig cfg exp ctx =
+        match exp with
+        | LinqExpression(linqExpression) -> LinqExpressionVisitor.VisitWithCustomConfig cfg linqExpression ctx
+        | _ -> failwith "Not implemented"
