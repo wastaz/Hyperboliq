@@ -64,3 +64,14 @@ module TokenGeneration_ExpressionVisitorTests =
                   ValueNode.NamedColumn({ Alias = "old"; Column = ValueNode.Column("Age", typeof<Person>, Types.TableReferenceFromType<Person> :> ITableReference)})
                 ]) |> Some
         result |> should equal expected
+
+    [<Test>]
+    let ``It should be able to generate aliases for constants`` () =
+        let expr = <@@ fun (p : Person) -> let numberOfMonkeys = 42 in (p.Name, numberOfMonkeys) @@>
+        let result = ExpressionVisitor.Visit (Quotation(expr)) [ Types.TableReferenceFromType<Person> ]
+        let expected =
+            ValueNode.ValueList(
+                [ ValueNode.Column("Name", typeof<Person>, Types.TableReferenceFromType<Person> :> ITableReference)
+                  ValueNode.NamedColumn({ Alias = "numberOfMonkeys"; Column = ValueNode.Constant(ConstantNode("42")) })
+                ]) |> Some
+        result |> should equal expected
