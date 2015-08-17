@@ -24,3 +24,6 @@ module Option =
 module String =
     let join sep (strs : string list) =
         System.String.Join(sep, (List.toArray strs))
+
+    let indexOf (str : string) (c : char) =
+        str.IndexOf(c)

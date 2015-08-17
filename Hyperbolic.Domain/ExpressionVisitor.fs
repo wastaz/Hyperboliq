@@ -232,39 +232,27 @@ module internal QuotationVisitor =
     type PropertyGetExpression = Expr option * System.Reflection.PropertyInfo * Expr list
     type LetExpression = Var * Expr * Expr
 
-    type ParameterBinding = { 
-        Name : string
-        Table : ITableReference
-        PropertyName : string option
-    }
-    type ConstantBinding = string * string
-    type LetBinding = string * EvaluationBinding
-    and EvaluationBinding =
-    | Constant of ConstantBinding
-    | ParamBinding of ParameterBinding
-    | LetBinding of LetBinding
+    type BindingValue =
+    | Constant of value : string
+    | Parameter of table : ITableReference
+    | TableValue of propertyName : string * table : ITableReference
 
-    type EvaluationContext = EvaluationBinding list
+    type Binding = string * BindingValue
 
-    let ParamName (binding : EvaluationBinding) = 
-        match binding with
-        | Constant(n, _)
-        | ParamBinding(n, _)
-        | LetBinding(n, _) -> n
-
-    let rec TableRef (binding : EvaluationBinding) = 
-        match binding with
-        | Constant(_) -> None
-        | ParamBinding(_, tr) -> Some(tr)
-        | LetBinding(_, binding) -> binding |> TableRef
-
-    let FindBinding ctx paramName =
-        Seq.find (fun b -> (ParamName b) = paramName) ctx
+    type EvaluationContext = Binding list
+    
+    let MatchesBindingName (str : string) ((name, _) : Binding) = str = name
+    let FindBinding ctx paramName = Seq.find (MatchesBindingName paramName) ctx
+    let FindPropertyBinding ctx objName propName = 
+        FindBinding ctx objName
+        |> function 
+            | (_, Parameter(table)) -> propName, TableValue(propName, table)
+            | _ -> failwith ("No binding found for: " + objName)
 
     let BindEvaluationContext (parameters : string list) (context : ITableReference seq) : EvaluationContext =
         parameters
         |> Seq.zip <| context
-        |> Seq.map ParamBinding
+        |> Seq.map (fun (p, tr) -> p, Parameter(tr))
         |> List.ofSeq
 
     let RecursiveCollect (selector : Expr -> ('a * Expr) option) (exp : Expr) : 'a list * Expr =
@@ -293,21 +281,18 @@ module internal QuotationVisitor =
             | _ -> None
         RecursiveCollect paramSelector exp
 
-    let rec BindingToValueNode (context : EvaluationContext) (binding : EvaluationBinding) =
+    let rec BindingToValueNode (context : EvaluationContext) (binding : Binding) =
         match binding with
-        | Constant(_, value) -> ValueNode.Constant(ConstantNode(value))
-        | ParamBinding(name, tref) -> ValueNode.Column(name, tref.Table, tref)
-        | LetBinding(name, innerBinding) -> ValueNode.NamedColumn({ Alias = name; Column = (BindingToValueNode context innerBinding) })
+        | name, Constant(value) -> ValueNode.NamedColumn({ Alias = name; Column = ValueNode.Constant(ConstantNode(value)) })
+        | name, TableValue(pn, tbl) when name = pn -> ValueNode.Column(pn, tbl.Table, tbl)
+        | name, TableValue(pn, tbl) -> ValueNode.NamedColumn({ Alias = name; Column = ValueNode.Column(pn, tbl.Table, tbl) })
+        | _ -> failwith "Cannot transform binding to valuenode"
 
     let VisitProperty (context : EvaluationContext) ((obj, property, l) : PropertyGetExpression) =
         match obj with
         | Some(Var(x)) -> 
-            let vn = 
-                FindBinding context x.Name 
-                |> BindingToValueNode context
-            match vn with
-            | ValueNode.Column(_, tbl, tref) -> ValueNode.Column(property.Name, tbl, tref)
-            | _  -> vn
+            FindPropertyBinding context x.Name property.Name
+            |> BindingToValueNode context
         | _ -> failwith "Huh?"
 
     let rec VisitNewTuple (context : EvaluationContext) (expressions : Expr list) =
@@ -318,24 +303,25 @@ module internal QuotationVisitor =
     and VisitLet (context : EvaluationContext) ((var, body, expr) : LetExpression) =
         match body with
         | PropertyGet(Some(Var(x)), prop, _) ->
-            let binding = FindBinding context x.Name
-            LetBinding(var.Name, binding) :: context
-            |> fun ctx -> VisitQuotation ctx expr
+            let _, binding = FindPropertyBinding context x.Name prop.Name
+            (var.Name, binding) :: context |> fun ctx -> VisitQuotation ctx expr
         | NewTuple(exprs) -> 
-            let cols = 
+            let values = 
                 exprs
                 |> List.map (VisitQuotation context)
-                |> List.choose (function ValueNode.Column(c) -> Some(c) | _ -> None)
+                |> List.choose (function 
+                    | ValueNode.Column(name, _, tref) -> Some(TableValue(name, tref))
+                    | ValueNode.Constant(ConstantNode(c)) -> Some(Constant(c))
+                    | _ -> None)
             let (tupleBindings, next) = CollectLet expr
             let newContext =
-                List.zip cols tupleBindings
-                |> List.map (fun ((colName, _, tref), (var, _)) -> LetBinding(var.Name, (FindBinding context var.Name)))
+                List.zip values tupleBindings
+                |> List.map (fun (b, (var, _)) -> var.Name, b)
                 |> fun l -> List.concat [ l; context ]
             VisitQuotation newContext next
-        | Value(value) -> failwith "Not implemented"
-            //let newContext =
-            //    LetBinding(var.Name, ())
-            //VisitQuotation
+        | Value(value, _) -> 
+            (var.Name, Constant(value.ToString())) :: context 
+            |> fun ctx -> VisitQuotation ctx expr
         | _ -> failwith "Not implemented"
     
     and VisitVar (context : EvaluationContext) (v : Var) =
