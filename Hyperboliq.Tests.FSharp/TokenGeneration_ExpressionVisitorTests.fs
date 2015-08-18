@@ -76,6 +76,18 @@ module TokenGeneration_ExpressionVisitorTests =
                 ]) |> Some
         result |> should equal expected
 
+    [<Test>]
+    let ``It should be able to select a value from another variable in scope`` () =
+        let foo = 42
+        let expr = <@@ fun (p : Person) -> let magicNumber = foo in (p.Name, magicNumber) @@>
+        let result = ExpressionVisitor.Visit (Quotation(expr)) [ Types.TableReferenceFromType<Person> ]
+        let expected = 
+            ValueNode.ValueList(
+                [ ValueNode.Column("Name", typeof<Person>, Types.TableReferenceFromType<Person> :> ITableReference)
+                  ValueNode.NamedColumn({ Alias = "magicNumber"; Column = ValueNode.Constant(ConstantNode("42")) })
+                ]) |> Some
+        result |> should equal expected
+
     type SillyTestType = {
         Foo : int
         Bar : string
@@ -93,3 +105,14 @@ module TokenGeneration_ExpressionVisitorTests =
                 ]) |> Some
         result |> should equal expected
 
+    [<Test>]
+    let ``It should be able to visit a binary expression`` () =
+        let expr = <@@ fun (p : Person) -> p.Name = "Kalle" @@>
+        let result = ExpressionVisitor.Visit (Quotation(expr)) [ Types.TableReferenceFromType<Person> ]
+        let expected =
+            ValueNode.BinaryExpression(
+                { Operation = BinaryOperation.Equal
+                  Lhs = ValueNode.Column("Name", typeof<Person>, Types.TableReferenceFromType<Person> :> ITableReference)
+                  Rhs = ValueNode.Constant(ConstantNode("'Kalle'")) 
+                }) |> Some
+        result |> should equal expected

@@ -231,6 +231,8 @@ module internal QuotationVisitor =
 
     type PropertyGetExpression = Expr option * System.Reflection.PropertyInfo * Expr list
     type LetExpression = Var * Expr * Expr
+    type CallInfo = Expr option * System.Reflection.MethodInfo * Expr list
+    type ValueInfo = obj * System.Type
 
     type BindingValue =
     | Constant of value : string
@@ -287,7 +289,16 @@ module internal QuotationVisitor =
         | name, TableValue(pn, tbl) when name = pn -> ValueNode.Column(pn, tbl.Table, tbl)
         | name, TableValue(pn, tbl) -> ValueNode.NamedColumn({ Alias = name; Column = ValueNode.Column(pn, tbl.Table, tbl) })
         | _ -> failwith "Cannot transform binding to valuenode"
+        
+    let VisitVar (context : EvaluationContext) (v : Var) =
+        FindBinding context v.Name |> BindingToValueNode context
 
+    let VisitValue (context : EvaluationContext) ((v, t) : ValueInfo) =
+        v.ToString()
+        |> sprintf (if t = typeof<string> then "'%s'" else "%s")
+        |> ConstantNode
+        |> ValueNode.Constant
+        
     let VisitProperty (context : EvaluationContext) ((obj, property, l) : PropertyGetExpression) =
         match obj with
         | Some(Var(x)) -> 
@@ -327,8 +338,15 @@ module internal QuotationVisitor =
             |> fun ctx -> VisitQuotation ctx expr
         | _ -> failwith "Not implemented"
     
-    and VisitVar (context : EvaluationContext) (v : Var) =
-        FindBinding context v.Name |> BindingToValueNode context
+    and VisitCall (context : EvaluationContext) ((exprOpt, methodInfo, exprList) : CallInfo) =
+        match exprOpt, methodInfo, exprList with
+        | None, op_Equal, lhs :: rhs :: [] -> 
+            ValueNode.BinaryExpression(
+                { Operation = BinaryOperation.Equal
+                  Lhs = VisitQuotation context lhs
+                  Rhs = VisitQuotation context rhs
+                })
+        | _ -> failwith "Not implemented"
 
     and VisitQuotation (context : EvaluationContext) (exp : Expr) =
         match exp with
@@ -336,7 +354,9 @@ module internal QuotationVisitor =
         | Let(ln) -> VisitLet context ln
         | PropertyGet(pge) -> VisitProperty context pge
         | NewTuple(exprs) -> VisitNewTuple context exprs
+        | Call(callInfo) -> VisitCall context callInfo
         | Var(v) -> VisitVar context v
+        | Value(v) -> VisitValue context v
         | _ -> failwith "Not implemented"
 
     let Visit (exp : Expr) (context : ITableReference seq) : ValueNode option =
