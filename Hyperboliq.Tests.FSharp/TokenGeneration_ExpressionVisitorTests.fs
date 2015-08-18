@@ -75,3 +75,21 @@ module TokenGeneration_ExpressionVisitorTests =
                   ValueNode.NamedColumn({ Alias = "numberOfMonkeys"; Column = ValueNode.Constant(ConstantNode("42")) })
                 ]) |> Some
         result |> should equal expected
+
+    type SillyTestType = {
+        Foo : int
+        Bar : string
+    }
+
+    [<Test>]
+    let ``It should be able to select a value from another object in scope`` () =
+        let foo = { Foo = 42; Bar = "Banana" }
+        let expr = <@@ fun (p : Person) -> let magicNumber = foo.Foo in (p.Name, magicNumber) @@>
+        let result = ExpressionVisitor.Visit (Quotation(expr)) [ Types.TableReferenceFromType<Person> ]
+        let expected = 
+            ValueNode.ValueList(
+                [ ValueNode.Column("Name", typeof<Person>, Types.TableReferenceFromType<Person> :> ITableReference)
+                  ValueNode.NamedColumn({ Alias = "magicNumber"; Column = ValueNode.Constant(ConstantNode("42")) })
+                ]) |> Some
+        result |> should equal expected
+

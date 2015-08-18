@@ -305,6 +305,9 @@ module internal QuotationVisitor =
         | PropertyGet(Some(Var(x)), prop, _) ->
             let _, binding = FindPropertyBinding context x.Name prop.Name
             (var.Name, binding) :: context |> fun ctx -> VisitQuotation ctx expr
+        | PropertyGet(Some(Value(x, _)), prop, _) ->
+            let value = prop.GetGetMethod().Invoke(x, [||]).ToString()
+            (var.Name, BindingValue.Constant(value)) :: context |> fun ctx -> VisitQuotation ctx expr
         | NewTuple(exprs) -> 
             let values = 
                 exprs
