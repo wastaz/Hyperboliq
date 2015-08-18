@@ -306,6 +306,17 @@ module internal QuotationVisitor =
             |> BindingToValueNode context
         | _ -> failwith "Huh?"
 
+    let (|BinaryExpressionCall|_|) (methodInfo : System.Reflection.MethodInfo) =
+        match methodInfo.Name with
+        | "op_Equality" -> Some(BinaryOperation.Equal)
+        | "op_Inequality" -> Some(BinaryOperation.NotEqual)
+        | "op_GreaterThan" -> Some(BinaryOperation.GreaterThan)
+        | "op_GreaterThanOrEqual" -> Some(BinaryOperation.GreaterThanOrEqual)
+        | "op_LessThan" -> Some(BinaryOperation.LessThan)
+        | "op_LessThanOrEqual" -> Some(BinaryOperation.LessThanOrEqual)
+        | _ -> None
+
+
     let rec VisitNewTuple (context : EvaluationContext) (expressions : Expr list) =
         expressions
         |> List.map (VisitQuotation context)
@@ -340,9 +351,9 @@ module internal QuotationVisitor =
     
     and VisitCall (context : EvaluationContext) ((exprOpt, methodInfo, exprList) : CallInfo) =
         match exprOpt, methodInfo, exprList with
-        | None, op_Equal, lhs :: rhs :: [] -> 
+        | None, BinaryExpressionCall op, lhs :: rhs :: [] -> 
             ValueNode.BinaryExpression(
-                { Operation = BinaryOperation.Equal
+                { Operation = op
                   Lhs = VisitQuotation context lhs
                   Rhs = VisitQuotation context rhs
                 })

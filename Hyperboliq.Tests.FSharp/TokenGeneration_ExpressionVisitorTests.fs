@@ -105,14 +105,23 @@ module TokenGeneration_ExpressionVisitorTests =
                 ]) |> Some
         result |> should equal expected
 
+    let ComparisonTestCases = [
+        [| <@@ fun (p : Person) -> p.Age = 42 @@> :> obj; BinaryOperation.Equal :> obj |]
+        [| <@@ fun (p : Person) -> p.Age <> 42 @@> :> obj; BinaryOperation.NotEqual:> obj |]
+        [| <@@ fun (p : Person) -> p.Age > 42 @@> :> obj; BinaryOperation.GreaterThan :> obj |]
+        [| <@@ fun (p : Person) -> p.Age >= 42 @@> :> obj; BinaryOperation.GreaterThanOrEqual :> obj |]
+        [| <@@ fun (p : Person) -> p.Age < 42 @@> :> obj; BinaryOperation.LessThan :> obj |]
+        [| <@@ fun (p : Person) -> p.Age <= 42 @@> :> obj; BinaryOperation.LessThanOrEqual :> obj |]
+    ]
+
     [<Test>]
-    let ``It should be able to visit a binary expression`` () =
-        let expr = <@@ fun (p : Person) -> p.Name = "Kalle" @@>
+    [<TestCaseSource("ComparisonTestCases")>]
+    let ``It should be able to visit a binary comparison expression`` expr op =
         let result = ExpressionVisitor.Visit (Quotation(expr)) [ Types.TableReferenceFromType<Person> ]
-        let expected =
+        let expected = 
             ValueNode.BinaryExpression(
-                { Operation = BinaryOperation.Equal
-                  Lhs = ValueNode.Column("Name", typeof<Person>, Types.TableReferenceFromType<Person> :> ITableReference)
-                  Rhs = ValueNode.Constant(ConstantNode("'Kalle'")) 
+                { Operation = op
+                  Lhs = ValueNode.Column("Age", typeof<Person>, Types.TableReferenceFromType<Person> :> ITableReference)
+                  Rhs = ValueNode.Constant(ConstantNode("42")) 
                 }) |> Some
         result |> should equal expected
