@@ -223,10 +223,13 @@ type SelectImpl internal (expr : SelectValuesExpressionNode) =
 
     member x.Column<'a>(tbl : ITableIdentifier<'a>, selector : Expression<Func<'a, obj>>) = 
         SelectImpl(SelectColumns expr (LinqExpression(selector)) tbl)
+    member x.Column<'a, 'b>(tbl : ITableIdentifier<'a>, selector : Quotations.Expr<('a -> 'b)>) =
+        SelectImpl(SelectColumns expr (Quotation(selector)) tbl)
     member x.Column<'a>(selector : Expression<Func<'a, obj>>, partition : FluentOverPartitionBase) = 
         SelectImpl(SelectColumnWithPartition expr (LinqExpression(selector)) (TableIdentifier<'a>()) partition.Partition)
 
     member x.Column<'a>(selector : Expression<Func<'a, obj>>) = x.Column(TableIdentifier<'a>(), selector)
+    member x.Column<'a, 'b>(selector : Quotations.Expr<('a -> 'b)>) = x.Column(TableIdentifier<'a>(), selector)
 
     member x.From<'a>(tbl : ITableIdentifier<'a>) = SelectFrom<'a>(tbl, expr)
     member x.From<'a>() = x.From<'a>(TableIdentifier<'a>())
@@ -237,3 +240,4 @@ type Select private () =
     static member Column<'a>(selector : Expression<Func<'a, obj>>) = (SelectImpl()).Column<'a>(selector)
     static member Column<'a>(selector : Expression<Func<'a, obj>>, partition : FluentOverPartitionBase) = (SelectImpl()).Column<'a>(selector, partition)
     static member Column<'a>(tbl : ITableIdentifier<'a>, selector : Expression<Func<'a, obj>>) = (SelectImpl()).Column<'a>(tbl, selector)
+    static member Column<'a, 'b>(selector : Quotations.Expr<('a -> 'b)>) = (SelectImpl()).Column<'a, 'b>(selector)
