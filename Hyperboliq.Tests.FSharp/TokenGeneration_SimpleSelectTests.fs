@@ -84,3 +84,50 @@ module SimpleSelectTests =
                 From = { Tables = [ tref ]; Joins = [] } }
             |> TestHelpers.ToPlainSelect
         result |> should equal expected
+
+    [<Test>]
+    let ``It should be able to select columns`` () =
+        let expr = Select.Column(<@ fun (p : Person) -> (p.Name, p.Age) @>)
+                         .From<Person>()
+        let result = expr.ToSqlExpression()
+
+        let tref = TableIdentifier<Person>()
+        let expected =
+            { TestHelpers.EmptySelect with
+                Select = { IsDistinct = false
+                           Values = [ ValueNode.Column("Name", typeof<Person>, tref.Reference :> ITableReference)
+                                      ValueNode.Column("Age", typeof<Person>, tref.Reference :> ITableReference) ] }
+                From = { Tables = [ tref ]; Joins = [] } }
+            |> TestHelpers.ToPlainSelect
+        result |> should equal expected
+
+    [<Test>]
+    let ``It should order the columns in the expected order when calling column several times`` () =
+        let expr = Select.Column(<@ fun (p : Person) -> p.Name @>).Column(<@ fun (p : Person) -> p.Age @>)
+                         .From<Person>()
+        let result = expr.ToSqlExpression()
+        
+        let tref = TableIdentifier<Person>()
+        let expected =
+            { TestHelpers.EmptySelect with
+                Select = { IsDistinct = false
+                           Values = [ ValueNode.Column("Name", typeof<Person>, tref.Reference :> ITableReference)
+                                      ValueNode.Column("Age", typeof<Person>, tref.Reference :> ITableReference) ] }
+                From = { Tables = [ tref ]; Joins = [] } }
+            |> TestHelpers.ToPlainSelect
+        result |> should equal expected
+
+    [<Test>]
+    let ``It should be possible to select distinct single columns from a table`` () =
+        let expr = Select.Distinct.Column(<@ fun (p : Person) -> p.Age @>)
+                         .From<Person>()
+        let result = expr.ToSqlExpression()
+
+        let tref = TableIdentifier<Person>()
+        let expected =
+            { TestHelpers.EmptySelect with
+                Select = { IsDistinct = true
+                           Values = [ ValueNode.Column("Age", typeof<Person>, tref.Reference :> ITableReference) ] }
+                From = { Tables = [ tref ]; Joins = [] } }
+            |> TestHelpers.ToPlainSelect
+        result |> should equal expected
