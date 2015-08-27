@@ -125,3 +125,27 @@ module TokenGeneration_ExpressionVisitorTests =
                   Rhs = ValueNode.Constant(ConstantNode("42")) 
                 }) |> Some
         result |> should equal expected
+
+    [<Test>]
+    let ``It should be able to visit an expression that generates IfThenElse nodes`` () =
+        let expr = <@@ fun (p : Person) -> p.Age < 42 && (p.Age > 10 || p.Name = "Karl") @@>
+        let tref = Types.TableReferenceFromType<Person> :> ITableReference
+        let result = ExpressionVisitor.Visit (Quotation(expr)) [ tref ]
+        let expected =  
+            { Operation = BinaryOperation.And
+              Rhs = { Operation = BinaryOperation.Or
+                      Lhs = { Operation = BinaryOperation.GreaterThan
+                              Lhs = ValueNode.Column("Age", typeof<Person>, tref)
+                              Rhs = ValueNode.Constant(ConstantNode("10"))
+                            } |> ValueNode.BinaryExpression
+                      Rhs = { Operation = BinaryOperation.Equal
+                              Lhs = ValueNode.Column("Name", typeof<Person>, tref)
+                              Rhs = ValueNode.Constant(ConstantNode("'Karl'")) 
+                            } |> ValueNode.BinaryExpression 
+                    } |> ValueNode.BinaryExpression
+              Lhs = { Operation = BinaryOperation.LessThan
+                      Lhs = ValueNode.Column("Age", typeof<Person>, tref)
+                      Rhs = ValueNode.Constant(ConstantNode("42")) 
+                    } |> ValueNode.BinaryExpression
+            } |> ValueNode.BinaryExpression |> Some
+        result |> should equal expected

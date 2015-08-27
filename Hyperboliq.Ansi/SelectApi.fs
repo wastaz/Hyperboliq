@@ -98,14 +98,29 @@ type SelectWhere internal (expr : SelectExpressionToken) =
     member x.And<'a>(predicate : Expression<Func<'a, bool>>) =
         { expr with Where = AddOrCreateWhereAndClause expr.Where (LinqExpression(predicate)) [| TableReferenceFromType<'a> |] |> Some }
         |> New
+    member x.And<'a>([<ReflectedDefinition>] predicate : Quotations.Expr<'a -> bool>) =
+        { expr with Where = AddOrCreateWhereAndClause expr.Where (Quotation(predicate)) [| TableReferenceFromType<'a>|] |> Some }
+        |> New
+
     member x.And<'a, 'b>(predicate : Expression<Func<'a, 'b, bool>>) =
         { expr with Where = AddOrCreateWhereAndClause expr.Where (LinqExpression(predicate)) [| TableReferenceFromType<'a>; TableReferenceFromType<'b> |] |> Some }
         |> New
+    member x.And<'a, 'b>([<ReflectedDefinition>] predicate : Quotations.Expr<'a -> 'b -> bool>) =
+        { expr with Where = AddOrCreateWhereAndClause expr.Where (Quotation(predicate)) [| TableReferenceFromType<'a>; TableReferenceFromType<'b> |] |> Some }
+        |> New
+
     member x.Or<'a>(predicate : Expression<Func<'a, bool>>) =
         { expr with Where = AddOrCreateWhereOrClause expr.Where (LinqExpression(predicate)) [| TableReferenceFromType<'a> |] |> Some }
         |> New
+    member x.Or<'a>([<ReflectedDefinition>] predicate : Quotations.Expr<'a -> bool>) =
+        { expr with Where = AddOrCreateWhereOrClause expr.Where (Quotation(predicate)) [| TableReferenceFromType<'a> |] |> Some }
+        |> New
+
     member x.Or<'a, 'b>(predicate : Expression<Func<'a, 'b, bool>>) =
         { expr with Where = AddOrCreateWhereOrClause expr.Where (LinqExpression(predicate)) [| TableReferenceFromType<'a>; TableReferenceFromType<'b> |] |> Some }
+        |> New
+    member x.Or<'a, 'b>([<ReflectedDefinition>] predicate : Quotations.Expr<'a -> 'b -> bool>) =
+        { expr with Where = AddOrCreateWhereOrClause expr.Where (Quotation(predicate)) [| TableReferenceFromType<'a>; TableReferenceFromType<'b> |] |> Some }
         |> New
 
     member x.GroupBy<'a>(selector : Expression<Func<'a, obj>>) =
@@ -200,7 +215,10 @@ type SelectFrom<'a> internal (tbl: ITableIdentifier, exprNode : SelectValuesExpr
     member x.FullJoin<'src1, 'src2, 'tgt>(predicate : Expression<Func<'src1, 'src2, 'tgt, bool>>) = Join(x.Expression).FullJoin(predicate)
 
     member x.Where<'a>(predicate : Expression<Func<'a, bool>>) = SelectWhere(x.Expression).And predicate
+    member x.Where<'a>([<ReflectedDefinition>] predicate : Quotations.Expr<'a -> bool>) = SelectWhere(x.Expression).And predicate
     member x.Where<'a, 'b>(predicate : Expression<Func<'a, 'b, bool>>) = SelectWhere(x.Expression).And predicate
+    member x.Where<'a, 'b>([<ReflectedDefinition>] predicate : Quotations.Expr<'a -> 'b -> bool>) = SelectWhere(x.Expression).And predicate
+
 
     member x.GroupBy<'a>(selector : Expression<Func<'a, obj>>) =
         SelectGroupBy(x.Expression).ThenBy(selector)

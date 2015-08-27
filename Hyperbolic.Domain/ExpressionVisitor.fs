@@ -233,6 +233,7 @@ module internal QuotationVisitor =
     type LetExpression = Var * Expr * Expr
     type CallInfo = Expr option * System.Reflection.MethodInfo * Expr list
     type ValueInfo = obj * System.Type
+    type IfThenElseExpression = Expr * Expr * Expr
 
     type BindingValue =
     | Constant of value : string
@@ -389,8 +390,22 @@ module internal QuotationVisitor =
                 })
         | _ -> failwith "Not implemented"
 
+    and VisitIfThenElse (context : EvaluationContext) ((predicate, trueBranch, falseBranch) : IfThenElseExpression) =
+        let pred = VisitQuotation context predicate
+        match trueBranch, falseBranch with
+        | Value(v, _), _ when (unbox v) = true ->
+            { Operation = BinaryOperation.Or 
+              Lhs = pred
+              Rhs = VisitQuotation context falseBranch } |> ValueNode.BinaryExpression
+        | _, Value(v, _) when (unbox v) = false -> 
+            { Operation = BinaryOperation.And
+              Lhs = pred
+              Rhs = VisitQuotation context trueBranch } |> ValueNode.BinaryExpression
+        | _ -> failwith "Not implemented"
+
     and VisitQuotation (context : EvaluationContext) (exp : Expr) =
         match exp with
+        | IfThenElse(ifThenElse) -> VisitIfThenElse context ifThenElse
         | Lambda(_, body) -> VisitQuotation context body 
         | Let(ln) -> VisitLet context ln
         | PropertyGet(pge) -> VisitProperty context pge
