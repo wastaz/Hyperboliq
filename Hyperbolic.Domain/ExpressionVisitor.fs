@@ -237,6 +237,7 @@ module internal QuotationVisitor =
     type BindingValue =
     | Constant of value : string
     | Parameter of table : ITableReference
+    | Expression of expression : ValueNode
     | TableValue of propertyName : string * table : ITableReference
 
     type Binding = string * BindingValue
@@ -288,6 +289,7 @@ module internal QuotationVisitor =
         | name, Constant(value) -> ValueNode.NamedColumn({ Alias = name; Column = ValueNode.Constant(ConstantNode(value)) })
         | name, TableValue(pn, tbl) when name = pn -> ValueNode.Column(pn, tbl.Table, tbl)
         | name, TableValue(pn, tbl) -> ValueNode.NamedColumn({ Alias = name; Column = ValueNode.Column(pn, tbl.Table, tbl) })
+        | name, Expression(v) -> ValueNode.NamedColumn({ Alias = name; Column = v })
         | _ -> failwith "Cannot transform binding to valuenode"
         
     let VisitVar (context : EvaluationContext) (v : Var) =
@@ -316,6 +318,27 @@ module internal QuotationVisitor =
         | "op_LessThanOrEqual" -> Some(BinaryOperation.LessThanOrEqual)
         | _ -> None
 
+    let (|NoArgsSqlFunctionCall|_|) (methodInfo : System.Reflection.MethodInfo)  =
+        if methodInfo.DeclaringType = typeof<Hyperboliq.Domain.Sql> then
+            match methodInfo.Name with
+            | "Count" -> AggregateType.Count
+            | "RowNumber" -> AggregateType.RowNumber
+            | _ -> failwith "Not implemented"
+            |> Some
+        else
+            None
+
+    let (|UnarySqlFunctionCall|_|) (methodInfo : System.Reflection.MethodInfo) =
+        if methodInfo.DeclaringType = typeof<Hyperboliq.Domain.Sql> then
+            match methodInfo.Name with
+            | "Sum" -> AggregateType.Sum
+            | "Max" -> AggregateType.Max
+            | "Min" -> AggregateType.Min
+            | "Avg" -> AggregateType.Avg
+            | _ -> failwith "Not implemented"
+            |> Some
+        else
+            None
 
     let rec VisitNewTuple (context : EvaluationContext) (expressions : Expr list) =
         expressions
@@ -344,6 +367,9 @@ module internal QuotationVisitor =
                 |> List.map (fun (b, (var, _)) -> var.Name, b)
                 |> fun l -> List.concat [ l; context ]
             VisitQuotation newContext next
+        | Call(c) ->
+            (var.Name, VisitCall context c |> BindingValue.Expression) :: context
+            |> fun ctx -> VisitQuotation ctx expr
         | Value(value, _) -> 
             (var.Name, Constant(value.ToString())) :: context 
             |> fun ctx -> VisitQuotation ctx expr
@@ -351,6 +377,10 @@ module internal QuotationVisitor =
     
     and VisitCall (context : EvaluationContext) ((exprOpt, methodInfo, exprList) : CallInfo) =
         match exprOpt, methodInfo, exprList with
+        | None, NoArgsSqlFunctionCall aggregate, [] ->
+            ValueNode.Aggregate(aggregate, ValueNode.NullValue)
+        | None, UnarySqlFunctionCall aggregate, operand :: [] ->
+            ValueNode.Aggregate(aggregate, VisitQuotation context operand)
         | None, BinaryExpressionCall op, lhs :: rhs :: [] -> 
             ValueNode.BinaryExpression(
                 { Operation = op

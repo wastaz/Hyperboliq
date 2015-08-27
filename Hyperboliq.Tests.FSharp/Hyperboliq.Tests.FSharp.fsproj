@@ -10,7 +10,7 @@
     <RootNamespace>Hyperboliq.Tests.FSharp</RootNamespace>
     <AssemblyName>Hyperboliq.Tests.FSharp</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
-    <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
+    <TargetFSharpCoreVersion>4.4.0.0</TargetFSharpCoreVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Name>Hyperboliq.Tests.FSharp</Name>
     <TargetFrameworkProfile />

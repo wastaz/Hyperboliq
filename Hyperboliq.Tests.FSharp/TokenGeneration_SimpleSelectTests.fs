@@ -71,7 +71,7 @@ module SimpleSelectTests =
 
     [<Test>]
     let ``It should be possible to select a constant`` () =
-        let expr = Select.Column(<@ fun (p : Person) -> let favoriteNumber = 42 in (favoriteNumber, p.Name) @>)
+        let expr = Select.Column(fun (p : Person) -> let favoriteNumber = 42 in (favoriteNumber, p.Name))
                          .From<Person>()
         let result = expr.ToSqlExpression()
 
@@ -128,6 +128,35 @@ module SimpleSelectTests =
             { TestHelpers.EmptySelect with
                 Select = { IsDistinct = true
                            Values = [ ValueNode.Column("Age", typeof<Person>, tref.Reference :> ITableReference) ] }
+                From = { Tables = [ tref ]; Joins = [] } }
+            |> TestHelpers.ToPlainSelect
+        result |> should equal expected
+
+    [<Test>]
+    let ``It should be possible to select the number of rows from a table`` () = 
+        let expr = Select.Column(<@ fun (p : Person) -> Sql.Count() @>).From<Person>()
+        let result = expr.ToSqlExpression()
+
+        let tref = TableIdentifier<Person>()
+        let expected = 
+            { TestHelpers.EmptySelect with
+                Select = { IsDistinct = false
+                           Values = [ ValueNode.Aggregate(AggregateType.Count, ValueNode.NullValue) ] }
+                From = { Tables = [ tref ]; Joins = [] } }
+            |> TestHelpers.ToPlainSelect
+        result |> should equal expected
+
+    [<Test>]
+    let ``It should be possible to select the number of rows from a table and name the column`` () =
+        let expr = Select.Column(<@ fun (p : Person) -> let numberOfPersons = Sql.RowNumber() in numberOfPersons @>)
+                         .From<Person>()
+        let result = expr.ToSqlExpression()
+
+        let tref = TableIdentifier<Person>()
+        let expected = 
+            { TestHelpers.EmptySelect with
+                Select = { IsDistinct = false
+                           Values = [ ValueNode.NamedColumn({ Alias = "numberOfPersons"; Column = ValueNode.Aggregate(AggregateType.RowNumber, ValueNode.NullValue) })] }
                 From = { Tables = [ tref ]; Joins = [] } }
             |> TestHelpers.ToPlainSelect
         result |> should equal expected
