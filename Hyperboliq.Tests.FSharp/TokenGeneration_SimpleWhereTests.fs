@@ -62,3 +62,34 @@ module TokenGeneration_SimpleWhereTests =
                           AdditionalClauses = [] } |> Some }
             |> TestHelpers.ToPlainSelect
         result |> should equal expected
+
+    [<Test>]
+    let ``It should handle a where condition with and and ors that are not in the expression`` () =
+        let expr = Select.Star<Person>()
+                         .From<Person>()
+                         .Where(<@ fun (p : Person) -> p.Age < 42 @>)
+                         .And(<@ fun (p : Person) -> p.Age > 12 @>)
+                         .Or(<@ fun (p : Person) -> p.Name = "Karl" @>)
+        let result = expr.ToSqlExpression()
+
+        let tref = TableIdentifier<Person>()
+        let expected =
+            { TestHelpers.EmptySelect with
+                Select = { IsDistinct = false
+                           Values = [ ValueNode.StarColumn(StarColumnToken(tref.Reference)) ] }
+                From = { Tables = [ tref ]; Joins = [] }
+                Where = { Start = { Operation = BinaryOperation.LessThan
+                                    Lhs = ValueNode.Column("Age", typeof<Person>, tref.Reference :> ITableReference)
+                                    Rhs = ValueNode.Constant(ConstantNode("42")) } |> ValueNode.BinaryExpression 
+                          AdditionalClauses = 
+                          [ { Combinator = ExpressionCombinatorType.Or
+                              Expression = { Operation = BinaryOperation.Equal
+                                             Lhs = ValueNode.Column("Name", typeof<Person>, tref.Reference :> ITableReference)
+                                             Rhs = ValueNode.Constant(ConstantNode("'Karl'")) } |> ValueNode.BinaryExpression } 
+                            { Combinator = ExpressionCombinatorType.And
+                              Expression = { Operation = BinaryOperation.GreaterThan
+                                             Lhs = ValueNode.Column("Age", typeof<Person>, tref.Reference :> ITableReference)
+                                             Rhs = ValueNode.Constant(ConstantNode("12")) } |> ValueNode.BinaryExpression }
+                          ]
+                        } |> Some } |> TestHelpers.ToPlainSelect
+        result |> should equal expected
