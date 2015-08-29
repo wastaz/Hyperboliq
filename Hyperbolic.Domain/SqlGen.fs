@@ -81,11 +81,11 @@ module internal SqlGenUtils =
             |> (fun s -> [ startVal; s ] |> JoinWithSpace)
 
 
-    let HandleConstant (ConstantNode(c) : ConstantNode) = c
+    let HandleConstant (c : ConstantNode) = c
 
     let HandleNullValue () = "NULL"
 
-    let HandleParameter (ParameterToken(name) : ParameterToken) = sprintf "@%s" name
+    let HandleParameter (name : ParameterToken) = sprintf "@%s" name
 
     let HandleColumn (includeTableRef : bool) (dialect : ISqlDialect) ((col, colType, tbl) : ColumnToken) =
         let cname = dialect.QuoteColumnName col
@@ -94,7 +94,7 @@ module internal SqlGenUtils =
         else
             cname
 
-    let HandleStarColumn (includeTableRef : bool) (StarColumnToken(col) : StarColumnToken) = 
+    let HandleStarColumn (includeTableRef : bool) (col : StarColumnToken) = 
         if includeTableRef then col.ReferenceName + ".*" else "*"
         
     type SubExpressionHandler = ISqlDialect -> PlainSelectExpression -> string

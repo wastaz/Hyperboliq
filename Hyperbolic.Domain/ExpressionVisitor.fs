@@ -65,7 +65,7 @@ module internal LinqExpressionVisitor =
         let flags = System.Reflection.BindingFlags.Instance ||| System.Reflection.BindingFlags.Public ||| System.Reflection.BindingFlags.NonPublic
         let fieldInfo = exp.Value.GetType().GetField(mbrName, flags)
         match fieldInfo.GetValue(exp.Value) with
-        | :? ExpressionParameter as p -> ValueNode.Parameter(ParameterToken(p.Name))
+        | :? ExpressionParameter as p -> ValueNode.Parameter(p.Name)
         | _ -> failwith "Not implemented"
 
     let VisitMemberAccess (cfg : ExpressionVisitorConfig) (exp : MemberExpression) (context : EvaluationContext) : ValueNode =
@@ -83,8 +83,8 @@ module internal LinqExpressionVisitor =
             match se with 
             | Plain(q) -> ValueNode.SubExpression(q)
             | _ -> failwith "Not implemented"
-        | :? string as s-> ValueNode.Constant(ConstantNode(sprintf "'%s'" s))
-        | x ->  ValueNode.Constant(ConstantNode(x.ToString()))
+        | :? string as s-> ValueNode.Constant(sprintf "'%s'" s)
+        | x ->  ValueNode.Constant(x.ToString())
 
     let (|CompiledNullLambda|_|) (e : Expression) : ValueNode option =
         try
@@ -103,7 +103,7 @@ module internal LinqExpressionVisitor =
                 | Plain(q) -> Some (ValueNode.SubExpression(q))
                 | _ -> None
             | _ -> 
-                Some (ValueNode.Constant(ConstantNode(result.ToString())))
+                Some (ValueNode.Constant(result.ToString()))
         with
             | _ -> None
 
@@ -143,7 +143,7 @@ module internal LinqExpressionVisitor =
         | x when x.NodeType = ExpressionType.Convert && x.Method <> null ->
             match Expression.Lambda(x).Compile().DynamicInvoke() with
             | null -> ValueNode.NullValue
-            | x -> ValueNode.Constant(ConstantNode(x.ToString()))
+            | x -> ValueNode.Constant(x.ToString())
         | _ -> InternalVisit cfg exp.Operand context
 
     and VisitBinary cfg (exp : BinaryExpression) (context : EvaluationContext) : ValueNode = 
@@ -173,7 +173,7 @@ module internal LinqExpressionVisitor =
             let getter = lmb.Compile()
             let result = getter.DynamicInvoke()
             match result with
-            | :? ExpressionParameter as param -> ValueNode.Parameter(ParameterToken(param.Name))
+            | :? ExpressionParameter as param -> ValueNode.Parameter(param.Name)
             | _ -> 
                 let binding = FindBinding context (getter.ToString())
                 ValueNode.Column(ParamName binding, result.GetType(), TableRef binding)
@@ -292,7 +292,7 @@ module internal QuotationVisitor =
 
     let rec BindingToValueNode (context : EvaluationContext) (binding : Binding) =
         match binding with
-        | name, Constant(value) -> ValueNode.NamedColumn({ Alias = name; Column = ValueNode.Constant(ConstantNode(value)) })
+        | name, Constant(value) -> ValueNode.NamedColumn({ Alias = name; Column = ValueNode.Constant(value) })
         | name, TableValue(pn, tbl) when name = pn -> ValueNode.Column(pn, TypeForColumn tbl pn, tbl)
         | name, TableValue(pn, tbl) -> ValueNode.NamedColumn({ Alias = name; Column = ValueNode.Column(pn, TypeForColumn tbl pn, tbl) })
         | name, Expression(v) -> ValueNode.NamedColumn({ Alias = name; Column = v })
@@ -304,7 +304,6 @@ module internal QuotationVisitor =
     let VisitValue (context : EvaluationContext) ((v, t) : ValueInfo) =
         v.ToString()
         |> sprintf (if t = typeof<string> then "'%s'" else "%s")
-        |> ConstantNode
         |> ValueNode.Constant
         
     let VisitProperty (context : EvaluationContext) ((obj, property, l) : PropertyGetExpression) =
@@ -365,7 +364,7 @@ module internal QuotationVisitor =
                 |> List.map (VisitQuotation context)
                 |> List.choose (function 
                     | ValueNode.Column(name, _, tref) -> Some(TableValue(name, tref))
-                    | ValueNode.Constant(ConstantNode(c)) -> Some(Constant(c))
+                    | ValueNode.Constant(c) -> Some(Constant(c))
                     | _ -> None)
             let (tupleBindings, next) = CollectLet expr
             let newContext =

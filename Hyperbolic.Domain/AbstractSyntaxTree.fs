@@ -7,9 +7,9 @@ module AST =
         Equal | NotEqual | GreaterThan | GreaterThanOrEqual | LessThan | LessThanOrEqual
         | In | And | Or | Add | Subtract | Multiply | Divide | Modulo | Coalesce
 
-    type ConstantNode = ConstantNode of string
+    type ConstantNode = string
 
-    type StarColumnToken = StarColumnToken of ITableReference
+    type StarColumnToken = ITableReference
     type ColumnToken = string * System.Type * ITableReference
 
     type TableToken = TableToken of ITableReference
@@ -27,7 +27,7 @@ module AST =
         EscaleTable : EscapeTableTokenFn;
     }
 
-    type ParameterToken = ParameterToken of string
+    type ParameterToken = string
 
     type Direction = Ascending | Descending
     type NullsOrdering = NullsUndefined | NullsFirst | NullsLast

@@ -16,8 +16,6 @@ using JoinType = Hyperboliq.Domain.AST.JoinType;
 using BinaryOperation = Hyperboliq.Domain.AST.BinaryOperation;
 using ExpressionCombinatorType = Hyperboliq.Domain.AST.ExpressionCombinatorType;
 using BinaryExpressionNode = Hyperboliq.Domain.AST.BinaryExpressionNode;
-using ParameterToken = Hyperboliq.Domain.AST.ParameterToken;
-using ConstantNode = Hyperboliq.Domain.AST.ConstantNode;
 using InsertStatementHeadToken = Hyperboliq.Domain.AST.InsertStatementHeadToken;
 using UpdateSetToken = Hyperboliq.Domain.AST.UpdateSetToken;
 using UpdateStatementHeadToken = Hyperboliq.Domain.AST.UpdateStatementHeadToken;
@@ -90,7 +88,7 @@ namespace Hyperboliq.Tests
 
         public static ValueNode Star<TTable>()
         {
-            return ValueNode.NewStarColumn(AST.StarColumnToken.NewStarColumnToken(Types.TableReferenceFromType<TTable>()));
+            return ValueNode.NewStarColumn(Types.TableReferenceFromType<TTable>());
         }
 
         public static ValueNode AliasedCol(ValueNode node, string alias)
@@ -149,12 +147,12 @@ namespace Hyperboliq.Tests
 
         public static ValueNode Param(string paramName)
         {
-            return ValueNode.NewParameter(ParameterToken.NewParameterToken(paramName));
+            return ValueNode.NewParameter(paramName);
         }
 
         public static ValueNode Const(object constant)
         {
-            return ValueNode.NewConstant(ConstantNode.NewConstantNode(constant.ToString()));
+            return ValueNode.NewConstant(constant.ToString());
         }
 
         public static ValueNode Null()
@@ -211,12 +209,12 @@ namespace Hyperboliq.Tests
 
         public static InsertValueNode InsConst(object constant)
         {
-            return InsertValueNode.NewConstant(ConstantNode.NewConstantNode(constant.ToString()));
+            return InsertValueNode.NewConstant(constant.ToString());
         }
 
         public static InsertValueNode InsParam(string paramName)
         {
-            return InsertValueNode.NewParameter(ParameterToken.NewParameterToken(paramName));
+            return InsertValueNode.NewParameter(paramName);
         }
 
         public static InsertValueNode InsCol<TTableType>(string columnDef)

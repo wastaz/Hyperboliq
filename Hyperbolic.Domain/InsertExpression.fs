@@ -21,8 +21,8 @@ module InsertExpressionPart =
         let PropertyToConstant instance (p : System.Reflection.PropertyInfo) =
             match p.GetMethod.Invoke(instance, [||]) with
             | null -> NullValue
-            | :? string as x  -> Constant(ConstantNode("'" + x + "'"))
-            | v -> Constant(ConstantNode(v.ToString()))
+            | :? string as x  -> Constant("'" + x + "'")
+            | v -> Constant(v.ToString())
 
         let FindIndex (idxMap : Map<string, int>) (propertyInfo : System.Reflection.PropertyInfo) =
             idxMap.[propertyInfo.Name]

@@ -20,10 +20,10 @@ module TokenGeneration_SimpleWhereTests =
         let expected =
             { TestHelpers.EmptySelect with
                 Select = { IsDistinct = false
-                           Values = [ ValueNode.StarColumn(StarColumnToken(tref.Reference)) ] }
+                           Values = [ ValueNode.StarColumn(tref.Reference) ] }
                 From = { Tables = [ tref ]; Joins = [] }
                 Where = { Start = { Lhs = ValueNode.Column("Age", typeof<int>, tref.Reference :> ITableReference)
-                                    Rhs = ValueNode.Constant(ConstantNode("42"))
+                                    Rhs = ValueNode.Constant("42")
                                     Operation = BinaryOperation.GreaterThan } 
                                   |> ValueNode.BinaryExpression
                           AdditionalClauses = [] } |> Some }
@@ -41,22 +41,22 @@ module TokenGeneration_SimpleWhereTests =
         let expected =
             { TestHelpers.EmptySelect with
                 Select = { IsDistinct = false
-                           Values = [ ValueNode.StarColumn(StarColumnToken(tref.Reference)) ] }
+                           Values = [ ValueNode.StarColumn(tref.Reference) ] }
                 From = { Tables = [ tref ]; Joins = [] }
                 Where = { Start = { Operation = BinaryOperation.Or
                                     Rhs = { Operation = BinaryOperation.And
                                             Lhs = { Operation = BinaryOperation.LessThan
                                                     Lhs = ValueNode.Column("Age", typeof<int>, tref.Reference :> ITableReference)
-                                                    Rhs = ValueNode.Constant(ConstantNode("10"))
+                                                    Rhs = ValueNode.Constant("10")
                                                   } |> ValueNode.BinaryExpression
                                             Rhs = { Operation = BinaryOperation.Equal
                                                     Lhs = ValueNode.Column("Name", typeof<string>, tref.Reference :> ITableReference)
-                                                    Rhs = ValueNode.Constant(ConstantNode("'Karl'")) 
+                                                    Rhs = ValueNode.Constant("'Karl'") 
                                                   } |> ValueNode.BinaryExpression 
                                           } |> ValueNode.BinaryExpression
                                     Lhs = { Operation = BinaryOperation.GreaterThan
                                             Lhs = ValueNode.Column("Age", typeof<int>, tref.Reference :> ITableReference)
-                                            Rhs = ValueNode.Constant(ConstantNode("42")) 
+                                            Rhs = ValueNode.Constant("42") 
                                           } |> ValueNode.BinaryExpression
                                   } |> ValueNode.BinaryExpression
                           AdditionalClauses = [] } |> Some }
@@ -76,20 +76,20 @@ module TokenGeneration_SimpleWhereTests =
         let expected =
             { TestHelpers.EmptySelect with
                 Select = { IsDistinct = false
-                           Values = [ ValueNode.StarColumn(StarColumnToken(tref.Reference)) ] }
+                           Values = [ ValueNode.StarColumn(tref.Reference) ] }
                 From = { Tables = [ tref ]; Joins = [] }
                 Where = { Start = { Operation = BinaryOperation.LessThan
                                     Lhs = ValueNode.Column("Age", typeof<int>, tref.Reference :> ITableReference)
-                                    Rhs = ValueNode.Constant(ConstantNode("42")) } |> ValueNode.BinaryExpression 
+                                    Rhs = ValueNode.Constant("42") } |> ValueNode.BinaryExpression 
                           AdditionalClauses = 
                           [ { Combinator = ExpressionCombinatorType.Or
                               Expression = { Operation = BinaryOperation.Equal
                                              Lhs = ValueNode.Column("Name", typeof<string>, tref.Reference :> ITableReference)
-                                             Rhs = ValueNode.Constant(ConstantNode("'Karl'")) } |> ValueNode.BinaryExpression } 
+                                             Rhs = ValueNode.Constant("'Karl'") } |> ValueNode.BinaryExpression } 
                             { Combinator = ExpressionCombinatorType.And
                               Expression = { Operation = BinaryOperation.GreaterThan
                                              Lhs = ValueNode.Column("Age", typeof<int>, tref.Reference :> ITableReference)
-                                             Rhs = ValueNode.Constant(ConstantNode("12")) } |> ValueNode.BinaryExpression }
+                                             Rhs = ValueNode.Constant("12") } |> ValueNode.BinaryExpression }
                           ]
                         } |> Some } |> TestHelpers.ToPlainSelect
         result |> should equal expected
@@ -108,7 +108,7 @@ module TokenGeneration_SimpleWhereTests =
         let expected =
             { TestHelpers.EmptySelect with
                 Select = { IsDistinct = false
-                           Values = [ ValueNode.StarColumn(StarColumnToken(ctref.Reference)); ValueNode.StarColumn(StarColumnToken(ptref.Reference)) ] }
+                           Values = [ ValueNode.StarColumn(ctref.Reference); ValueNode.StarColumn(ptref.Reference) ] }
                 From = { Tables = [ ptref ]
                          Joins = [ { SourceTables = [ ptref ]
                                      TargetTable = ctref
@@ -118,10 +118,10 @@ module TokenGeneration_SimpleWhereTests =
                                                    Rhs = ValueNode.Column("DriverId", typeof<int>, ctref.Reference :> ITableReference) } |> ValueNode.BinaryExpression |> Some } ] }
                 Where = { Start = { Operation = BinaryOperation.GreaterThan
                                     Lhs = ValueNode.Column("Age", typeof<int>, ptref.Reference :> ITableReference)
-                                    Rhs = ValueNode.Constant(ConstantNode("42")) } |> ValueNode.BinaryExpression
+                                    Rhs = ValueNode.Constant("42") } |> ValueNode.BinaryExpression
                           AdditionalClauses = [ { Combinator = ExpressionCombinatorType.And
                                                   Expression = { Operation = BinaryOperation.Equal
                                                                  Lhs = ValueNode.Column("Brand", typeof<string>, ctref.Reference :> ITableReference)
-                                                                 Rhs = ValueNode.Constant(ConstantNode("'SAAB'")) } |> ValueNode.BinaryExpression } ] } |> Some
+                                                                 Rhs = ValueNode.Constant("'SAAB'") } |> ValueNode.BinaryExpression } ] } |> Some
                 } |> TestHelpers.ToPlainSelect
         result |> should equal expected

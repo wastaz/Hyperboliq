@@ -72,7 +72,7 @@ module TokenGeneration_ExpressionVisitorTests =
         let expected =
             ValueNode.ValueList(
                 [ ValueNode.Column("Name", typeof<string>, Types.TableReferenceFromType<Person> :> ITableReference)
-                  ValueNode.NamedColumn({ Alias = "numberOfMonkeys"; Column = ValueNode.Constant(ConstantNode("42")) })
+                  ValueNode.NamedColumn({ Alias = "numberOfMonkeys"; Column = ValueNode.Constant("42") })
                 ]) |> Some
         result |> should equal expected
 
@@ -84,7 +84,7 @@ module TokenGeneration_ExpressionVisitorTests =
         let expected = 
             ValueNode.ValueList(
                 [ ValueNode.Column("Name", typeof<string>, Types.TableReferenceFromType<Person> :> ITableReference)
-                  ValueNode.NamedColumn({ Alias = "magicNumber"; Column = ValueNode.Constant(ConstantNode("42")) })
+                  ValueNode.NamedColumn({ Alias = "magicNumber"; Column = ValueNode.Constant("42") })
                 ]) |> Some
         result |> should equal expected
 
@@ -101,7 +101,7 @@ module TokenGeneration_ExpressionVisitorTests =
         let expected = 
             ValueNode.ValueList(
                 [ ValueNode.Column("Name", typeof<string>, Types.TableReferenceFromType<Person> :> ITableReference)
-                  ValueNode.NamedColumn({ Alias = "magicNumber"; Column = ValueNode.Constant(ConstantNode("42")) })
+                  ValueNode.NamedColumn({ Alias = "magicNumber"; Column = ValueNode.Constant("42") })
                 ]) |> Some
         result |> should equal expected
 
@@ -122,7 +122,7 @@ module TokenGeneration_ExpressionVisitorTests =
             ValueNode.BinaryExpression(
                 { Operation = op
                   Lhs = ValueNode.Column("Age", typeof<int>, Types.TableReferenceFromType<Person> :> ITableReference)
-                  Rhs = ValueNode.Constant(ConstantNode("42")) 
+                  Rhs = ValueNode.Constant("42") 
                 }) |> Some
         result |> should equal expected
 
@@ -136,16 +136,16 @@ module TokenGeneration_ExpressionVisitorTests =
               Rhs = { Operation = BinaryOperation.Or
                       Lhs = { Operation = BinaryOperation.GreaterThan
                               Lhs = ValueNode.Column("Age", typeof<int>, tref)
-                              Rhs = ValueNode.Constant(ConstantNode("10"))
+                              Rhs = ValueNode.Constant("10")
                             } |> ValueNode.BinaryExpression
                       Rhs = { Operation = BinaryOperation.Equal
                               Lhs = ValueNode.Column("Name", typeof<string>, tref)
-                              Rhs = ValueNode.Constant(ConstantNode("'Karl'")) 
+                              Rhs = ValueNode.Constant("'Karl'") 
                             } |> ValueNode.BinaryExpression 
                     } |> ValueNode.BinaryExpression
               Lhs = { Operation = BinaryOperation.LessThan
                       Lhs = ValueNode.Column("Age", typeof<int>, tref)
-                      Rhs = ValueNode.Constant(ConstantNode("42")) 
+                      Rhs = ValueNode.Constant("42") 
                     } |> ValueNode.BinaryExpression
             } |> ValueNode.BinaryExpression |> Some
         result |> should equal expected

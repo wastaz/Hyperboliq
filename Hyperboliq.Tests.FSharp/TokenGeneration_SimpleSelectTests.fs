@@ -49,7 +49,7 @@ module SimpleSelectTests =
         let tref = TableIdentifier<Person>()
         let expected =
             { TestHelpers.EmptySelect with
-                Select = { IsDistinct = false; Values = [ StarColumn(StarColumnToken(tref.Reference)) ] }
+                Select = { IsDistinct = false; Values = [ StarColumn(tref.Reference) ] }
                 From = { Tables = [ tref ]; Joins = [] } }
             |> TestHelpers.ToPlainSelect
 
@@ -63,7 +63,7 @@ module SimpleSelectTests =
         let tref = TableIdentifier<Person>()
         let expected =
             { TestHelpers.EmptySelect with
-                Select = { IsDistinct = true; Values = [ StarColumn(StarColumnToken(tref.Reference)) ] }
+                Select = { IsDistinct = true; Values = [ StarColumn(tref.Reference) ] }
                 From = { Tables = [ tref ]; Joins = [] } }
             |> TestHelpers.ToPlainSelect
 
@@ -79,7 +79,7 @@ module SimpleSelectTests =
         let expected =
             { TestHelpers.EmptySelect with
                 Select = { IsDistinct = false
-                           Values = [ ValueNode.NamedColumn({ Alias = "favoriteNumber"; Column = ValueNode.Constant(ConstantNode("42")) })
+                           Values = [ ValueNode.NamedColumn({ Alias = "favoriteNumber"; Column = ValueNode.Constant("42") })
                                       ValueNode.Column("Name", typeof<string>, tref.Reference :> ITableReference) ] } 
                 From = { Tables = [ tref ]; Joins = [] } }
             |> TestHelpers.ToPlainSelect

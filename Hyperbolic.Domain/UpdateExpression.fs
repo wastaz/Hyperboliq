@@ -28,8 +28,8 @@ module UpdateExpressionPart =
             match ss with
             | Plain(q) -> ValueNode.SubExpression(q)
             | _ -> failwith "Not implemented"
-        | :? string as s-> ValueNode.Constant(ConstantNode(sprintf "'%s'" s))
-        | x ->  ValueNode.Constant(ConstantNode(x.ToString()))
+        | :? string as s-> ValueNode.Constant(sprintf "'%s'" s)
+        | x ->  ValueNode.Constant(x.ToString())
 
     let private ToSetExpression tbl colSelector (value : obj) =
         { 
