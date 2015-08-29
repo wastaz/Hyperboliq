@@ -80,7 +80,7 @@ module SimpleSelectTests =
             { TestHelpers.EmptySelect with
                 Select = { IsDistinct = false
                            Values = [ ValueNode.NamedColumn({ Alias = "favoriteNumber"; Column = ValueNode.Constant(ConstantNode("42")) })
-                                      ValueNode.Column("Name", typeof<Person>, tref.Reference :> ITableReference) ] } 
+                                      ValueNode.Column("Name", typeof<string>, tref.Reference :> ITableReference) ] } 
                 From = { Tables = [ tref ]; Joins = [] } }
             |> TestHelpers.ToPlainSelect
         result |> should equal expected
@@ -95,8 +95,8 @@ module SimpleSelectTests =
         let expected =
             { TestHelpers.EmptySelect with
                 Select = { IsDistinct = false
-                           Values = [ ValueNode.Column("Name", typeof<Person>, tref.Reference :> ITableReference)
-                                      ValueNode.Column("Age", typeof<Person>, tref.Reference :> ITableReference) ] }
+                           Values = [ ValueNode.Column("Name", typeof<string>, tref.Reference :> ITableReference)
+                                      ValueNode.Column("Age", typeof<int>, tref.Reference :> ITableReference) ] }
                 From = { Tables = [ tref ]; Joins = [] } }
             |> TestHelpers.ToPlainSelect
         result |> should equal expected
@@ -111,8 +111,8 @@ module SimpleSelectTests =
         let expected =
             { TestHelpers.EmptySelect with
                 Select = { IsDistinct = false
-                           Values = [ ValueNode.Column("Name", typeof<Person>, tref.Reference :> ITableReference)
-                                      ValueNode.Column("Age", typeof<Person>, tref.Reference :> ITableReference) ] }
+                           Values = [ ValueNode.Column("Name", typeof<string>, tref.Reference :> ITableReference)
+                                      ValueNode.Column("Age", typeof<int>, tref.Reference :> ITableReference) ] }
                 From = { Tables = [ tref ]; Joins = [] } }
             |> TestHelpers.ToPlainSelect
         result |> should equal expected
@@ -127,7 +127,7 @@ module SimpleSelectTests =
         let expected =
             { TestHelpers.EmptySelect with
                 Select = { IsDistinct = true
-                           Values = [ ValueNode.Column("Age", typeof<Person>, tref.Reference :> ITableReference) ] }
+                           Values = [ ValueNode.Column("Age", typeof<int>, tref.Reference :> ITableReference) ] }
                 From = { Tables = [ tref ]; Joins = [] } }
             |> TestHelpers.ToPlainSelect
         result |> should equal expected

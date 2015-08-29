@@ -285,11 +285,16 @@ module internal QuotationVisitor =
             | _ -> None
         RecursiveCollect paramSelector exp
 
+    let TypeForColumn (tref : ITableReference) col =
+        tref.Table.GetProperties()
+        |> Array.find (fun p -> p.Name.Equals(col, System.StringComparison.InvariantCultureIgnoreCase))
+        |> fun pi -> pi.PropertyType
+
     let rec BindingToValueNode (context : EvaluationContext) (binding : Binding) =
         match binding with
         | name, Constant(value) -> ValueNode.NamedColumn({ Alias = name; Column = ValueNode.Constant(ConstantNode(value)) })
-        | name, TableValue(pn, tbl) when name = pn -> ValueNode.Column(pn, tbl.Table, tbl)
-        | name, TableValue(pn, tbl) -> ValueNode.NamedColumn({ Alias = name; Column = ValueNode.Column(pn, tbl.Table, tbl) })
+        | name, TableValue(pn, tbl) when name = pn -> ValueNode.Column(pn, TypeForColumn tbl pn, tbl)
+        | name, TableValue(pn, tbl) -> ValueNode.NamedColumn({ Alias = name; Column = ValueNode.Column(pn, TypeForColumn tbl pn, tbl) })
         | name, Expression(v) -> ValueNode.NamedColumn({ Alias = name; Column = v })
         | _ -> failwith "Cannot transform binding to valuenode"
         
