@@ -145,14 +145,29 @@ type Join internal (expr : SelectExpressionToken) =
     member x.InnerJoin<'src, 'tgt>(predicate : Expression<Func<'src, 'tgt, bool>>) =
         Join2 JoinType.InnerJoin (TableIdentifier<'src>()) (TableIdentifier<'tgt>()) (LinqExpression(predicate))
         |> New
+    member x.InnerJoin<'src, 'tgt>([<ReflectedDefinition>] predicate : Quotations.Expr<'src -> 'tgt -> bool>) =
+        Join2 JoinType.InnerJoin (TableIdentifier<'src>()) (TableIdentifier<'tgt>()) (Quotation(predicate))
+        |> New
+
     member x.InnerJoin<'src, 'tgt>(source : ITableIdentifier<'src>, target : ITableIdentifier<'tgt>, predicate : Expression<Func<'src, 'tgt, bool>>) =
         Join2 JoinType.InnerJoin source target (LinqExpression(predicate))
         |> New
+    member x.InnerJoin<'src, 'tgt>(source : ITableIdentifier<'src>, target : ITableIdentifier<'tgt>, [<ReflectedDefinition>] predicate : Quotations.Expr<'src -> 'tgt -> bool>) =
+        Join2 JoinType.InnerJoin source target (Quotation(predicate))
+        |> New
+
     member x.InnerJoin<'src1, 'src2, 'tgt>(predicate : Expression<Func<'src1, 'src2, 'tgt, bool>>) =
         Join3 JoinType.InnerJoin (TableIdentifier<'src1>()) (TableIdentifier<'src2>()) (TableIdentifier<'tgt>()) (LinqExpression(predicate))
         |> New
+    member x.InnerJoin<'src1, 'src2, 'tgt>([<ReflectedDefinition>] predicate : Quotations.Expr<'src1 -> 'src2 -> 'tgt -> bool>) =
+        Join3 JoinType.InnerJoin (TableIdentifier<'src1>()) (TableIdentifier<'src2>()) (TableIdentifier<'tgt>()) (Quotation(predicate))
+        |> New
+    
     member x.InnerJoin<'src1, 'src2, 'tgt>(source1 : ITableIdentifier<'src1>, source2 : ITableIdentifier<'src2>, target : ITableIdentifier<'tgt>, predicate : Expression<Func<'src1, 'src2, 'tgt, bool>>) =
         Join3 JoinType.InnerJoin source1 source2 target (LinqExpression(predicate))
+        |> New
+    member x.InnerJoin<'src1, 'src2, 'tgt>(source1 : ITableIdentifier<'src1>, source2 : ITableIdentifier<'src2>, target : ITableIdentifier<'tgt>, [<ReflectedDefinition>] predicate : Quotations.Expr<'src1 -> 'src2 -> 'tgt -> bool>) =
+        Join3 JoinType.InnerJoin source1 source2 target (Quotation(predicate))
         |> New
 
     member x.LeftJoin<'src, 'tgt>(predicate : Expression<Func<'src, 'tgt, bool>>) =
@@ -177,7 +192,10 @@ type Join internal (expr : SelectExpressionToken) =
         |> New
 
     member x.Where<'a>(predicate : Expression<Func<'a, bool>>) = SelectWhere(expr).And(predicate)
+    member x.Where<'a>([<ReflectedDefinition>] predicate : Quotations.Expr<'a -> bool>) = SelectWhere(expr).And(predicate)
+
     member x.Where<'a, 'b>(predicate : Expression<Func<'a, 'b, bool>>) = SelectWhere(expr).And(predicate)
+    member x.Where<'a, 'b>([<ReflectedDefinition>] predicate : Quotations.Expr<'a -> 'b -> bool>) = SelectWhere(expr).And(predicate)
 
     member x.GroupBy<'a>(selector : Expression<Func<'a, obj>>) =
         SelectGroupBy(expr).ThenBy(selector)
@@ -199,10 +217,19 @@ type SelectFrom<'a> internal (tbl: ITableIdentifier, exprNode : SelectValuesExpr
                              })
 
     member x.InnerJoin<'src, 'tgt>(predicate : Expression<Func<'src, 'tgt, bool>>) = Join(x.Expression).InnerJoin(predicate)
+    member x.InnerJoin<'src, 'tgt>([<ReflectedDefinition>] predicate : Quotations.Expr<'src -> 'tgt -> bool>) = Join(x.Expression).InnerJoin(predicate)
+
     member x.InnerJoin<'src1, 'src2, 'tgt>(predicate : Expression<Func<'src1, 'src2, 'tgt, bool>>) = Join(x.Expression).InnerJoin(predicate)
+    member x.InnerJoin<'src1, 'src2, 'tgt>([<ReflectedDefinition>] predicate : Quotations.Expr<'src1 -> 'src2 -> 'tgt -> bool>) = Join(x.Expression).InnerJoin(predicate)
+
     member x.InnerJoin<'src, 'tgt>(source : ITableIdentifier<'src>, target : ITableIdentifier<'tgt>, predicate : Expression<Func<'src, 'tgt, bool>>) =
         Join(x.Expression).InnerJoin(source, target, predicate)
+    member x.InnerJoin<'src, 'tgt>(source : ITableIdentifier<'src>, target : ITableIdentifier<'tgt>, [<ReflectedDefinition>] predicate : Quotations.Expr<'src -> 'tgt -> bool>) =
+        Join(x.Expression).InnerJoin(source, target, predicate)
+
     member x.InnerJoin<'src1, 'src2, 'tgt>(source1 : ITableIdentifier<'src1>, source2 : ITableIdentifier<'src2>, target : ITableIdentifier<'tgt>, predicate : Expression<Func<'src1, 'src2, 'tgt, bool>>) =
+        Join(x.Expression).InnerJoin(source1, source2, target, predicate)
+    member x.InnerJoin<'src1, 'src2, 'tgt>(source1 : ITableIdentifier<'src1>, source2 : ITableIdentifier<'src2>, target : ITableIdentifier<'tgt>, [<ReflectedDefinition>] predicate : Quotations.Expr<'src1 -> 'src2 -> 'tgt -> bool>) =
         Join(x.Expression).InnerJoin(source1, source2, target, predicate)
 
     member x.LeftJoin<'src, 'tgt>(predicate : Expression<Func<'src, 'tgt, bool>>) = Join(x.Expression).LeftJoin(predicate)
