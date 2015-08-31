@@ -125,3 +125,67 @@ module TokenGeneration_SimpleWhereTests =
                                                                  Rhs = ValueNode.Constant("'SAAB'") } |> ValueNode.BinaryExpression } ] } |> Some
                 } |> TestHelpers.ToPlainSelect
         result |> should equal expected
+
+    [<Test>]
+    let ``It should be possible to reference several tables in a where expression`` () =
+        let expr = Select.Star<Person>().Star<Car>()
+                         .From<Person>()
+                         .InnerJoin(<@ fun (p : Person) (c : Car) -> p.Id = c.DriverId @>)
+                         .Where(<@ fun (p : Person) (c : Car) -> p.Age > c.DriverId @>)
+        let result = expr.ToSqlExpression()
+
+        let ptref = TableIdentifier<Person>()
+        let ctref = TableIdentifier<Car>()
+        let expected =
+            { TestHelpers.EmptySelect with
+                Select = { IsDistinct = false
+                           Values = [ StarColumn(ctref.Reference); StarColumn(ptref.Reference) ] }
+                From = { Tables = [ ptref ]
+                         Joins = [ { SourceTables = [ ptref ]
+                                     TargetTable = ctref
+                                     Type = JoinType.InnerJoin
+                                     Condition = { Operation = BinaryOperation.Equal
+                                                   Lhs = ValueNode.Column("Id", typeof<int>, ptref.Reference :> ITableReference)
+                                                   Rhs = ValueNode.Column("DriverId", typeof<int>, ctref.Reference :> ITableReference) } |> ValueNode.BinaryExpression |> Some } ] }
+                Where = { Start = { Operation = BinaryOperation.GreaterThan 
+                                    Lhs = ValueNode.Column("Age", typeof<int>, ptref.Reference :> ITableReference)
+                                    Rhs = ValueNode.Column("DriverId", typeof<int>, ctref.Reference :> ITableReference) } |> ValueNode.BinaryExpression
+                          AdditionalClauses = [] } |> Some
+            } |> TestHelpers.ToPlainSelect
+        result |> should equal expected
+
+    [<Test>]
+    let ``It should be possible to reference several tables in a where condition with and and or`` () =
+        let expr = Select.Star<Person>().Star<Car>()
+                            .From<Person>()
+                            .InnerJoin(<@ fun (p : Person) (c : Car) -> p.Id = c.DriverId @>)
+                            .Where(<@ fun (p : Person) -> p.Age > 42 @>)
+                            .And(<@ fun (p : Person) (c : Car) -> p.Age > c.Age @>)
+                            .Or(<@ fun (p : Person) (c : Car) -> p.Name = c.Brand @>)
+        let result = expr.ToSqlExpression()
+
+        let ptref = TableIdentifier<Person>()
+        let ctref = TableIdentifier<Car>()
+        let expected =
+            { TestHelpers.EmptySelect with
+                Select = { IsDistinct = false; Values = [ StarColumn(ctref.Reference); StarColumn(ptref.Reference) ] }
+                From = { Tables = [ ptref ]
+                         Joins = [ { SourceTables = [ ptref ]
+                                     TargetTable = ctref
+                                     Type = JoinType.InnerJoin
+                                     Condition = { Operation = BinaryOperation.Equal
+                                                   Lhs = ValueNode.Column("Id", typeof<int>, ptref.Reference :> ITableReference)
+                                                   Rhs = ValueNode.Column("DriverId", typeof<int>, ctref.Reference :> ITableReference) } |> ValueNode.BinaryExpression |> Some } ] }
+                Where = { Start = { Operation = BinaryOperation.GreaterThan
+                                    Lhs = ValueNode.Column("Age", typeof<int>, ptref.Reference :> ITableReference)
+                                    Rhs = ValueNode.Constant("42") } |> ValueNode.BinaryExpression
+                          AdditionalClauses = [ { Combinator = ExpressionCombinatorType.Or
+                                                  Expression = { Operation = BinaryOperation.Equal
+                                                                 Lhs = ValueNode.Column("Name", typeof<string>, ptref.Reference :> ITableReference)
+                                                                 Rhs = ValueNode.Column("Brand", typeof<string>, ctref.Reference :> ITableReference) } |> ValueNode.BinaryExpression }
+                                                { Combinator = ExpressionCombinatorType.And 
+                                                  Expression = { Operation = BinaryOperation.GreaterThan 
+                                                                 Lhs = ValueNode.Column("Age", typeof<int>, ptref.Reference :> ITableReference)
+                                                                 Rhs = ValueNode.Column("Age", typeof<int>, ctref.Reference :> ITableReference) } |> ValueNode.BinaryExpression } ] } |> Some
+            } |> TestHelpers.ToPlainSelect
+        result |> should equal expected
