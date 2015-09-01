@@ -39,3 +39,39 @@ module TokenGeneration_SimpleUpdateTests =
               Where = None 
             } |> SqlExpression.Update
         result |> should equal expected
+
+    [<Test>]
+    let ``It should be possible to update columns in place`` () =
+        let expr = Update<Person>.Set(<@ fun (p : Person) -> p.Age @>, <@ fun (p : Person) -> p.Age + 1 @>)
+        let result = expr.ToSqlExpression()
+
+        let tref = TableIdentifier<Person>()
+        let expected = 
+            { UpdateSet = { Table = tref.Reference :> ITableReference 
+                            SetExpressions = [ { Column = "Age", typeof<int>, tref.Reference :> ITableReference
+                                                 Value = { Operation = BinaryOperation.Add
+                                                           Lhs = ValueNode.Column("Age", typeof<int>, tref.Reference :> ITableReference)
+                                                           Rhs = ValueNode.Constant("1") } |> ValueNode.BinaryExpression } ] }
+              Where = None 
+            } |> SqlExpression.Update
+        result |> should equal expected
+
+    [<Test>]
+    let ``It should be possible to update multiple columns in place`` () =
+        let expr = Update<Person>.Set(<@ fun (p : Person) -> (p.Name, p.Age) @>, <@ fun (p : Person) -> ("Kalle" + p.Name, p.Age - 2 ) @>)
+        let result = expr.ToSqlExpression()
+
+        let tref = TableIdentifier<Person>()
+        let expected =
+            { UpdateSet = { Table = tref.Reference :> ITableReference 
+                            SetExpressions = [ { Column = "Name", typeof<string>, tref.Reference :> ITableReference
+                                                 Value = { Operation = BinaryOperation.Add
+                                                           Lhs = ValueNode.Constant("'Kalle'")
+                                                           Rhs = ValueNode.Column("Name", typeof<string>, tref.Reference :> ITableReference) } |> ValueNode.BinaryExpression }
+                                               { Column = "Age", typeof<int>, tref.Reference :> ITableReference
+                                                 Value = { Operation = BinaryOperation.Subtract
+                                                           Lhs = ValueNode.Column("Age", typeof<int>, tref.Reference :> ITableReference)
+                                                           Rhs = ValueNode.Constant("2") } |> ValueNode.BinaryExpression } ] } 
+              Where = None
+            } |> SqlExpression.Update
+        result |> should equal expected

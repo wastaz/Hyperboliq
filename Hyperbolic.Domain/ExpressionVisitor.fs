@@ -321,6 +321,11 @@ module internal QuotationVisitor =
         | "op_GreaterThanOrEqual" -> Some(BinaryOperation.GreaterThanOrEqual)
         | "op_LessThan" -> Some(BinaryOperation.LessThan)
         | "op_LessThanOrEqual" -> Some(BinaryOperation.LessThanOrEqual)
+        | "op_Addition" -> Some(BinaryOperation.Add)
+        | "op_Subtraction" -> Some(BinaryOperation.Subtract)
+        | "op_Multiply" -> Some(BinaryOperation.Multiply)
+        | "op_Division" -> Some(BinaryOperation.Divide)
+        | "op_Modulus" -> Some(BinaryOperation.Modulo)
         | _ -> None
 
     let (|NoArgsSqlFunctionCall|_|) (methodInfo : System.Reflection.MethodInfo)  =
@@ -419,7 +424,7 @@ module internal QuotationVisitor =
         | Value(v) -> VisitValue context v
         | _ -> failwith "Not implemented"
 
-    let Visit (exp : Expr) (context : ITableReference seq) : ValueNode option =
+    let VisitWithCustomConfig cfg exp context =
         match exp with
         | Lambda(_) -> 
             let (parameters, body) = CollectParameters exp
@@ -427,6 +432,7 @@ module internal QuotationVisitor =
             VisitQuotation evaluationContext body |> Some
         | _ -> failwith "Not implemented"
 
+    let Visit = VisitWithCustomConfig { IsUpdate = false }
 
 module ExpressionVisitor =
     open Hyperboliq
@@ -446,4 +452,4 @@ module ExpressionVisitor =
     let VisitWithCustomConfig cfg exp ctx =
         match exp with
         | LinqExpression(linqExpression) -> LinqExpressionVisitor.VisitWithCustomConfig cfg linqExpression ctx
-        | _ -> failwith "Not implemented"
+        | Quotation(quotation) -> QuotationVisitor.VisitWithCustomConfig cfg quotation ctx

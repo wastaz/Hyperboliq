@@ -43,6 +43,9 @@ type UpdateSet<'a> internal (expr : UpdateExpression) =
     member x.Set<'b>(selector : Expression<Func<'a, 'b>>, valueUpdate : Expression<Func<'a, 'b>>) =
         { expr with UpdateSet = (AddValueExpression expr.UpdateSet (LinqExpression(selector)) (LinqExpression(valueUpdate))) }
         |> New
+    member x.Set<'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>, valueUpdate : Quotations.Expr<'a -> 'b>) =
+        { expr with UpdateSet = (AddValueExpression expr.UpdateSet (Quotation(selector)) (Quotation(valueUpdate))) }
+        |> New
 
     member x.Set<'b>(selector : Expression<Func<'a, 'b>>, selectExpr : SelectExpression) = 
         { expr with UpdateSet = (AddSingleValueSetExpression expr.UpdateSet (LinqExpression(selector)) selectExpr) }
@@ -66,5 +69,7 @@ type Update<'a> private () =
     static member Set<'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>, value : 'b) = UpdateSet<'a>().Set(selector, value);
 
     static member Set<'b>(selector : Expression<Func<'a, 'b>>, valueUpdate : Expression<Func<'a, 'b>>) = UpdateSet<'a>().Set(selector, valueUpdate)
+    static member Set<'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>, [<ReflectedDefinition>] valueUpdate : Quotations.Expr<'a -> 'b>) = UpdateSet<'a>().Set(selector, valueUpdate)
+
     static member Set<'b>(selector : Expression<Func<'a, 'b>>, selectExpr : SelectExpression) = UpdateSet<'a>().Set(selector, selectExpr)
     static member Set<'b>(selector : Expression<Func<'a, 'b>>, selectExpr : ISelectExpressionTransformable) = UpdateSet<'a>().Set(selector, selectExpr)
