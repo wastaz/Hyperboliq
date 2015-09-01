@@ -34,17 +34,19 @@ type SelectOrderBy internal (expr : SelectExpressionToken) =
     inherit FluentSelectBase(expr)
     static let New expr = SelectOrderBy(expr)
 
-    member private x.InternalThenBy<'a>(selector : Expression<Func<'a, obj>>, ?direction : Direction, ?nullsOrdering : NullsOrdering) =
+    member private x.InternalThenBy<'a>(selector : VisitableExpression, ?direction : Direction, ?nullsOrdering : NullsOrdering) =
         let dir = defaultArg direction Direction.Ascending
         let nullsOrder = defaultArg nullsOrdering NullsOrdering.NullsUndefined
-        { expr with OrderBy = Some(AddOrCreateOrderingClause expr.OrderBy TableReferenceFromType<'a> dir nullsOrder (LinqExpression(selector))) }
+        { expr with OrderBy = Some(AddOrCreateOrderingClause expr.OrderBy TableReferenceFromType<'a> dir nullsOrder selector) }
 
-    member x.ThenBy<'a>(selector : Expression<Func<'a, obj>>) = 
-        x.InternalThenBy(selector) |> New
-    member x.ThenBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction) = 
-        x.InternalThenBy(selector, direction) |> New
-    member x.ThenBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction, nullsOrdering : NullsOrdering) = 
-        x.InternalThenBy(selector, direction, nullsOrdering) |> New
+    member x.ThenBy<'a>(selector : Expression<Func<'a, obj>>) = x.InternalThenBy<'a>(LinqExpression(selector)) |> New
+    member x.ThenBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>) = x.InternalThenBy<'a>(Quotation(selector)) |> New 
+
+    member x.ThenBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction) = x.InternalThenBy<'a>(LinqExpression(selector), direction) |> New
+    member x.ThenBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>, direction : Direction) = x.InternalThenBy<'a>(Quotation(selector), direction) |> New
+
+    member x.ThenBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction, nullsOrdering : NullsOrdering) = x.InternalThenBy<'a>(LinqExpression(selector), direction, nullsOrdering) |> New
+    member x.ThenBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>, direction : Direction, nullsOrdering : NullsOrdering) = x.InternalThenBy<'a>(Quotation(selector), direction, nullsOrdering) |> New
 
 type SelectHaving internal  (expr : SelectExpressionToken) =
     inherit FluentSelectBase(expr)
@@ -78,12 +80,14 @@ type SelectHaving internal  (expr : SelectExpressionToken) =
         { expr with GroupBy = Some(AddHavingOrClause expr.GroupBy (Quotation(predicate)) [| TableReferenceFromType<'a>; TableReferenceFromType<'b> |]) }
         |> New
 
-    member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>) =
-        SelectOrderBy(expr).ThenBy(selector)
-    member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction) =
-        SelectOrderBy(expr).ThenBy(selector, direction)
-    member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction, nullsOrdering : NullsOrdering) =
-        SelectOrderBy(expr).ThenBy(selector, direction, nullsOrdering)
+    member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>) = SelectOrderBy(expr).ThenBy(selector)
+    member x.OrderBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>) = SelectOrderBy(expr).ThenBy(selector)
+
+    member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction) = SelectOrderBy(expr).ThenBy(selector, direction)
+    member x.OrderBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>, direction : Direction) = SelectOrderBy(expr).ThenBy(selector, direction)
+
+    member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction, nullsOrdering : NullsOrdering) = SelectOrderBy(expr).ThenBy(selector, direction, nullsOrdering)
+    member x.OrderBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>, direction : Direction, nullsOrdering : NullsOrdering) = SelectOrderBy(expr).ThenBy(selector, direction, nullsOrdering)
 
 type SelectGroupBy internal (expr : SelectExpressionToken) =
     inherit FluentSelectBase(expr)
@@ -101,12 +105,14 @@ type SelectGroupBy internal (expr : SelectExpressionToken) =
 
     member x.Having<'a, 'b>(predicate : Expression<Func<'a, 'b, bool>>) = SelectHaving(expr).And(predicate)
 
-    member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>) =
-        SelectOrderBy(expr).ThenBy(selector)
-    member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction) =
-        SelectOrderBy(expr).ThenBy(selector, direction)
-    member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction, nullsOrdering : NullsOrdering) =
-        SelectOrderBy(expr).ThenBy(selector, direction, nullsOrdering)
+    member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>) = SelectOrderBy(expr).ThenBy(selector)
+    member x.OrderBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>) = SelectOrderBy(expr).ThenBy(selector)
+
+    member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction) = SelectOrderBy(expr).ThenBy(selector, direction)
+    member x.OrderBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>, direction : Direction) = SelectOrderBy(expr).ThenBy(selector, direction)
+
+    member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction, nullsOrdering : NullsOrdering) = SelectOrderBy(expr).ThenBy(selector, direction, nullsOrdering)
+    member x.OrderBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>, direction : Direction, nullsOrdering : NullsOrdering) = SelectOrderBy(expr).ThenBy(selector, direction, nullsOrdering)
 
 type SelectWhere internal (expr : SelectExpressionToken) =
     inherit FluentSelectBase(expr)
@@ -143,12 +149,14 @@ type SelectWhere internal (expr : SelectExpressionToken) =
     member x.GroupBy<'a>(selector : Expression<Func<'a, obj>>) = SelectGroupBy(expr).ThenBy(selector)
     member x.GroupBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>) = SelectGroupBy(expr).ThenBy(selector)
 
-    member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>) = 
-        SelectOrderBy(expr).ThenBy(selector)
-    member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction) =
-        SelectOrderBy(expr).ThenBy(selector, direction)
-    member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction, nullsOrdering : NullsOrdering) =
-        SelectOrderBy(expr).ThenBy(selector, direction, nullsOrdering)
+    member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>) = SelectOrderBy(expr).ThenBy(selector)
+    member x.OrderBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>) = SelectOrderBy(expr).ThenBy(selector)
+    
+    member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction) = SelectOrderBy(expr).ThenBy(selector, direction)
+    member x.OrderBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>, direction : Direction) = SelectOrderBy(expr).ThenBy(selector, direction)
+
+    member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction, nullsOrdering : NullsOrdering) = SelectOrderBy(expr).ThenBy(selector, direction, nullsOrdering)
+    member x.OrderBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>, direction : Direction, nullsOrdering : NullsOrdering) = SelectOrderBy(expr).ThenBy(selector, direction, nullsOrdering)
 
 type Join internal (expr : SelectExpressionToken) =
     inherit FluentSelectBase(expr)
@@ -217,12 +225,14 @@ type Join internal (expr : SelectExpressionToken) =
     member x.GroupBy<'a>(selector : Expression<Func<'a, obj>>) = SelectGroupBy(expr).ThenBy(selector)
     member x.GroupBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>) = SelectGroupBy(expr).ThenBy(selector)
 
-    member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>) =
-        SelectOrderBy(expr).ThenBy(selector)
-    member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction) =
-        SelectOrderBy(expr).ThenBy(selector, direction)
-    member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction, nullsOrdering : NullsOrdering) =
-        SelectOrderBy(expr).ThenBy(selector, direction, nullsOrdering)
+    member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>) = SelectOrderBy(expr).ThenBy(selector)
+    member x.OrderBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>) = SelectOrderBy(expr).ThenBy(selector)
+
+    member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction) = SelectOrderBy(expr).ThenBy(selector, direction)
+    member x.OrderBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>, direction : Direction) = SelectOrderBy(expr).ThenBy(selector, direction)
+
+    member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction, nullsOrdering : NullsOrdering) = SelectOrderBy(expr).ThenBy(selector, direction, nullsOrdering)
+    member x.OrderBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>, direction : Direction, nullsOrdering : NullsOrdering) = SelectOrderBy(expr).ThenBy(selector, direction, nullsOrdering)
 
 type SelectFrom<'a> internal (tbl: ITableIdentifier, exprNode : SelectValuesExpressionNode) =
     inherit FluentSelectBase({
@@ -267,12 +277,14 @@ type SelectFrom<'a> internal (tbl: ITableIdentifier, exprNode : SelectValuesExpr
     member x.GroupBy<'a>(selector : Expression<Func<'a, obj>>) = SelectGroupBy(x.Expression).ThenBy(selector)
     member x.GroupBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<('a -> 'b)>) = SelectGroupBy(x.Expression).ThenBy(selector)
 
-    member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>) =
-        SelectOrderBy(x.Expression).ThenBy(selector)
-    member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction) =
-        SelectOrderBy(x.Expression).ThenBy(selector, direction)
-    member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction, nullsOrdering : NullsOrdering) =
-        SelectOrderBy(x.Expression).ThenBy(selector, direction, nullsOrdering)
+    member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>) = SelectOrderBy(x.Expression).ThenBy(selector)
+    member x.OrderBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>) = SelectOrderBy(x.Expression).ThenBy(selector)
+
+    member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction) = SelectOrderBy(x.Expression).ThenBy(selector, direction)
+    member x.OrderBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>, direction : Direction) = SelectOrderBy(x.Expression).ThenBy(selector, direction)
+    
+    member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction, nullsOrdering : NullsOrdering) = SelectOrderBy(x.Expression).ThenBy(selector, direction, nullsOrdering)
+    member x.OrderBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>, direction : Direction, nullsOrdering : NullsOrdering) = SelectOrderBy(x.Expression).ThenBy(selector, direction, nullsOrdering)
 
 type SelectImpl internal (expr : SelectValuesExpressionNode) =
     internal new () = SelectImpl(NewSelectExpression ())
