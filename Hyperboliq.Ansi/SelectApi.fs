@@ -53,17 +53,29 @@ type SelectHaving internal  (expr : SelectExpressionToken) =
     member x.And<'a>(predicate : Expression<Func<'a, bool>>) = 
         { expr with GroupBy = Some(AddHavingAndClause expr.GroupBy (LinqExpression(predicate)) [| TableReferenceFromType<'a> |])}
         |> New
+    member x.And<'a>([<ReflectedDefinition>] predicate : Quotations.Expr<'a -> bool>) =
+        { expr with GroupBy = Some(AddHavingAndClause expr.GroupBy (Quotation(predicate)) [| TableReferenceFromType<'a> |])}
+        |> New
 
     member x.And<'a, 'b>(predicate : Expression<Func<'a, 'b, bool>>) =
         { expr with GroupBy = Some(AddHavingAndClause expr.GroupBy (LinqExpression(predicate)) [| TableReferenceFromType<'a>; TableReferenceFromType<'b> |])}
+        |> New
+    member x.And<'a, 'b>([<ReflectedDefinition>] predicate : Quotations.Expr<'a -> 'b -> bool>) =
+        { expr with GroupBy = Some(AddHavingAndClause expr.GroupBy (Quotation(predicate)) [| TableReferenceFromType<'a>; TableReferenceFromType<'b> |])}
         |> New
 
     member x.Or<'a>(predicate : Expression<Func<'a, bool>>) =
         { expr with GroupBy = Some(AddHavingOrClause expr.GroupBy (LinqExpression(predicate)) [| TableReferenceFromType<'a> |]) }
         |> New
+    member x.Or<'a>([<ReflectedDefinition>] predicate : Quotations.Expr<'a -> bool>) =
+        { expr with GroupBy = Some(AddHavingOrClause expr.GroupBy (Quotation(predicate)) [| TableReferenceFromType<'a> |]) }
+        |> New
 
     member x.Or<'a, 'b>(predicate : Expression<Func<'a, 'b, bool>>) =
         { expr with GroupBy = Some(AddHavingOrClause expr.GroupBy (LinqExpression(predicate)) [| TableReferenceFromType<'a>; TableReferenceFromType<'b> |]) }
+        |> New
+    member x.Or<'a, 'b>([<ReflectedDefinition>] predicate : Quotations.Expr<'a -> 'b -> bool>) =
+        { expr with GroupBy = Some(AddHavingOrClause expr.GroupBy (Quotation(predicate)) [| TableReferenceFromType<'a>; TableReferenceFromType<'b> |]) }
         |> New
 
     member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>) =
@@ -85,6 +97,8 @@ type SelectGroupBy internal (expr : SelectExpressionToken) =
         |> New
 
     member x.Having<'a>(predicate : Expression<Func<'a, bool>>) = SelectHaving(expr).And(predicate)
+    member x.Having<'a>([<ReflectedDefinition>] predicate : Quotations.Expr<'a -> bool>) = SelectHaving(expr).And(predicate)
+
     member x.Having<'a, 'b>(predicate : Expression<Func<'a, 'b, bool>>) = SelectHaving(expr).And(predicate)
 
     member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>) =
