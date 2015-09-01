@@ -94,3 +94,50 @@ module TokenGeneration_SimpleUpdateTests =
               Where = None 
             } |> SqlExpression.Update
         result |> should equal expected
+
+    [<Test>]
+    let ``It should be possible to perform a conditional update`` () =
+        let expr = Update<Person>.Set(<@ fun (p : Person) -> p.Age @>, 42).Where(<@ fun (p : Person) -> p.Name = "Kalle" @>)
+        let result = expr.ToSqlExpression()
+
+        let tref = TableIdentifier<Person>()
+        let expected =
+            { UpdateSet = { Table = tref.Reference :> ITableReference 
+                            SetExpressions = [ { Column = "Age", typeof<int>, tref.Reference :> ITableReference
+                                                 Value = ValueNode.Constant("42") } ] }
+              Where = { Start = { Operation = BinaryOperation.Equal
+                                  Lhs = ValueNode.Column("Name", typeof<string>, tref.Reference :> ITableReference)
+                                  Rhs = ValueNode.Constant("'Kalle'") } |> ValueNode.BinaryExpression
+                        AdditionalClauses = [] } |> Some 
+            } |> SqlExpression.Update
+        result |> should equal expected
+
+    [<Test>]
+    let ``It should be possible to have multiple conditions on an update`` () =
+        let expr = Update<Person>.Set(<@ fun (p : Person) -> p.Age @>, 42)
+                                 .Where(<@ fun (p : Person) -> p.Name = "Kalle" @>)
+                                 .Or(<@ fun (p : Person) -> p.Name = "Pelle" @>)
+                                 .And(<@ fun (p : Person) -> p.Age < 18 @>)
+        let result = expr.ToSqlExpression()
+
+        let tref = TableIdentifier<Person>()
+        let expected = 
+            { UpdateSet = { Table = tref.Reference :> ITableReference
+                            SetExpressions = [ { Column = "Age", typeof<int>, tref.Reference :> ITableReference
+                                                 Value = ValueNode.Constant("42") } ] }
+              Where = { Start = { Operation = BinaryOperation.Equal
+                                  Lhs = ValueNode.Column("Name", typeof<string>, tref.Reference :> ITableReference) 
+                                  Rhs = ValueNode.Constant("'Kalle'") } |> ValueNode.BinaryExpression 
+                        AdditionalClauses = [ { Combinator = ExpressionCombinatorType.And 
+                                                Expression = 
+                                                    { Operation = BinaryOperation.LessThan
+                                                      Lhs = ValueNode.Column("Age", typeof<int>, tref.Reference :> ITableReference) 
+                                                      Rhs = ValueNode.Constant("18") } |> ValueNode.BinaryExpression }
+                                              { Combinator = ExpressionCombinatorType.Or
+                                                Expression =
+                                                    { Operation = BinaryOperation.Equal
+                                                      Lhs = ValueNode.Column("Name", typeof<string>, tref.Reference :> ITableReference)
+                                                      Rhs = ValueNode.Constant("'Pelle'") } |> ValueNode.BinaryExpression }
+                                            ] } |> Some 
+            } |> SqlExpression.Update
+        result |> should equal expected

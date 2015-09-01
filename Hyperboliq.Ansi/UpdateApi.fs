@@ -16,8 +16,15 @@ type UpdateWhere<'a> internal (expr : UpdateExpression) =
     member x.And(predicate : Expression<Func<'a, bool>>) =
         { expr with Where = Some(AddOrCreateWhereAndClause expr.Where (LinqExpression(predicate)) [| TableReferenceFromType<'a> |]) }
         |> New
+    member x.And([<ReflectedDefinition>] predicate : Quotations.Expr<'a -> bool>) =
+        { expr with Where = Some(AddOrCreateWhereAndClause expr.Where (Quotation(predicate)) [| TableReferenceFromType<'a> |]) }
+        |> New        
+
     member x.Or(predicate : Expression<Func<'a, bool>>) =
         { expr with Where = Some(AddOrCreateWhereOrClause expr.Where (LinqExpression(predicate)) [| TableReferenceFromType<'a> |]) }
+        |> New
+    member x.Or([<ReflectedDefinition>] predicate : Quotations.Expr<'a -> bool>) =
+        { expr with Where = Some(AddOrCreateWhereOrClause expr.Where (Quotation(predicate)) [| TableReferenceFromType<'a> |]) }
         |> New
 
     member x.ToSqlExpression () = (x :> ISqlExpressionTransformable).ToSqlExpression ()
@@ -58,6 +65,7 @@ type UpdateSet<'a> internal (expr : UpdateExpression) =
     member x.Set<'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>, selectExpr : ISelectExpressionTransformable) = x.Set(selector, selectExpr.ToSelectExpression())
 
     member x.Where(predicate : Expression<Func<'a, bool>>) = UpdateWhere(expr).And(predicate)
+    member x.Where([<ReflectedDefinition>] predicate : Quotations.Expr<'a -> bool>) = UpdateWhere(expr).And(predicate)
 
     member x.ToSqlExpression () = (x :> ISqlExpressionTransformable).ToSqlExpression ()
     interface ISqlExpressionTransformable with
