@@ -22,3 +22,20 @@ module TokenGeneration_SimpleUpdateTests =
               Where = None 
             } |> SqlExpression.Update
         result |> should equal expected
+
+    [<Test>]
+    let ``It should be possible to set multiple values in a single statement`` () = 
+        let expr = Update<Person>.Set(<@ fun (p : Person) -> (p.Name, p.Age) @>, 
+                                      ("Kalle", 42))
+        let result = expr.ToSqlExpression()
+
+        let tref = TableIdentifier<Person>()
+        let expected = 
+            { UpdateSet = { Table = tref.Reference :> ITableReference
+                            SetExpressions =  [ { Column = "Name", typeof<string>, tref.Reference :> ITableReference
+                                                  Value = ValueNode.Constant("'Kalle'") }
+                                                { Column = "Age", typeof<int>, tref.Reference :> ITableReference
+                                                  Value = ValueNode.Constant("42") } ] }
+              Where = None 
+            } |> SqlExpression.Update
+        result |> should equal expected

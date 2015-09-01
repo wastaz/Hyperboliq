@@ -56,15 +56,23 @@ module UpdateExpressionPart =
         |> List.map (fun (c, p) -> { Column = c; Value = ToValue (p.GetValue(values)) })
         |> (fun v -> { expr with SetExpressions = List.concat [ v; expr.SetExpressions ] })
         
+    let AddMultipleTupleSetExpression expr colSelector tuple =
+        let cols = ColumnsByName expr.Table colSelector
+        let fields = Reflection.FSharpValue.GetTupleFields(tuple) |> Array.toList
+        List.zip cols fields
+        |> List.map (fun (c, f) -> { Column = c; Value = ToValue f })
+        |> (fun v -> { expr with SetExpressions = List.concat [ v; expr.SetExpressions ] })
 
     let AddSingleValueSetExpression expr colSelector value =
         { expr with SetExpressions = (ToSetExpression expr.Table colSelector value) :: expr.SetExpressions }
 
     let AddObjectSetExpression<'a, 'b> expr (colSelector : VisitableExpression) (objVal : 'b) =
         if(typeof<'b>.IsValueType || typeof<'b> = typeof<System.String>) then
-            AddSingleValueSetExpression expr <| colSelector <| objVal
+            AddSingleValueSetExpression expr colSelector objVal
+        else if Reflection.FSharpType.IsTuple(typeof<'b>) then
+            AddMultipleTupleSetExpression expr colSelector objVal
         else
-            AddMultipleValueSetExpression expr <| colSelector <| objVal
+            AddMultipleValueSetExpression expr colSelector objVal
 
     let AddValueExpression head colSelector valueSelector =
         let cols = ColumnsByName head.Table colSelector
