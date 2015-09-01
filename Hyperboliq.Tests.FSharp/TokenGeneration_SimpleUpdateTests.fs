@@ -75,3 +75,22 @@ module TokenGeneration_SimpleUpdateTests =
               Where = None
             } |> SqlExpression.Update
         result |> should equal expected
+
+    [<Test>]
+    let ``It should be possible to update values to a subexpression`` () =
+        let expr = Update<Person>.Set(<@ fun (p : Person) -> p.Age @>,
+                                      Select.Column(<@ fun (c : Car) -> Sql.Max(c.Age) @>).From<Car>() :> ISelectExpressionTransformable)
+        let result = expr.ToSqlExpression()
+        
+        let pref = TableIdentifier<Person>()
+        let cref = TableIdentifier<Car>()
+        let expected =
+            { UpdateSet = { Table = pref.Reference :> ITableReference 
+                            SetExpressions = [ { Column = "Age", typeof<int>, pref.Reference :> ITableReference
+                                                 Value = { TestHelpers.EmptySelect with 
+                                                            Select = { IsDistinct = false
+                                                                       Values = [ ValueNode.Aggregate(AggregateType.Max, ValueNode.Column("Age", typeof<int>, cref.Reference :> ITableReference)) ] }
+                                                            From = { Tables = [ cref ]; Joins = [] } } |> PlainSelectExpression.Plain |> ValueNode.SubExpression } ] }
+              Where = None 
+            } |> SqlExpression.Update
+        result |> should equal expected

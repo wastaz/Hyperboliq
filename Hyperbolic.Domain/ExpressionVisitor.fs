@@ -331,22 +331,20 @@ module internal QuotationVisitor =
     let (|NoArgsSqlFunctionCall|_|) (methodInfo : System.Reflection.MethodInfo)  =
         if methodInfo.DeclaringType = typeof<Hyperboliq.Domain.Sql> then
             match methodInfo.Name with
-            | "Count" -> AggregateType.Count
-            | "RowNumber" -> AggregateType.RowNumber
-            | _ -> failwith "Not implemented"
-            |> Some
+            | "Count" -> Some(AggregateType.Count)
+            | "RowNumber" -> Some(AggregateType.RowNumber)
+            | _ -> None
         else
             None
 
     let (|UnarySqlFunctionCall|_|) (methodInfo : System.Reflection.MethodInfo) =
         if methodInfo.DeclaringType = typeof<Hyperboliq.Domain.Sql> then
             match methodInfo.Name with
-            | "Sum" -> AggregateType.Sum
-            | "Max" -> AggregateType.Max
-            | "Min" -> AggregateType.Min
-            | "Avg" -> AggregateType.Avg
-            | _ -> failwith "Not implemented"
-            |> Some
+            | "Sum" -> Some(AggregateType.Sum)
+            | "Max" -> Some(AggregateType.Max)
+            | "Min" -> Some(AggregateType.Min)
+            | "Avg" -> Some(AggregateType.Avg)
+            | _ -> None
         else
             None
 
