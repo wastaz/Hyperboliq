@@ -53,6 +53,7 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="TokenGeneration_SimpleSelectTests.fs" />
+    <Compile Include="TokenGeneration_SimpleUpdateTests.fs" />
     <Compile Include="TokenGeneration_SimpleWhereTests.fs" />
     <Compile Include="TokenGeneration_ExpressionVisitorTests.fs" />
     <Content Include="packages.config" />

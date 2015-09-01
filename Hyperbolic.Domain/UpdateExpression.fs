@@ -60,11 +60,11 @@ module UpdateExpressionPart =
     let AddSingleValueSetExpression expr colSelector value =
         { expr with SetExpressions = (ToSetExpression expr.Table colSelector value) :: expr.SetExpressions }
 
-    let AddObjectSetExpression<'a, 'b> expr (colSelector : System.Linq.Expressions.Expression<System.Func<'a, 'b>>) (objVal : 'b) =
+    let AddObjectSetExpression<'a, 'b> expr (colSelector : VisitableExpression) (objVal : 'b) =
         if(typeof<'b>.IsValueType || typeof<'b> = typeof<System.String>) then
-            AddSingleValueSetExpression expr <| LinqExpression(colSelector) <| objVal
+            AddSingleValueSetExpression expr <| colSelector <| objVal
         else
-            AddMultipleValueSetExpression expr <| LinqExpression(colSelector) <| objVal
+            AddMultipleValueSetExpression expr <| colSelector <| objVal
 
     let AddValueExpression head colSelector valueSelector =
         let cols = ColumnsByName head.Table colSelector
