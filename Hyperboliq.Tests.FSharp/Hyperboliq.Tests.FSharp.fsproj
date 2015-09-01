@@ -52,7 +52,9 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Helpers.fs" />
     <Compile Include="TokenGeneration_SimpleSelectTests.fs" />
+    <Compile Include="TokenGeneration_SimpleGroupByTests.fs" />
     <Compile Include="TokenGeneration_SimpleUpdateTests.fs" />
     <Compile Include="TokenGeneration_SimpleWhereTests.fs" />
     <Compile Include="TokenGeneration_ExpressionVisitorTests.fs" />

@@ -80,6 +80,9 @@ type SelectGroupBy internal (expr : SelectExpressionToken) =
     member x.ThenBy<'a>(selector : Expression<Func<'a, obj>>) =
         { expr with GroupBy = Some(AddOrCreateGroupByClause expr.GroupBy (LinqExpression(selector)) [| TableReferenceFromType<'a> |])}
         |> New
+    member x.ThenBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>) =
+        { expr with GroupBy = Some(AddOrCreateGroupByClause expr.GroupBy (Quotation(selector)) [| TableReferenceFromType<'a> |])}
+        |> New
 
     member x.Having<'a>(predicate : Expression<Func<'a, bool>>) = SelectHaving(expr).And(predicate)
     member x.Having<'a, 'b>(predicate : Expression<Func<'a, 'b, bool>>) = SelectHaving(expr).And(predicate)
@@ -123,10 +126,10 @@ type SelectWhere internal (expr : SelectExpressionToken) =
         { expr with Where = AddOrCreateWhereOrClause expr.Where (Quotation(predicate)) [| TableReferenceFromType<'a>; TableReferenceFromType<'b> |] |> Some }
         |> New
 
-    member x.GroupBy<'a>(selector : Expression<Func<'a, obj>>) =
-        SelectGroupBy(expr).ThenBy(selector)
+    member x.GroupBy<'a>(selector : Expression<Func<'a, obj>>) = SelectGroupBy(expr).ThenBy(selector)
+    member x.GroupBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>) = SelectGroupBy(expr).ThenBy(selector)
 
-    member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>) =
+    member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>) = 
         SelectOrderBy(expr).ThenBy(selector)
     member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction) =
         SelectOrderBy(expr).ThenBy(selector, direction)
@@ -197,8 +200,8 @@ type Join internal (expr : SelectExpressionToken) =
     member x.Where<'a, 'b>(predicate : Expression<Func<'a, 'b, bool>>) = SelectWhere(expr).And(predicate)
     member x.Where<'a, 'b>([<ReflectedDefinition>] predicate : Quotations.Expr<'a -> 'b -> bool>) = SelectWhere(expr).And(predicate)
 
-    member x.GroupBy<'a>(selector : Expression<Func<'a, obj>>) =
-        SelectGroupBy(expr).ThenBy(selector)
+    member x.GroupBy<'a>(selector : Expression<Func<'a, obj>>) = SelectGroupBy(expr).ThenBy(selector)
+    member x.GroupBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>) = SelectGroupBy(expr).ThenBy(selector)
 
     member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>) =
         SelectOrderBy(expr).ThenBy(selector)
@@ -247,8 +250,8 @@ type SelectFrom<'a> internal (tbl: ITableIdentifier, exprNode : SelectValuesExpr
     member x.Where<'a, 'b>([<ReflectedDefinition>] predicate : Quotations.Expr<'a -> 'b -> bool>) = SelectWhere(x.Expression).And predicate
 
 
-    member x.GroupBy<'a>(selector : Expression<Func<'a, obj>>) =
-        SelectGroupBy(x.Expression).ThenBy(selector)
+    member x.GroupBy<'a>(selector : Expression<Func<'a, obj>>) = SelectGroupBy(x.Expression).ThenBy(selector)
+    member x.GroupBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<('a -> 'b)>) = SelectGroupBy(x.Expression).ThenBy(selector)
 
     member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>) =
         SelectOrderBy(x.Expression).ThenBy(selector)
