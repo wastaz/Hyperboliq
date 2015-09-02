@@ -61,3 +61,54 @@ module SimpleOrderByTests =
                                     Selector = ValueNode.Column("Age", typeof<int>, pref.Reference :> ITableReference) } ] } |> Some
             } |> TestHelpers.ToPlainSelect
         result |> should equal expected
+
+
+    // According to ANSI SQL the order by clause should support the keywords NULLS FIRST/NULLS LAST
+    // after ASC/DESC in an ordering clause. However some DBMS'es does not implement this part of the standard...
+    // But some do!
+    let nullsOrdering = [ [| NullsOrdering.NullsFirst |]; [| NullsOrdering.NullsLast|]; [| NullsOrdering.NullsUndefined |] ]
+
+    [<Test>]
+    [<TestCaseSource("nullsOrdering")>]
+    let ``It should be possible to specify nulls ordering`` nullsOrder =
+        let expr = Select.Star<Person>()
+                         .From<Person>()
+                         .OrderBy(<@ fun (p : Person) -> p.Age @>, Direction.Ascending, nullsOrder)
+        let result = expr.ToSqlExpression()
+
+        let tref = TableIdentifier<Person>()
+        let expected =
+            { TestHelpers.EmptySelect with
+                Select = { IsDistinct = false
+                           Values = [ ValueNode.StarColumn(tref.Reference) ] } 
+                From = { Tables = [ tref ]; Joins = [] }
+                OrderBy = { OrderByExpressionNode.Clauses = 
+                                [ { Direction = Direction.Ascending
+                                    NullsOrdering = nullsOrder
+                                    Selector = ValueNode.Column("Age", typeof<int>, tref.Reference :> ITableReference) } ] } |> Some
+            } |> TestHelpers.ToPlainSelect
+        result |> should equal expected
+
+    [<Test>]
+    let ``It should be possible to specify different nulls ordering on each column`` () =
+        let expr = Select.Star<Person>()
+                         .From<Person>()
+                         .OrderBy(<@ fun (p : Person) -> p.Age @>, Direction.Ascending, NullsOrdering.NullsLast)
+                         .ThenBy(<@ fun (p : Person) -> p.Name @>, Direction.Descending, NullsOrdering.NullsFirst)
+        let result = expr.ToSqlExpression()
+        
+        let tref = TableIdentifier<Person>()
+        let expected = 
+            { TestHelpers.EmptySelect with
+                Select = { IsDistinct = false
+                           Values = [ ValueNode.StarColumn(tref.Reference) ] }
+                From = { Tables = [ tref ]; Joins = [] }
+                OrderBy = { OrderByExpressionNode.Clauses =
+                                [ { Direction = Direction.Descending
+                                    NullsOrdering = NullsOrdering.NullsFirst
+                                    Selector = ValueNode.Column("Name", typeof<string>, tref.Reference :> ITableReference) }
+                                  { Direction = Direction.Ascending
+                                    NullsOrdering = NullsOrdering.NullsLast
+                                    Selector = ValueNode.Column("Age", typeof<int>, tref.Reference :> ITableReference) } ] } |> Some
+            } |> TestHelpers.ToPlainSelect
+        result |> should equal expected

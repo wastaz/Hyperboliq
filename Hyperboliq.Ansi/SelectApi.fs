@@ -198,22 +198,43 @@ type Join internal (expr : SelectExpressionToken) =
     member x.LeftJoin<'src, 'tgt>(predicate : Expression<Func<'src, 'tgt, bool>>) =
         Join2 JoinType.LeftJoin (TableIdentifier<'src>()) (TableIdentifier<'tgt>()) (LinqExpression(predicate))
         |> New
+    member x.LeftJoin<'src, 'tgt>([<ReflectedDefinition>] predicate : Quotations.Expr<'src -> 'tgt -> bool>) =
+        Join2 JoinType.LeftJoin (TableIdentifier<'src>()) (TableIdentifier<'tgt>()) (Quotation(predicate))
+        |> New
+
     member x.LeftJoin<'src1, 'src2, 'tgt>(predicate : Expression<Func<'src1, 'src2, 'tgt, bool>>) =
         Join3 JoinType.LeftJoin (TableIdentifier<'src1>()) (TableIdentifier<'src2>()) (TableIdentifier<'tgt>()) (LinqExpression(predicate))
+        |> New
+    member x.LeftJoin<'src1, 'src2, 'tgt>([<ReflectedDefinition>] predicate : Quotations.Expr<'src1 -> 'src2 -> 'tgt -> bool>) =
+        Join3 JoinType.LeftJoin (TableIdentifier<'src1>()) (TableIdentifier<'src2>()) (TableIdentifier<'tgt>()) (Quotation(predicate))
         |> New
 
     member x.RightJoin<'src, 'tgt>(predicate : Expression<Func<'src, 'tgt, bool>>) =
         Join2 JoinType.RightJoin (TableIdentifier<'src>()) (TableIdentifier<'tgt>()) (LinqExpression(predicate))
         |> New
+    member x.RightJoin<'src, 'tgt>([<ReflectedDefinition>] predicate : Quotations.Expr<'src -> 'tgt -> bool>) =
+        Join2 JoinType.RightJoin (TableIdentifier<'src>()) (TableIdentifier<'tgt>()) (Quotation(predicate))
+        |> New
+    
     member x.RightJoin<'src1, 'src2, 'tgt>(predicate : Expression<Func<'src1, 'src2, 'tgt, bool>>) =
         Join3 JoinType.RightJoin (TableIdentifier<'src1>()) (TableIdentifier<'src2>()) (TableIdentifier<'tgt>()) (LinqExpression(predicate))
+        |> New
+    member x.RightJoin<'src1, 'src2, 'tgt>([<ReflectedDefinition>] predicate : Quotations.Expr<'src1 -> 'src2 -> 'tgt -> bool>) =
+        Join3 JoinType.RightJoin (TableIdentifier<'src1>()) (TableIdentifier<'src2>()) (TableIdentifier<'tgt>()) (Quotation(predicate))
         |> New
 
     member x.FullJoin<'src, 'tgt>(predicate : Expression<Func<'src, 'tgt, bool>>) =
         Join2 JoinType.FullJoin (TableIdentifier<'src>()) (TableIdentifier<'tgt>()) (LinqExpression(predicate))
         |> New
+    member x.FullJoin<'src, 'tgt>([<ReflectedDefinition>] predicate : Quotations.Expr<'src -> 'tgt -> bool>) =
+        Join2 JoinType.FullJoin (TableIdentifier<'src>()) (TableIdentifier<'tgt>()) (Quotation(predicate))
+        |> New
+
     member x.FullJoin<'src1, 'src2, 'tgt>(predicate : Expression<Func<'src1, 'src2, 'tgt, bool>>) =
         Join3 JoinType.FullJoin (TableIdentifier<'src1>()) (TableIdentifier<'src2>()) (TableIdentifier<'tgt>()) (LinqExpression(predicate))
+        |> New
+    member x.FullJoin<'src1, 'src2, 'tgt>([<ReflectedDefinition>] predicate : Quotations.Expr<'src1 -> 'src2 -> 'tgt -> bool>) =
+        Join3 JoinType.FullJoin (TableIdentifier<'src1>()) (TableIdentifier<'src2>()) (TableIdentifier<'tgt>()) (Quotation(predicate))
         |> New
 
     member x.Where<'a>(predicate : Expression<Func<'a, bool>>) = SelectWhere(expr).And(predicate)
@@ -260,13 +281,22 @@ type SelectFrom<'a> internal (tbl: ITableIdentifier, exprNode : SelectValuesExpr
         Join(x.Expression).InnerJoin(source1, source2, target, predicate)
 
     member x.LeftJoin<'src, 'tgt>(predicate : Expression<Func<'src, 'tgt, bool>>) = Join(x.Expression).LeftJoin(predicate)
+    member x.LeftJoin<'src, 'tgt>([<ReflectedDefinition>] predicate : Quotations.Expr<'src -> 'tgt -> bool>) = Join(x.Expression).LeftJoin(predicate)
+
     member x.LeftJoin<'src1, 'src2, 'tgt>(predicate : Expression<Func<'src1, 'src2, 'tgt, bool>>) = Join(x.Expression).LeftJoin(predicate)
-    
+    member x.LeftJoin<'src1, 'src2, 'tgt>([<ReflectedDefinition>] predicate : Quotations.Expr<'src1 -> 'src2 -> 'tgt -> bool>) = Join(x.Expression).LeftJoin(predicate)
+
     member x.RightJoin<'src, 'tgt>(predicate : Expression<Func<'src, 'tgt, bool>>) = Join(x.Expression).RightJoin(predicate)
+    member x.RightJoin<'src, 'tgt>([<ReflectedDefinition>] predicate : Quotations.Expr<'src -> 'tgt -> bool>) = Join(x.Expression).RightJoin(predicate)
+    
     member x.RightJoin<'src1, 'src2, 'tgt>(predicate : Expression<Func<'src1, 'src2, 'tgt, bool>>) = Join(x.Expression).RightJoin(predicate)
+    member x.RightJoin<'src1, 'src2, 'tgt>([<ReflectedDefinition>] predicate : Quotations.Expr<'src1 -> 'src2 -> 'tgt -> bool>) = Join(x.Expression).RightJoin(predicate)
 
     member x.FullJoin<'src, 'tgt>(predicate : Expression<Func<'src, 'tgt, bool>>) = Join(x.Expression).FullJoin(predicate)
+    member x.FullJoin<'src, 'tgt>([<ReflectedDefinition>] predicate : Quotations.Expr<'src -> 'tgt -> bool>) = Join(x.Expression).FullJoin(predicate)
+
     member x.FullJoin<'src1, 'src2, 'tgt>(predicate : Expression<Func<'src1, 'src2, 'tgt, bool>>) = Join(x.Expression).FullJoin(predicate)
+    member x.FullJoin<'src1, 'src2, 'tgt>([<ReflectedDefinition>] predicate : Quotations.Expr<'src1 -> 'src2 -> 'tgt -> bool>) = Join(x.Expression).FullJoin(predicate)
 
     member x.Where<'a>(predicate : Expression<Func<'a, bool>>) = SelectWhere(x.Expression).And predicate
     member x.Where<'a>([<ReflectedDefinition>] predicate : Quotations.Expr<'a -> bool>) = SelectWhere(x.Expression).And predicate

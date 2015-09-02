@@ -53,6 +53,7 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Helpers.fs" />
+    <Compile Include="TokenGeneration_SimpleJoinTests.fs" />
     <Compile Include="TokenGeneration_SimpleSelectTests.fs" />
     <Compile Include="TokenGeneration_SimpleGroupByTests.fs" />
     <Compile Include="TokenGeneration_SimpleOrderByTests.fs" />
