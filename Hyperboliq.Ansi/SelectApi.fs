@@ -329,8 +329,11 @@ type SelectImpl internal (expr : SelectValuesExpressionNode) =
         SelectImpl(SelectColumns expr (LinqExpression(selector)) tbl)
     member x.Column<'a, 'b>(tbl : ITableIdentifier<'a>, selector : Quotations.Expr<('a -> 'b)>) =
         SelectImpl(SelectColumns expr (Quotation(selector)) tbl)
+
     member x.Column<'a>(selector : Expression<Func<'a, obj>>, partition : FluentOverPartitionBase) = 
         SelectImpl(SelectColumnWithPartition expr (LinqExpression(selector)) (TableIdentifier<'a>()) partition.Partition)
+    member x.Column<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>, partition : FluentOverPartitionBase) =
+        SelectImpl(SelectColumnWithPartition expr (Quotation(selector)) (TableIdentifier<'a>()) partition.Partition)
 
     member x.Column<'a>(selector : Expression<Func<'a, obj>>) = x.Column(TableIdentifier<'a>(), selector)
     member x.Column<'a, 'b>(selector : Quotations.Expr<('a -> 'b)>) = x.Column(TableIdentifier<'a>(), selector)
@@ -341,8 +344,11 @@ type SelectImpl internal (expr : SelectValuesExpressionNode) =
 type Select private () =
     static member Distinct with get() = (SelectImpl()).Distinct
     static member Star<'a>() = (SelectImpl()).Star<'a>()
-    static member Column<'a>(selector : Expression<Func<'a, obj>>) = (SelectImpl()).Column<'a>(selector)
-    static member Column<'a>(selector : Expression<Func<'a, obj>>, partition : FluentOverPartitionBase) = (SelectImpl()).Column<'a>(selector, partition)
-    static member Column<'a>(tbl : ITableIdentifier<'a>, selector : Expression<Func<'a, obj>>) = (SelectImpl()).Column<'a>(tbl, selector)
 
-    static member Column<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<('a -> 'b)>) = (SelectImpl()).Column<'a, 'b>(selector)
+    static member Column<'a>(selector : Expression<Func<'a, obj>>) = (SelectImpl()).Column<'a>(selector)
+    static member Column<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>) = (SelectImpl()).Column<'a, 'b>(selector)
+
+    static member Column<'a>(selector : Expression<Func<'a, obj>>, partition : FluentOverPartitionBase) = (SelectImpl()).Column<'a>(selector, partition)
+    static member Column<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>, partition : FluentOverPartitionBase) = (SelectImpl()).Column<'a, 'b>(selector, partition)
+
+    static member Column<'a>(tbl : ITableIdentifier<'a>, selector : Expression<Func<'a, obj>>) = (SelectImpl()).Column<'a>(tbl, selector)
