@@ -34,6 +34,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hyperboliq.Tests.FSharp", "Hyperboliq.Tests.FSharp\Hyperboliq.Tests.FSharp.fsproj", "{F229A32F-2B67-4014-B647-50F5A10A69F0}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hyperboliq.Postgres", "Hyperboliq.Postgres\Hyperboliq.Postgres.fsproj", "{2FA85626-C565-4A4F-8563-D4202D67DDB6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -76,6 +78,10 @@ Global
 		{F229A32F-2B67-4014-B647-50F5A10A69F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F229A32F-2B67-4014-B647-50F5A10A69F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F229A32F-2B67-4014-B647-50F5A10A69F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2FA85626-C565-4A4F-8563-D4202D67DDB6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2FA85626-C565-4A4F-8563-D4202D67DDB6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2FA85626-C565-4A4F-8563-D4202D67DDB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2FA85626-C565-4A4F-8563-D4202D67DDB6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
