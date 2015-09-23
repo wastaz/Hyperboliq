@@ -62,3 +62,36 @@ module SimpleDeleteTests =
                             ] } |> Some
             } |> SqlExpression.Delete
         result |> should equal expected
+
+    [<Test>]
+    let ``It should be possible to delete with a subquery`` () =
+        let expr = Delete.From<Car>()
+                         .Where(<@ fun (c : Car) ->
+                                Sql.In(
+                                    c.DriverId, 
+                                    Select.Column(<@ fun (p : Person) -> p.Id @>)
+                                          .From<Person>()
+                                          .Where(<@ fun (p : Person) -> p.Age > 18 @>)) @>)
+        let result = expr.ToSqlExpression()
+
+        let pref = TableIdentifier<Person>()
+        let cref = TableIdentifier<Car>()
+        let expected =
+            { From = { Tables = [ cref ]; Joins = [] }
+              Where = { Start = { Lhs = ValueNode.Column("DriverId", typeof<int>, cref.Reference :> ITableReference)
+                                  Operation = BinaryOperation.In
+                                  Rhs = ValueNode.SubExpression(
+                                            { TestHelpers.EmptySelect with 
+                                                Select = { IsDistinct = false
+                                                           Values = [ ValueNode.Column("Id", typeof<int>, pref.Reference :> ITableReference) ] }
+                                                From = { Tables = [ pref ]; Joins = [] }
+                                                Where = { Start = { Lhs = ValueNode.Column("Age", typeof<int>, pref.Reference :> ITableReference)
+                                                                    Operation = BinaryOperation.GreaterThan
+                                                                    Rhs = ValueNode.Constant("18") } |> ValueNode.BinaryExpression
+                                                          AdditionalClauses = []
+                                                        } |> Some
+                                            } |> PlainSelectExpression.Plain) 
+                                } |> ValueNode.BinaryExpression
+                        AdditionalClauses = [] } |> Some 
+            } |> SqlExpression.Delete
+        result |> should equal expected

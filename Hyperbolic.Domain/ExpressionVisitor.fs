@@ -228,6 +228,7 @@ module internal QuotationVisitor =
     open Hyperboliq.Domain.AST
     open Microsoft.FSharp.Quotations
     open Microsoft.FSharp.Quotations.Patterns
+    open Swensen.Unquote.Operators
 
     type PropertyGetExpression = Expr option * System.Reflection.PropertyInfo * Expr list
     type LetExpression = Var * Expr * Expr
@@ -239,6 +240,7 @@ module internal QuotationVisitor =
     | Constant of value : string
     | Parameter of table : ITableReference
     | Expression of expression : ValueNode
+    | PlainValue of value : ValueNode
     | TableValue of propertyName : string * table : ITableReference
 
     type Binding = string * BindingValue
@@ -296,6 +298,7 @@ module internal QuotationVisitor =
         | name, TableValue(pn, tbl) when name = pn -> ValueNode.Column(pn, TypeForColumn tbl pn, tbl)
         | name, TableValue(pn, tbl) -> ValueNode.NamedColumn({ Alias = name; Column = ValueNode.Column(pn, TypeForColumn tbl pn, tbl) })
         | name, Expression(v) -> ValueNode.NamedColumn({ Alias = name; Column = v })
+        | name, PlainValue(v) -> v
         | _ -> failwith "Cannot transform binding to valuenode"
         
     let VisitVar (context : EvaluationContext) (v : Var) =
@@ -326,6 +329,7 @@ module internal QuotationVisitor =
         | "op_Multiply" -> Some(BinaryOperation.Multiply)
         | "op_Division" -> Some(BinaryOperation.Divide)
         | "op_Modulus" -> Some(BinaryOperation.Modulo)
+        | "In" when methodInfo.DeclaringType = typeof<Sql> -> Some(BinaryOperation.In)
         | _ -> None
 
     let (|NoArgsSqlFunctionCall|_|) (methodInfo : System.Reflection.MethodInfo)  =
@@ -395,6 +399,18 @@ module internal QuotationVisitor =
                   Lhs = VisitQuotation context lhs
                   Rhs = VisitQuotation context rhs
                 })
+        | Some(instance), mi, el ->
+            let evaluatedInstance = evalRaw instance
+            let result = 
+                mi.Invoke(
+                    evaluatedInstance, 
+                    el |> List.map (fun e -> evalRaw e :> obj) |> Array.ofList)
+            match result with
+            | :? ISqlExpressionTransformable as x -> 
+                match x.ToSqlExpression() with
+                | SqlExpression.Select(Plain(ps)) -> ValueNode.SubExpression(ps)
+                | _ -> failwith "Not implemented"
+            | _ -> failwith "Not implemented"
         | _ -> failwith "Not implemented"
 
     and VisitIfThenElse (context : EvaluationContext) ((predicate, trueBranch, falseBranch) : IfThenElseExpression) =
@@ -410,6 +426,20 @@ module internal QuotationVisitor =
               Rhs = VisitQuotation context trueBranch } |> ValueNode.BinaryExpression
         | _ -> failwith "Not implemented"
 
+    and VisitApplication (context : EvaluationContext) ((e1, e2) : Expr*Expr) =
+        match e1 with
+        | Lambda(_) -> 
+            let (parameters, body) = CollectParameters e1
+            let newCtx = 
+                match VisitQuotation context e2 with
+                | ValueList(lst) ->
+                    List.zip parameters lst
+                    |> List.map (fun (a, b) -> a, PlainValue(b))
+                    |> (fun l -> l @ context)
+                | _ -> failwith "Not implemented"
+            VisitQuotation newCtx body
+        | _ -> failwith "Not implemented"
+
     and VisitQuotation (context : EvaluationContext) (exp : Expr) =
         match exp with
         | IfThenElse(ifThenElse) -> VisitIfThenElse context ifThenElse
@@ -418,8 +448,10 @@ module internal QuotationVisitor =
         | PropertyGet(pge) -> VisitProperty context pge
         | NewTuple(exprs) -> VisitNewTuple context exprs
         | Call(callInfo) -> VisitCall context callInfo
+        | Application(applicationInfo) -> VisitApplication context applicationInfo
         | Var(v) -> VisitVar context v
         | Value(v) -> VisitValue context v
+        | QuoteTyped(e) -> VisitQuotation context e
         | _ -> failwith "Not implemented"
 
     let VisitWithCustomConfig cfg exp context =
