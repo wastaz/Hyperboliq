@@ -2,6 +2,7 @@
 
 module UpdateExpressionPart =
     open AST
+    open ExpressionVisitor
 
     let NewUpdateExpression tbl =
         { 
@@ -27,8 +28,8 @@ module UpdateExpressionPart =
             match ss with
             | Plain(q) -> ValueNode.SubExpression(q)
             | _ -> failwith "Not implemented"
-        | :? string as s-> ValueNode.Constant(ConstantNode(sprintf "'%s'" s))
-        | x ->  ValueNode.Constant(ConstantNode(x.ToString()))
+        | :? string as s-> ValueNode.Constant(sprintf "'%s'" s)
+        | x ->  ValueNode.Constant(x.ToString())
 
     let private ToSetExpression tbl colSelector (value : obj) =
         { 
@@ -55,13 +56,21 @@ module UpdateExpressionPart =
         |> List.map (fun (c, p) -> { Column = c; Value = ToValue (p.GetValue(values)) })
         |> (fun v -> { expr with SetExpressions = List.concat [ v; expr.SetExpressions ] })
         
+    let AddMultipleTupleSetExpression expr colSelector tuple =
+        let cols = ColumnsByName expr.Table colSelector
+        let fields = Reflection.FSharpValue.GetTupleFields(tuple) |> Array.toList
+        List.zip cols fields
+        |> List.map (fun (c, f) -> { Column = c; Value = ToValue f })
+        |> (fun v -> { expr with SetExpressions = List.concat [ v; expr.SetExpressions ] })
 
     let AddSingleValueSetExpression expr colSelector value =
         { expr with SetExpressions = (ToSetExpression expr.Table colSelector value) :: expr.SetExpressions }
 
-    let AddObjectSetExpression<'a, 'b> expr (colSelector : System.Linq.Expressions.Expression<System.Func<'a, 'b>>) (objVal : 'b) =
+    let AddObjectSetExpression<'a, 'b> expr (colSelector : VisitableExpression) (objVal : 'b) =
         if(typeof<'b>.IsValueType || typeof<'b> = typeof<System.String>) then
             AddSingleValueSetExpression expr colSelector objVal
+        else if Reflection.FSharpType.IsTuple(typeof<'b>) then
+            AddMultipleTupleSetExpression expr colSelector objVal
         else
             AddMultipleValueSetExpression expr colSelector objVal
 

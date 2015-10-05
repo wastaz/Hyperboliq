@@ -7,6 +7,7 @@ open Hyperboliq.Types
 open Hyperboliq.Domain.AST
 open Hyperboliq.Domain.InsertExpressionPart
 open Hyperboliq.Domain.SqlGen
+open Hyperboliq.Domain.ExpressionVisitor
 
 type InsertValues<'a> internal (expr : InsertExpression) =
     let HandleValue state instance =
@@ -33,7 +34,7 @@ type InsertInto<'a> internal () =
         with get() = InsertValues<'a>({ expr with InsertInto = (AddAllColumns expr.InsertInto) })
 
     member x.Columns(selector : Expression<Func<'a, obj>>) = 
-        InsertValues<'a>({ expr with InsertInto = (AddColumns expr.InsertInto selector) })
+        InsertValues<'a>({ expr with InsertInto = (AddColumns expr.InsertInto (LinqExpression(selector))) })
 
 type Insert private () =
     static member Into<'a>() = InsertInto<'a>()

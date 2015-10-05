@@ -1,14 +1,10 @@
 ﻿namespace Hyperboliq.Domain
 
-module ExpressionVisitor =
+module internal LinqExpressionVisitor =
     open Hyperboliq
     open AST
     open System.Linq
     open System.Linq.Expressions
-
-    type ExpressionVisitorConfig = {
-        IsUpdate : bool
-    }
 
     let ToBinaryOperation et =
         match et with
@@ -69,7 +65,7 @@ module ExpressionVisitor =
         let flags = System.Reflection.BindingFlags.Instance ||| System.Reflection.BindingFlags.Public ||| System.Reflection.BindingFlags.NonPublic
         let fieldInfo = exp.Value.GetType().GetField(mbrName, flags)
         match fieldInfo.GetValue(exp.Value) with
-        | :? ExpressionParameter as p -> ValueNode.Parameter(ParameterToken(p.Name))
+        | :? ExpressionParameter as p -> ValueNode.Parameter(p.Name)
         | _ -> failwith "Not implemented"
 
     let VisitMemberAccess (cfg : ExpressionVisitorConfig) (exp : MemberExpression) (context : EvaluationContext) : ValueNode =
@@ -83,12 +79,12 @@ module ExpressionVisitor =
     let VisitConstant (exp : ConstantExpression) : ValueNode =
         match exp.Value with
         | null -> ValueNode.NullValue
-        |  :? SelectExpression as se -> 
+        | :? SelectExpression as se -> 
             match se with 
             | Plain(q) -> ValueNode.SubExpression(q)
             | _ -> failwith "Not implemented"
-        | :? string as s-> ValueNode.Constant(ConstantNode(sprintf "'%s'" s))
-        | x ->  ValueNode.Constant(ConstantNode(x.ToString()))
+        | :? string as s-> ValueNode.Constant(sprintf "'%s'" s)
+        | x ->  ValueNode.Constant(x.ToString())
 
     let (|CompiledNullLambda|_|) (e : Expression) : ValueNode option =
         try
@@ -107,7 +103,7 @@ module ExpressionVisitor =
                 | Plain(q) -> Some (ValueNode.SubExpression(q))
                 | _ -> None
             | _ -> 
-                Some (ValueNode.Constant(ConstantNode(result.ToString())))
+                Some (ValueNode.Constant(result.ToString()))
         with
             | _ -> None
 
@@ -147,7 +143,7 @@ module ExpressionVisitor =
         | x when x.NodeType = ExpressionType.Convert && x.Method <> null ->
             match Expression.Lambda(x).Compile().DynamicInvoke() with
             | null -> ValueNode.NullValue
-            | x -> ValueNode.Constant(ConstantNode(x.ToString()))
+            | x -> ValueNode.Constant(x.ToString())
         | _ -> InternalVisit cfg exp.Operand context
 
     and VisitBinary cfg (exp : BinaryExpression) (context : EvaluationContext) : ValueNode = 
@@ -177,7 +173,7 @@ module ExpressionVisitor =
             let getter = lmb.Compile()
             let result = getter.DynamicInvoke()
             match result with
-            | :? ExpressionParameter as param -> ValueNode.Parameter(ParameterToken(param.Name))
+            | :? ExpressionParameter as param -> ValueNode.Parameter(param.Name)
             | _ -> 
                 let binding = FindBinding context (getter.ToString())
                 ValueNode.Column(ParamName binding, result.GetType(), TableRef binding)
@@ -226,3 +222,280 @@ module ExpressionVisitor =
         | _ -> failwith "Not implemented"
 
     let Visit exp ctx = VisitWithCustomConfig { IsUpdate = false } exp ctx
+
+module internal QuotationVisitor =
+    open Hyperboliq
+    open Hyperboliq.Domain.AST
+    open Microsoft.FSharp.Quotations
+    open Microsoft.FSharp.Quotations.Patterns
+    open Swensen.Unquote.Operators
+
+    type PropertyGetExpression = Expr option * System.Reflection.PropertyInfo * Expr list
+    type LetExpression = Var * Expr * Expr
+    type CallInfo = Expr option * System.Reflection.MethodInfo * Expr list
+    type ValueInfo = obj * System.Type
+    type IfThenElseExpression = Expr * Expr * Expr
+
+    type BindingValue =
+    | Constant of value : string
+    | Parameter of table : ITableReference
+    | Expression of expression : ValueNode
+    | PlainValue of value : ValueNode
+    | TableValue of propertyName : string * table : ITableReference
+
+    type Binding = string * BindingValue
+
+    type EvaluationContext = Binding list
+    
+    let MatchesBindingName (str : string) ((name, _) : Binding) = str = name
+    let FindBinding ctx paramName = Seq.find (MatchesBindingName paramName) ctx
+    let FindPropertyBinding ctx objName propName = 
+        FindBinding ctx objName
+        |> function 
+            | (_, Parameter(table)) -> propName, TableValue(propName, table)
+            | _ -> failwith ("No binding found for: " + objName)
+
+    let BindEvaluationContext (parameters : string list) (context : ITableReference seq) : EvaluationContext =
+        parameters
+        |> Seq.zip <| context
+        |> Seq.map (fun (p, tr) -> p, Parameter(tr))
+        |> List.ofSeq
+
+    let RecursiveCollect (selector : Expr -> ('a * Expr) option) (exp : Expr) : 'a list * Expr =
+        let rec InternalRecursiveCollect exp res =
+            let selectorResult = selector exp
+            match selectorResult with
+            | Some(current, body) ->
+                InternalRecursiveCollect body (current :: (fst res), body)
+            | None ->
+                fst res
+                |> List.rev
+                |> fun l -> l, (snd res)
+        InternalRecursiveCollect exp ([], exp)
+
+    let CollectLet (exp : Expr) : (Var * Expr) list * Expr =
+        let selector e =
+            match e with
+            | Let(var, body, expr) -> Some((var, body), expr)
+            | _ -> None
+        RecursiveCollect selector exp
+
+    let CollectParameters (exp : Expr) : string list * Expr =
+        let paramSelector e =
+            match e with
+            | Lambda(p, b) -> Some(p.Name, b)
+            | _ -> None
+        RecursiveCollect paramSelector exp
+
+    let TypeForColumn (tref : ITableReference) col =
+        tref.Table.GetProperties()
+        |> Array.find (fun p -> p.Name.Equals(col, System.StringComparison.InvariantCultureIgnoreCase))
+        |> fun pi -> pi.PropertyType
+
+    let rec BindingToValueNode (context : EvaluationContext) (binding : Binding) =
+        match binding with
+        | name, Constant(value) -> ValueNode.NamedColumn({ Alias = name; Column = ValueNode.Constant(value) })
+        | name, TableValue(pn, tbl) when name = pn -> ValueNode.Column(pn, TypeForColumn tbl pn, tbl)
+        | name, TableValue(pn, tbl) -> ValueNode.NamedColumn({ Alias = name; Column = ValueNode.Column(pn, TypeForColumn tbl pn, tbl) })
+        | name, Expression(v) -> ValueNode.NamedColumn({ Alias = name; Column = v })
+        | name, PlainValue(v) -> v
+        | _ -> failwith "Cannot transform binding to valuenode"
+        
+    let VisitVar (context : EvaluationContext) (v : Var) =
+        FindBinding context v.Name |> BindingToValueNode context
+
+    let VisitValue (context : EvaluationContext) ((v, t) : ValueInfo) =
+        match v with
+        | :? string as s -> 
+            s |> sprintf "'%s'" |> ValueNode.Constant
+        | :? ExpressionParameter as p -> 
+            p.Name |> ValueNode.Parameter
+        | _ -> 
+            v.ToString() |> sprintf "%s" |> ValueNode.Constant
+        
+    let VisitProperty (context : EvaluationContext) ((obj, property, l) : PropertyGetExpression) =
+        match obj with
+        | Some(Var(x)) -> 
+            FindPropertyBinding context x.Name property.Name
+            |> BindingToValueNode context
+        | _ -> failwith "Huh?"
+
+    let (|BinaryExpressionCall|_|) (methodInfo : System.Reflection.MethodInfo) =
+        match methodInfo.Name with
+        | "op_Equality" -> Some(BinaryOperation.Equal)
+        | "op_Inequality" -> Some(BinaryOperation.NotEqual)
+        | "op_GreaterThan" -> Some(BinaryOperation.GreaterThan)
+        | "op_GreaterThanOrEqual" -> Some(BinaryOperation.GreaterThanOrEqual)
+        | "op_LessThan" -> Some(BinaryOperation.LessThan)
+        | "op_LessThanOrEqual" -> Some(BinaryOperation.LessThanOrEqual)
+        | "op_Addition" -> Some(BinaryOperation.Add)
+        | "op_Subtraction" -> Some(BinaryOperation.Subtract)
+        | "op_Multiply" -> Some(BinaryOperation.Multiply)
+        | "op_Division" -> Some(BinaryOperation.Divide)
+        | "op_Modulus" -> Some(BinaryOperation.Modulo)
+        | "In" when methodInfo.DeclaringType = typeof<Sql> -> Some(BinaryOperation.In)
+        | _ -> None
+
+    let (|NoArgsAggregateCall|_|) (methodInfo : System.Reflection.MethodInfo)  =
+        if methodInfo.DeclaringType = typeof<Hyperboliq.Domain.Sql> then
+            match methodInfo.Name with
+            | "Count" -> Some(AggregateType.Count)
+            | "RowNumber" -> Some(AggregateType.RowNumber)
+            | _ -> None
+        else
+            None
+
+    let (|UnaryAggregateCall|_|) (methodInfo : System.Reflection.MethodInfo) =
+        if methodInfo.DeclaringType = typeof<Hyperboliq.Domain.Sql> then
+            match methodInfo.Name with
+            | "Sum" -> Some(AggregateType.Sum)
+            | "Max" -> Some(AggregateType.Max)
+            | "Min" -> Some(AggregateType.Min)
+            | "Avg" -> Some(AggregateType.Avg)
+            | _ -> None
+        else
+            None
+
+    let rec VisitNewTuple (context : EvaluationContext) (expressions : Expr list) =
+        expressions
+        |> List.map (VisitQuotation context)
+        |> ValueNode.ValueList
+
+    and VisitLet (context : EvaluationContext) ((var, body, expr) : LetExpression) =
+        match body with
+        | PropertyGet(Some(Var(x)), prop, _) ->
+            let _, binding = FindPropertyBinding context x.Name prop.Name
+            (var.Name, binding) :: context |> fun ctx -> VisitQuotation ctx expr
+        | PropertyGet(Some(Value(x, _)), prop, _) ->
+            let value = prop.GetGetMethod().Invoke(x, [||]).ToString()
+            (var.Name, BindingValue.Constant(value)) :: context |> fun ctx -> VisitQuotation ctx expr
+        | NewTuple(exprs) -> 
+            let values = 
+                exprs
+                |> List.map (VisitQuotation context)
+                |> List.choose (function 
+                    | ValueNode.Column(name, _, tref) -> Some(TableValue(name, tref))
+                    | ValueNode.Constant(c) -> Some(Constant(c))
+                    | _ -> None)
+            let (tupleBindings, next) = CollectLet expr
+            let newContext =
+                List.zip values tupleBindings
+                |> List.map (fun (b, (var, _)) -> var.Name, b)
+                |> fun l -> List.concat [ l; context ]
+            VisitQuotation newContext next
+        | Call(c) ->
+            (var.Name, VisitCall context c |> BindingValue.Expression) :: context
+            |> fun ctx -> VisitQuotation ctx expr
+        | Value(value, _) -> 
+            (var.Name, Constant(value.ToString())) :: context 
+            |> fun ctx -> VisitQuotation ctx expr
+        | _ -> failwith "Not implemented"
+    
+    and VisitCall (context : EvaluationContext) ((exprOpt, methodInfo, exprList) : CallInfo) =
+        match exprOpt, methodInfo, exprList with
+        | None, NoArgsAggregateCall aggregate, [] ->
+            ValueNode.Aggregate(aggregate, ValueNode.NullValue)
+        | None, UnaryAggregateCall aggregate, operand :: [] ->
+            ValueNode.Aggregate(aggregate, VisitQuotation context operand)
+        | None, BinaryExpressionCall op, lhs :: rhs :: [] -> 
+            ValueNode.BinaryExpression(
+                { Operation = op
+                  Lhs = VisitQuotation context lhs
+                  Rhs = VisitQuotation context rhs
+                })
+        | None, _, [ op ] when methodInfo.DeclaringType = typeof<Hyperboliq.Domain.Sql> && methodInfo.Name = "Parameter" -> 
+            VisitQuotation context op
+        | Some(instance), mi, el ->
+            let evaluatedInstance = evalRaw instance
+            let result = 
+                mi.Invoke(
+                    evaluatedInstance, 
+                    el |> List.map (fun e -> evalRaw e :> obj) |> Array.ofList)
+            match result with
+            | :? ISqlExpressionTransformable as x -> 
+                match x.ToSqlExpression() with
+                | SqlExpression.Select(Plain(ps)) -> ValueNode.SubExpression(ps)
+                | _ -> failwith "Not implemented"
+            | _ -> failwith "Not implemented"
+        | _ -> failwith "Not implemented"
+
+    and VisitIfThenElse (context : EvaluationContext) ((predicate, trueBranch, falseBranch) : IfThenElseExpression) =
+        let pred = VisitQuotation context predicate
+        match trueBranch, falseBranch with
+        | Value(v, _), _ when (unbox v) = true ->
+            { Operation = BinaryOperation.Or 
+              Lhs = pred
+              Rhs = VisitQuotation context falseBranch } |> ValueNode.BinaryExpression
+        | _, Value(v, _) when (unbox v) = false -> 
+            { Operation = BinaryOperation.And
+              Lhs = pred
+              Rhs = VisitQuotation context trueBranch } |> ValueNode.BinaryExpression
+        | _ -> failwith "Not implemented"
+
+    and VisitApplication (context : EvaluationContext) ((e1, e2) : Expr*Expr) =
+        match e1 with
+        | Lambda(_) -> 
+            let (parameters, body) = CollectParameters e1
+            let newCtx = 
+                match VisitQuotation context e2 with
+                | ValueList(lst) ->
+                    List.zip parameters lst
+                    |> List.map (fun (a, b) -> a, PlainValue(b))
+                    |> (fun l -> l @ context)
+                | _ -> failwith "Not implemented"
+            VisitQuotation newCtx body
+        | _ -> failwith "Not implemented"
+
+    and VisitNew (context : EvaluationContext) ((ctor, expressions) : (System.Reflection.ConstructorInfo * Expr list)) =
+        if typeof<ExpressionParameter>.IsAssignableFrom(ctor.DeclaringType) then
+            let args = expressions |> List.head |> VisitQuotation context
+            match args with
+            | ValueNode.Constant(s) -> s.Trim([| '\'' |]) |> ValueNode.Parameter
+            | _ -> failwith "Not implemented"
+        else
+            failwith "Not implemented"
+
+    and VisitQuotation (context : EvaluationContext) (exp : Expr) =
+        match exp with
+        | IfThenElse(ifThenElse) -> VisitIfThenElse context ifThenElse
+        | Lambda(_, body) -> VisitQuotation context body 
+        | Let(ln) -> VisitLet context ln
+        | PropertyGet(pge) -> VisitProperty context pge
+        | NewTuple(exprs) -> VisitNewTuple context exprs
+        | Call(callInfo) -> VisitCall context callInfo
+        | Application(applicationInfo) -> VisitApplication context applicationInfo
+        | Var(v) -> VisitVar context v
+        | Value(v) -> VisitValue context v
+        | QuoteTyped(e) -> VisitQuotation context e
+        | NewObject(e) -> VisitNew context e
+        | _ -> failwith "Not implemented"
+
+    let VisitWithCustomConfig cfg exp context =
+        match exp with
+        | Lambda(_) -> 
+            let (parameters, body) = CollectParameters exp
+            let evaluationContext = BindEvaluationContext parameters context
+            VisitQuotation evaluationContext body |> Some
+        | _ -> failwith "Not implemented"
+
+    let Visit = VisitWithCustomConfig { IsUpdate = false }
+
+module ExpressionVisitor =
+    open Hyperboliq
+    
+
+    type VisitableExpression = 
+    | LinqExpression of System.Linq.Expressions.Expression
+    | Quotation of Quotations.Expr
+
+    type ExpressionContext = ITableReference seq
+
+    let Visit exp ctx =
+        match exp with
+        | LinqExpression(linqExpression) -> LinqExpressionVisitor.Visit linqExpression ctx
+        | Quotation(quotation) -> QuotationVisitor.Visit quotation ctx
+       
+    let VisitWithCustomConfig cfg exp ctx =
+        match exp with
+        | LinqExpression(linqExpression) -> LinqExpressionVisitor.VisitWithCustomConfig cfg linqExpression ctx
+        | Quotation(quotation) -> QuotationVisitor.VisitWithCustomConfig cfg quotation ctx

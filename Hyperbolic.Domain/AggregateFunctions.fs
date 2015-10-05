@@ -11,3 +11,4 @@ type Sql private () =
     static member Count () = Unchecked.defaultof<int>
     static member Sum<'a> (value : 'a) = Unchecked.defaultof<'a>
     static member RowNumber () = Unchecked.defaultof<int>
+    static member Parameter (param : ExpressionParameter<'a>) = Unchecked.defaultof<'a>

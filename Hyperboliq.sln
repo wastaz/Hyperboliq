@@ -1,10 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.22823.1
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hyperboliq.Interop.CSharp", "Hyperbolic\Hyperboliq.Interop.CSharp.csproj", "{E2A76C7D-2744-4BA0-96F5-4CEC2B4BF81D}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hyperboliq.Tests", "Hyperbolic.Tests\Hyperboliq.Tests.csproj", "{5712F2C2-4C5A-4847-A502-1A9C7137B381}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hyperboliq", "Hyperbolic.Domain\Hyperboliq.fsproj", "{B364B662-03A5-4700-A554-6B9E7EABD6CD}"
@@ -32,16 +30,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hyperboliq.Tests.FSharp", "Hyperboliq.Tests.FSharp\Hyperboliq.Tests.FSharp.fsproj", "{F229A32F-2B67-4014-B647-50F5A10A69F0}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hyperboliq.Postgres", "Hyperboliq.Postgres\Hyperboliq.Postgres.fsproj", "{2FA85626-C565-4A4F-8563-D4202D67DDB6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{E2A76C7D-2744-4BA0-96F5-4CEC2B4BF81D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E2A76C7D-2744-4BA0-96F5-4CEC2B4BF81D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E2A76C7D-2744-4BA0-96F5-4CEC2B4BF81D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E2A76C7D-2744-4BA0-96F5-4CEC2B4BF81D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5712F2C2-4C5A-4847-A502-1A9C7137B381}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5712F2C2-4C5A-4847-A502-1A9C7137B381}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5712F2C2-4C5A-4847-A502-1A9C7137B381}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -70,6 +68,14 @@ Global
 		{0A984155-57B7-4A4F-A5DA-34690BAA2117}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0A984155-57B7-4A4F-A5DA-34690BAA2117}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0A984155-57B7-4A4F-A5DA-34690BAA2117}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F229A32F-2B67-4014-B647-50F5A10A69F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F229A32F-2B67-4014-B647-50F5A10A69F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F229A32F-2B67-4014-B647-50F5A10A69F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F229A32F-2B67-4014-B647-50F5A10A69F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2FA85626-C565-4A4F-8563-D4202D67DDB6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2FA85626-C565-4A4F-8563-D4202D67DDB6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2FA85626-C565-4A4F-8563-D4202D67DDB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2FA85626-C565-4A4F-8563-D4202D67DDB6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

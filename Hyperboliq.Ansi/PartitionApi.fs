@@ -6,6 +6,7 @@ open Hyperboliq
 open Hyperboliq.Types
 open Hyperboliq.Domain.AST
 open Hyperboliq.Domain.ExpressionParts
+open Hyperboliq.Domain.ExpressionVisitor
 
 [<AbstractClass>]
 type FluentOverPartitionBase(p : WindowNode) =
@@ -22,7 +23,7 @@ type OverOrderBy internal (p : WindowNode) =
     member internal x.InternalThenBy<'a>(selector : Expression<Func<'a, obj>>, ?direction : Direction, ?nullsOrdering : NullsOrdering) =
         let dir = defaultArg direction Direction.Ascending
         let nullsOrder = defaultArg nullsOrdering NullsOrdering.NullsUndefined
-        AddPartitionOrderBy x.Partition selector TableReferenceFromType<'a> dir nullsOrder
+        AddPartitionOrderBy x.Partition (LinqExpression(selector)) TableReferenceFromType<'a> dir nullsOrder
 
     member x.ThenBy<'a>(selector : Expression<Func<'a, obj>>) =
         x.InternalThenBy(selector) |> New
@@ -36,7 +37,7 @@ type OverPartition internal (p : WindowNode) =
     static let New expr = OverPartition(expr)
 
     member x.ThenBy<'a>(selector : Expression<Func<'a, obj>>) =
-        AddPartitionBy x.Partition selector TableReferenceFromType<'a> |> New
+        AddPartitionBy x.Partition (LinqExpression(selector)) TableReferenceFromType<'a> |> New
 
     member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>) = 
         OverOrderBy(x.Partition).ThenBy(selector)

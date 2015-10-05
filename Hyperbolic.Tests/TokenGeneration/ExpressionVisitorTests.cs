@@ -32,7 +32,7 @@ namespace Hyperboliq.Domain.Tests
             Expression<Func<Person, int>> func = (Person p) => p.Age;
             var tableRef = Types.TableReferenceFromType<Person>();
             var ev = ExpressionVisitor.Visit(
-                func,
+                ExpressionVisitor.VisitableExpression.NewLinqExpression(func),
                 new[] { tableRef }.ToContext()
                 );
 
@@ -47,7 +47,7 @@ namespace Hyperboliq.Domain.Tests
             Expression<Func<Person, object>> func = (Person p) => new { p.Age, p.Name };
             var tableRef = Types.TableReferenceFromType<Person>();
             var ev = ExpressionVisitor.Visit(
-                func,
+                ExpressionVisitor.VisitableExpression.NewLinqExpression(func),
                 new[] { tableRef }.ToContext()
                 );
 
@@ -63,7 +63,7 @@ namespace Hyperboliq.Domain.Tests
             Expression<Func<Person, bool>> func = (Person p) => p.Age > 42;
             var tableRef = Types.TableReferenceFromType<Person>();
             var ev = ExpressionVisitor.Visit(
-                func,
+                ExpressionVisitor.VisitableExpression.NewLinqExpression(func),
                 new[] { tableRef }.ToContext()
                 );
 
@@ -81,7 +81,9 @@ namespace Hyperboliq.Domain.Tests
                 Types.NamedTableReferenceFromType<Person>("p1"),
                 Types.NamedTableReferenceFromType<Person>("p2"),
             };
-            var ev = ExpressionVisitor.Visit(func, tableRefs.ToContext());
+            var ev = ExpressionVisitor.Visit(
+                ExpressionVisitor.VisitableExpression.NewLinqExpression(func),
+                tableRefs.ToContext());
 
             var expected =
                 S.BinExp(S.Col(tableRefs[0], "Age"), BinaryOperation.LessThan, S.Col(tableRefs[1], "Age")).ToOption();
@@ -96,7 +98,9 @@ namespace Hyperboliq.Domain.Tests
             {
                 Types.TableReferenceFromType<Person>(),
             };
-            var ev = ExpressionVisitor.Visit(func, tableRefs.ToContext());
+            var ev = ExpressionVisitor.Visit(
+                ExpressionVisitor.VisitableExpression.NewLinqExpression(func),
+                tableRefs.ToContext());
 
             var expected =
                 S.BinExp(
@@ -119,7 +123,9 @@ namespace Hyperboliq.Domain.Tests
             {
                 Types.TableReferenceFromType<Person>(),
             };
-            var ev = ExpressionVisitor.Visit(func, tableRefs.ToContext());
+            var ev = ExpressionVisitor.Visit(
+                ExpressionVisitor.VisitableExpression.NewLinqExpression(func),
+                tableRefs.ToContext());
 
             var expected =
                 S.BinExp(S.Col<Person>("Age"), BinaryOperation.NotEqual, S.Param("ageparam")).ToOption();
@@ -134,7 +140,9 @@ namespace Hyperboliq.Domain.Tests
             {
                 Types.TableReferenceFromType<Person>(),
             };
-            var ev = ExpressionVisitor.Visit(func, tableRefs.ToContext());
+            var ev = ExpressionVisitor.Visit(
+                ExpressionVisitor.VisitableExpression.NewLinqExpression(func),
+                tableRefs.ToContext());
 
             var expected =
                 ValueNode.NewValueList(
@@ -154,7 +162,9 @@ namespace Hyperboliq.Domain.Tests
             {
                 Types.TableReferenceFromType<Person>(),
             };
-            var ev = ExpressionVisitor.Visit(func, tableRefs.ToContext());
+            var ev = ExpressionVisitor.Visit(
+                ExpressionVisitor.VisitableExpression.NewLinqExpression(func),
+                tableRefs.ToContext());
 
             var expected =
                 ValueNode.NewValueList(
@@ -172,7 +182,9 @@ namespace Hyperboliq.Domain.Tests
             {
                 Types.TableReferenceFromType<Person>(),
             };
-            var ev = ExpressionVisitor.Visit(func, tableRefs.ToContext());
+            var ev = ExpressionVisitor.Visit(
+                ExpressionVisitor.VisitableExpression.NewLinqExpression(func),
+                tableRefs.ToContext());
 
             var expected =
                 ValueNode.NewValueList(
@@ -190,7 +202,9 @@ namespace Hyperboliq.Domain.Tests
             {
                 Types.TableReferenceFromType<Person>(),
             };
-            var ev = ExpressionVisitor.Visit(func, tableRefs.ToContext());
+            var ev = ExpressionVisitor.Visit(
+                ExpressionVisitor.VisitableExpression.NewLinqExpression(func),
+                tableRefs.ToContext());
             var expected =
                 ValueNode.NewValueList(
                     ListModule.OfArray(new[] {
@@ -208,7 +222,9 @@ namespace Hyperboliq.Domain.Tests
             {
                 Types.TableReferenceFromType<Person>(),
             };
-            var ev = ExpressionVisitor.Visit(func, tableRefs.ToContext());
+            var ev = ExpressionVisitor.Visit(
+                ExpressionVisitor.VisitableExpression.NewLinqExpression(func),
+                tableRefs.ToContext());
             var expected =
                 S.BinExp(
                     S.Func(AST.FunctionType.Upper, new[] { S.Col<Person>("Name") }),
@@ -225,7 +241,9 @@ namespace Hyperboliq.Domain.Tests
             {
                 Types.TableReferenceFromType<Person>(),
             };
-            var ev = ExpressionVisitor.Visit(func, tableRefs.ToContext());
+            var ev = ExpressionVisitor.Visit(
+                ExpressionVisitor.VisitableExpression.NewLinqExpression(func),
+                tableRefs.ToContext());
             var expected =
                 S.BinExp(
                     S.Func(AST.FunctionType.Lower, new[] { S.Col<Person>("Name") }),
@@ -243,7 +261,9 @@ namespace Hyperboliq.Domain.Tests
                 (ITableReference)Types.TableReferenceFromType<Person>(),
                 (ITableReference)Types.TableReferenceFromType<Car>(),
             };
-            var ev = ExpressionVisitor.Visit(func, tableRefs.ToContext());
+            var ev = ExpressionVisitor.Visit(
+                ExpressionVisitor.VisitableExpression.NewLinqExpression(func),
+                tableRefs.ToContext());
             var expected =
                 S.BinExp(
                     S.Func(AST.FunctionType.Concat, new[] { S.Col<Person>("Name"), S.Col<Car>("Brand"), }),
@@ -276,7 +296,9 @@ namespace Hyperboliq.Domain.Tests
                 (ITableReference)Types.TableReferenceFromType<Person>(),
                 (ITableReference)Types.TableReferenceFromType<Car>(),
             };
-            var ev = ExpressionVisitor.Visit(testcase, tableRefs.ToContext());
+            var ev = ExpressionVisitor.Visit(
+                ExpressionVisitor.VisitableExpression.NewLinqExpression(testcase),
+                tableRefs.ToContext());
             var expected =
                 S.BinExp(
                     S.Func(AST.FunctionType.Concat, new[] { S.Col<Person>("Name"), S.Col<Car>("Brand"), S.Col<Person>("Name"), S.Col<Car>("Brand"), }),

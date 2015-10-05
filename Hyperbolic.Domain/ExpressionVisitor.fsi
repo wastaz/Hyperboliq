@@ -3,9 +3,11 @@
 module ExpressionVisitor =
     open Hyperboliq
 
-    type ExpressionVisitorConfig = {
-        IsUpdate : bool
-    }
+    type VisitableExpression = 
+    | LinqExpression of System.Linq.Expressions.Expression
+    | Quotation of Quotations.Expr
 
-    val Visit : System.Linq.Expressions.Expression -> ITableReference seq -> AST.ValueNode option
-    val VisitWithCustomConfig : ExpressionVisitorConfig -> System.Linq.Expressions.Expression -> ITableReference seq -> AST.ValueNode option
+    type ExpressionContext = ITableReference seq
+
+    val Visit : VisitableExpression -> ExpressionContext -> AST.ValueNode option
+    val VisitWithCustomConfig : ExpressionVisitorConfig -> VisitableExpression -> ExpressionContext -> AST.ValueNode option
