@@ -79,7 +79,7 @@ module internal LinqExpressionVisitor =
     let VisitConstant (exp : ConstantExpression) : ValueNode =
         match exp.Value with
         | null -> ValueNode.NullValue
-        |  :? SelectExpression as se -> 
+        | :? SelectExpression as se -> 
             match se with 
             | Plain(q) -> ValueNode.SubExpression(q)
             | _ -> failwith "Not implemented"
@@ -305,9 +305,13 @@ module internal QuotationVisitor =
         FindBinding context v.Name |> BindingToValueNode context
 
     let VisitValue (context : EvaluationContext) ((v, t) : ValueInfo) =
-        v.ToString()
-        |> sprintf (if t = typeof<string> then "'%s'" else "%s")
-        |> ValueNode.Constant
+        match v with
+        | :? string as s -> 
+            s |> sprintf "'%s'" |> ValueNode.Constant
+        | :? ExpressionParameter as p -> 
+            p.Name |> ValueNode.Parameter
+        | _ -> 
+            v.ToString() |> sprintf "%s" |> ValueNode.Constant
         
     let VisitProperty (context : EvaluationContext) ((obj, property, l) : PropertyGetExpression) =
         match obj with
@@ -332,7 +336,7 @@ module internal QuotationVisitor =
         | "In" when methodInfo.DeclaringType = typeof<Sql> -> Some(BinaryOperation.In)
         | _ -> None
 
-    let (|NoArgsSqlFunctionCall|_|) (methodInfo : System.Reflection.MethodInfo)  =
+    let (|NoArgsAggregateCall|_|) (methodInfo : System.Reflection.MethodInfo)  =
         if methodInfo.DeclaringType = typeof<Hyperboliq.Domain.Sql> then
             match methodInfo.Name with
             | "Count" -> Some(AggregateType.Count)
@@ -341,7 +345,7 @@ module internal QuotationVisitor =
         else
             None
 
-    let (|UnarySqlFunctionCall|_|) (methodInfo : System.Reflection.MethodInfo) =
+    let (|UnaryAggregateCall|_|) (methodInfo : System.Reflection.MethodInfo) =
         if methodInfo.DeclaringType = typeof<Hyperboliq.Domain.Sql> then
             match methodInfo.Name with
             | "Sum" -> Some(AggregateType.Sum)
@@ -389,9 +393,9 @@ module internal QuotationVisitor =
     
     and VisitCall (context : EvaluationContext) ((exprOpt, methodInfo, exprList) : CallInfo) =
         match exprOpt, methodInfo, exprList with
-        | None, NoArgsSqlFunctionCall aggregate, [] ->
+        | None, NoArgsAggregateCall aggregate, [] ->
             ValueNode.Aggregate(aggregate, ValueNode.NullValue)
-        | None, UnarySqlFunctionCall aggregate, operand :: [] ->
+        | None, UnaryAggregateCall aggregate, operand :: [] ->
             ValueNode.Aggregate(aggregate, VisitQuotation context operand)
         | None, BinaryExpressionCall op, lhs :: rhs :: [] -> 
             ValueNode.BinaryExpression(
@@ -399,6 +403,8 @@ module internal QuotationVisitor =
                   Lhs = VisitQuotation context lhs
                   Rhs = VisitQuotation context rhs
                 })
+        | None, _, [ op ] when methodInfo.DeclaringType = typeof<Hyperboliq.Domain.Sql> && methodInfo.Name = "Parameter" -> 
+            VisitQuotation context op
         | Some(instance), mi, el ->
             let evaluatedInstance = evalRaw instance
             let result = 
@@ -440,6 +446,15 @@ module internal QuotationVisitor =
             VisitQuotation newCtx body
         | _ -> failwith "Not implemented"
 
+    and VisitNew (context : EvaluationContext) ((ctor, expressions) : (System.Reflection.ConstructorInfo * Expr list)) =
+        if typeof<ExpressionParameter>.IsAssignableFrom(ctor.DeclaringType) then
+            let args = expressions |> List.head |> VisitQuotation context
+            match args with
+            | ValueNode.Constant(s) -> s.Trim([| '\'' |]) |> ValueNode.Parameter
+            | _ -> failwith "Not implemented"
+        else
+            failwith "Not implemented"
+
     and VisitQuotation (context : EvaluationContext) (exp : Expr) =
         match exp with
         | IfThenElse(ifThenElse) -> VisitIfThenElse context ifThenElse
@@ -452,6 +467,7 @@ module internal QuotationVisitor =
         | Var(v) -> VisitVar context v
         | Value(v) -> VisitValue context v
         | QuoteTyped(e) -> VisitQuotation context e
+        | NewObject(e) -> VisitNew context e
         | _ -> failwith "Not implemented"
 
     let VisitWithCustomConfig cfg exp context =

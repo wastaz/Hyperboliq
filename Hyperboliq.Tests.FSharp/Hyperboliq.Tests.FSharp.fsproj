@@ -54,6 +54,7 @@
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Helpers.fs" />
     <Compile Include="TokenGeneration_SimpleDeleteTests.fs" />
+    <Compile Include="TokenGeneration_ParameterizedQueryTests.fs" />
     <Compile Include="TokenGeneration_SimpleJoinTests.fs" />
     <Compile Include="TokenGeneration_SimpleSelectTests.fs" />
     <Compile Include="TokenGeneration_SelectPartitionTests.fs" />

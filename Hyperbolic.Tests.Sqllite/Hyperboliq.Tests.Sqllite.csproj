@@ -91,10 +91,6 @@
       <Project>{5712f2c2-4c5a-4847-a502-1a9c7137b381}</Project>
       <Name>Hyperboliq.Tests</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Hyperbolic\Hyperboliq.Interop.CSharp.csproj">
-      <Project>{e2a76c7d-2744-4ba0-96f5-4cec2b4bf81d}</Project>
-      <Name>Hyperboliq.Interop.CSharp</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Hyperboliq.Ansi\Hyperboliq.Ansi.fsproj">
       <Project>{0a984155-57b7-4a4f-a5da-34690baa2117}</Project>
       <Name>Hyperboliq.Ansi</Name>

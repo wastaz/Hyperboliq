@@ -28,7 +28,12 @@ type ExpressionParameter(name : string) =
         | :? ExpressionParameter as other -> x.Name.Equals(other.Name)
         | _ -> false
     override x.GetHashCode() = x.Name.GetHashCode()
-    
+
+type ExpressionParameter<'TParamType> (name : string) =
+    inherit ExpressionParameter(name)
+    member x.SetValue (o : 'TParamType) = x.Value <- Some(o :> obj)
+    static member op_Implicit(x : ExpressionParameter<'TParamType>) = Unchecked.defaultof<'TParamType>
+
 type ITableReference = 
     abstract Table : System.Type with get
     abstract ReferenceName : string with get

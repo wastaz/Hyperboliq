@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hyperboliq.Interop.CSharp", "Hyperbolic\Hyperboliq.Interop.CSharp.csproj", "{E2A76C7D-2744-4BA0-96F5-4CEC2B4BF81D}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hyperboliq.Tests", "Hyperbolic.Tests\Hyperboliq.Tests.csproj", "{5712F2C2-4C5A-4847-A502-1A9C7137B381}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hyperboliq", "Hyperbolic.Domain\Hyperboliq.fsproj", "{B364B662-03A5-4700-A554-6B9E7EABD6CD}"
@@ -42,10 +40,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{E2A76C7D-2744-4BA0-96F5-4CEC2B4BF81D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E2A76C7D-2744-4BA0-96F5-4CEC2B4BF81D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E2A76C7D-2744-4BA0-96F5-4CEC2B4BF81D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E2A76C7D-2744-4BA0-96F5-4CEC2B4BF81D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5712F2C2-4C5A-4847-A502-1A9C7137B381}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5712F2C2-4C5A-4847-A502-1A9C7137B381}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5712F2C2-4C5A-4847-A502-1A9C7137B381}.Release|Any CPU.ActiveCfg = Release|Any CPU
