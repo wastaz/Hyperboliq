@@ -21,6 +21,11 @@ module Option =
         | null -> None
         | _ -> Some o
 
+    let UnwrapOrFail o =
+        match o with
+        | Some(value) -> value
+        | None -> failwith "Not implemented"
+
 module String =
     let join sep (strs : string list) =
         System.String.Join(sep, (List.toArray strs))

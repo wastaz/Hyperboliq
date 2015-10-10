@@ -292,6 +292,17 @@ module internal QuotationVisitor =
         |> Array.find (fun p -> p.Name.Equals(col, System.StringComparison.InvariantCultureIgnoreCase))
         |> fun pi -> pi.PropertyType
 
+    let TryCreateSubExpressionNode o =
+        let toSqlExpressionTransformable (v : obj) =
+            match v with
+            | :? ISqlExpressionTransformable as x -> x.ToSqlExpression() |> Some
+            | _ -> None
+        let toSubExpression v =
+            match v with
+            | SqlExpression.Select(Plain(ps)) -> ValueNode.SubExpression(ps) |> Some
+            | _ -> None
+        o |> toSqlExpressionTransformable |> Option.bind toSubExpression
+
     let rec BindingToValueNode (context : EvaluationContext) (binding : Binding) =
         match binding with
         | name, Constant(value) -> ValueNode.NamedColumn({ Alias = name; Column = ValueNode.Constant(value) })
@@ -405,18 +416,15 @@ module internal QuotationVisitor =
                 })
         | None, _, [ op ] when methodInfo.DeclaringType = typeof<Hyperboliq.Domain.Sql> && methodInfo.Name = "Parameter" -> 
             VisitQuotation context op
-        | Some(instance), mi, el ->
+        | None, mi, [ arg ] when mi.DeclaringType = typeof<Hyperboliq.Domain.Sql> && methodInfo.Name = "SubExpr" ->
+            evalRaw arg 
+            |> TryCreateSubExpressionNode
+            |> Option.UnwrapOrFail
+        | Some(instance), mi, el  ->
             let evaluatedInstance = evalRaw instance
-            let result = 
-                mi.Invoke(
-                    evaluatedInstance, 
-                    el |> List.map (fun e -> evalRaw e :> obj) |> Array.ofList)
-            match result with
-            | :? ISqlExpressionTransformable as x -> 
-                match x.ToSqlExpression() with
-                | SqlExpression.Select(Plain(ps)) -> ValueNode.SubExpression(ps)
-                | _ -> failwith "Not implemented"
-            | _ -> failwith "Not implemented"
+            mi.Invoke(evaluatedInstance, el |> List.map (fun e -> evalRaw e :> obj) |> Array.ofList)
+            |> TryCreateSubExpressionNode 
+            |> Option.UnwrapOrFail
         | _ -> failwith "Not implemented"
 
     and VisitIfThenElse (context : EvaluationContext) ((predicate, trueBranch, falseBranch) : IfThenElseExpression) =
