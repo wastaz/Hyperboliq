@@ -2,6 +2,10 @@
 
 [<AutoOpen>]
 module TestModel =
+    [<CLIMutable>]
+    type PersonLite =
+        { Name : string
+          Age : int }
 
     [<CLIMutable>]
     type Person =

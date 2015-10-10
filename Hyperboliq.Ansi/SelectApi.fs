@@ -352,3 +352,4 @@ type Select private () =
     static member Column<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>, partition : FluentOverPartitionBase) = (SelectImpl()).Column<'a, 'b>(selector, partition)
 
     static member Column<'a>(tbl : ITableIdentifier<'a>, selector : Expression<Func<'a, obj>>) = (SelectImpl()).Column<'a>(tbl, selector)
+    static member Column<'a, 'b>(tbl : ITableIdentifier<'a>, [<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>) = (SelectImpl()).Column(tbl, selector)

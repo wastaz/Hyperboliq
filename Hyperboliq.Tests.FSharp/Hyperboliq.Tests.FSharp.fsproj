@@ -63,6 +63,7 @@
     <Compile Include="TokenGeneration_SimpleUpdateTests.fs" />
     <Compile Include="TokenGeneration_SimpleWhereTests.fs" />
     <Compile Include="TokenGeneration_SubExpressionTests.fs" />
+    <Compile Include="TokenGeneration_CommonTableExpressions.fs" />
     <Compile Include="TokenGeneration_ExpressionVisitorTests.fs" />
     <Content Include="packages.config" />
     <Content Include="app.config" />
