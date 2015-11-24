@@ -50,6 +50,7 @@
     <Compile Include="TokenGeneration_SimpleDeleteTests.fs" />
     <Compile Include="TokenGeneration_ParametrizedQueryTests.fs" />
     <Compile Include="TokenGeneration_SimpleJoinTests.fs" />
+    <Compile Include="TokenGeneration_SimpleSelectTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Hyperbolic.Domain\Hyperboliq.fsproj">

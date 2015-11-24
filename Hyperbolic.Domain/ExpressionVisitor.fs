@@ -262,16 +262,16 @@ module internal QuotationVisitor =
         |> List.ofSeq
 
     let RecursiveCollect (selector : Expr -> ('a * Expr) option) (exp : Expr) : 'a list * Expr =
-        let rec InternalRecursiveCollect exp res =
+        let rec internalRecursiveCollect exp res =
             let selectorResult = selector exp
             match selectorResult with
             | Some(current, body) ->
-                InternalRecursiveCollect body (current :: (fst res), body)
+                internalRecursiveCollect body (current :: (fst res), body)
             | None ->
                 fst res
                 |> List.rev
                 |> fun l -> l, (snd res)
-        InternalRecursiveCollect exp ([], exp)
+        internalRecursiveCollect exp ([], exp)
 
     let CollectLet (exp : Expr) : (Var * Expr) list * Expr =
         let selector e =
@@ -389,9 +389,15 @@ module internal QuotationVisitor =
                     | ValueNode.Constant(c) -> Some(Constant(c))
                     | _ -> None)
             let (tupleBindings, next) = CollectLet expr
+              
             let newContext =
-                List.zip values tupleBindings
-                |> List.map (fun (b, (var, _)) -> var.Name, b)
+                tupleBindings
+                |> List.choose (function 
+                    | v, TupleGet(e, i) -> Some(v, e, i) 
+                    | _ -> None)
+                |> List.sortBy (fun (_, _, i) -> i)
+                |> List.zip values 
+                |> List.map (fun (b, (var, _, _)) -> var.Name, b)
                 |> fun l -> List.concat [ l; context ]
             VisitQuotation newContext next
         | Call(c) ->

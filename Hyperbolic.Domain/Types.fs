@@ -56,11 +56,13 @@ module internal Types =
     [<StructuralEquality; NoComparison>]
     type internal TableReference<'a> = 
         { table : System.Type; referenceName : string }
+        member x.Table with get() = (x :> ITableReference<'a>).Table
+        member x.ReferenceName with get() = (x :> ITableReference<'a>).ReferenceName
+
         interface ITableReference<'a> with
             member x.Table with get() = x.table
             member x.ReferenceName with get() = x.referenceName
-        member x.Table with get() = (x :> ITableReference<'a>).Table
-        member x.ReferenceName with get() = (x :> ITableReference<'a>).ReferenceName
+
 
     [<StructuralEquality; NoComparison>]
     type internal TableDefinition<'a> =

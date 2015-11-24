@@ -1,9 +1,6 @@
 ﻿using Xunit;
 using Hyperboliq.Domain;
 using Hyperboliq.Tests.TokenGeneration;
-using S = Hyperboliq.Tests.SqlStreamExtensions;
-using AggregateType = Hyperboliq.Domain.AST.AggregateType;
-using ValueNode = Hyperboliq.Domain.AST.ValueNode;
 
 namespace Hyperboliq.Tests
 {
@@ -17,26 +14,17 @@ namespace Hyperboliq.Tests
                              .From<Person>();
             var result = expr.ToSqlExpression();
 
-            var expected =
-                S.SelectNode(
-                    S.SelectDistinct(S.Star<Person>()),
-                    S.From<Person>());
-
-            Assert.Equal(expected, result);
+            Assert.Equal(TokenGeneration_SimpleSelectTests_Results.selectDistinctExpression, result);
         }
 
         [Fact]
         public void ItShouldBePossibleToSelectAConstant()
         {
-            var expr = Select.Column<Person>(p => new { FavoriteNumber = 42, Name = p.Name })
+            var expr = Select.Column<Person>(p => new { favoriteNumber = 42, name = p.Name })
                              .From<Person>();
             var result = expr.ToSqlExpression();
 
-            var expected =
-                S.SelectNode(
-                    S.Select(S.AliasedCol(S.Const(42), "FavoriteNumber"), S.Col<Person>("Name")),
-                    S.From<Person>());
-            Assert.Equal(expected, result);
+            Assert.Equal(TokenGeneration_SimpleSelectTests_Results.selectConstantExpression, result);
         }
 
         [Fact]
@@ -46,12 +34,7 @@ namespace Hyperboliq.Tests
                              .From<Person>();
             var result = expr.ToSqlExpression();
 
-            var expected =
-                S.SelectNode(
-                    S.Select(S.Col<Person>("Name"), S.Col<Person>("Age")),
-                    S.From<Person>());
-
-            Assert.Equal(expected, result);
+            Assert.Equal(TokenGeneration_SimpleSelectTests_Results.selectColumnsExpression, result);
         }
 
         [Fact]
@@ -61,11 +44,7 @@ namespace Hyperboliq.Tests
                              .From<Person>();
             var result = expr.ToSqlExpression();
 
-            var expected =
-                S.SelectNode(
-                    S.Select(S.Col<Person>("Name"), S.Col<Person>("Age")),
-                    S.From<Person>());
-            Assert.Equal(expected, result);
+            Assert.Equal(TokenGeneration_SimpleSelectTests_Results.selectColumnsExpression, result);
         }
 
         [Fact]
@@ -75,13 +54,7 @@ namespace Hyperboliq.Tests
                              .From<Person>();
             var result = expr.ToSqlExpression();
 
-
-            var expected =
-                S.SelectNode(
-                    S.SelectDistinct(S.Col<Person>("Age")),
-                    S.From<Person>());
-
-            Assert.Equal(expected, result);
+            Assert.Equal(TokenGeneration_SimpleSelectTests_Results.selectDistinctSingleColumnsExpression, result);
         }
 
         [Fact]
@@ -89,27 +62,17 @@ namespace Hyperboliq.Tests
         {
             var expr = Select.Column<Person>(p => Sql.Count()).From<Person>();
             var result = expr.ToSqlExpression();
-            var expected =
-                S.SelectNode(
-                    S.Select(S.Aggregate(AggregateType.Count, ValueNode.NullValue)), 
-                    S.From<Person>());
-            Assert.Equal(expected, result);
+
+            Assert.Equal(TokenGeneration_SimpleSelectTests_Results.selectCountExpression, result);
         }
 
         [Fact]
         public void ItShouldBePossibleToSelectTheNumberOfRowsFromATableAndNameTheColumn()
         {
-            var expr = Select.Column<Person>(p => new { NumberOfPersons = Sql.Count() }).From<Person>();
+            var expr = Select.Column<Person>(p => new { numberOfPersons = Sql.Count() }).From<Person>();
             var result = expr.ToSqlExpression();
-            var expected =
-                S.SelectNode(
-                    S.Select(
-                        S.AliasedCol<Person>(
-                            AggregateType.Count, 
-                            ValueNode.NullValue,
-                            "NumberOfPersons")),
-                    S.From<Person>());
-            Assert.Equal(expected, result);
+
+            Assert.Equal(TokenGeneration_SimpleSelectTests_Results.selectNamedCountExpression, result);
         }
 
     }
