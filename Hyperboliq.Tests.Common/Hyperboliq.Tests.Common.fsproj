@@ -54,6 +54,7 @@
     <Compile Include="TokenGeneration_SimpleSelectTests.fs" />
     <Compile Include="TokenGeneration_SelectPartitionTests.fs" />
     <Compile Include="TokenGeneration_SimpleGroupByTests.fs" />
+    <Compile Include="TokenGeneration_SimpleOrderByTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Hyperbolic.Domain\Hyperboliq.fsproj">

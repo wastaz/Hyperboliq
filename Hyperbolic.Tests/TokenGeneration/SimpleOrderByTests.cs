@@ -1,9 +1,6 @@
 ﻿using Xunit;
 using Hyperboliq.Tests.TokenGeneration;
 using Direction = Hyperboliq.Domain.AST.Direction;
-using BinaryOperation = Hyperboliq.Domain.AST.BinaryOperation;
-using JoinType = Hyperboliq.Domain.AST.JoinType;
-using S = Hyperboliq.Tests.SqlStreamExtensions;
 
 namespace Hyperboliq.Tests
 {
@@ -17,13 +14,7 @@ namespace Hyperboliq.Tests
                              .From<Person>()
                              .OrderBy<Person>(p => p.Age, Direction.Ascending);
             var result = expr.ToSqlExpression();
-
-            var expected =
-                S.SelectNode(
-                    S.Select(S.Star<Person>()),
-                    S.From<Person>(),
-                    orderBy: S.OrderBy(S.OrderClause(S.Col<Person>("Age"), Direction.Ascending)));
-
+            var expected = TokenGeneration_SimpleOrderByTests_Results.GetOrderByDirectionExpression(Direction.Ascending);
             Assert.Equal(expected, result);
         }
 
@@ -34,13 +25,7 @@ namespace Hyperboliq.Tests
                              .From<Person>()
                              .OrderBy<Person>(p => p.Age, Direction.Descending);
             var result = expr.ToSqlExpression();
-
-            var expected =
-                S.SelectNode(
-                    S.Select(S.Star<Person>()),
-                    S.From<Person>(),
-                    orderBy: S.OrderBy(S.OrderClause(S.Col<Person>("Age"), Direction.Descending)));
-
+            var expected = TokenGeneration_SimpleOrderByTests_Results.GetOrderByDirectionExpression(Direction.Descending);
             Assert.Equal(expected, result);
         }
 
@@ -53,18 +38,7 @@ namespace Hyperboliq.Tests
                              .OrderBy<Person>(p => p.Age, Direction.Ascending)
                              .ThenBy<Car>(c => c.Brand, Direction.Descending);
             var result = expr.ToSqlExpression();
-
-            var expected =
-                S.SelectNode(
-                    S.Select(S.Star<Car>(), S.Star<Person>()),
-                    S.From<Person>(
-                        S.Join<Person, Car>(JoinType.InnerJoin, S.BinExp(S.Col<Person>("Id"), BinaryOperation.Equal, S.Col<Car>("DriverId")))),
-                    orderBy: S.OrderBy(
-                        S.OrderClause(S.Col<Car>("Brand"), Direction.Descending),
-                        S.OrderClause(S.Col<Person>("Age"), Direction.Ascending))
-                    );
-
-            Assert.Equal(expected, result);
+            Assert.Equal(TokenGeneration_SimpleOrderByTests_Results.orderByMultipleColumnsExpression, result);
         }
     }
 }

@@ -20,15 +20,8 @@ namespace Hyperboliq.Tests
                              .From<Person>()
                              .OrderBy<Person>(p => p.Age, Direction.Ascending, NullsOrdering.NullsFirst);
             var result = expr.ToSqlExpression();
-
             var expected =
-                S.SelectNode(
-                    S.Select(S.Star<Person>()),
-                    S.From<Person>(),
-                    orderBy: S.OrderBy(
-                        S.OrderClause(S.Col<Person>("Age"), Direction.Ascending, NullsOrdering.NullsFirst))
-                    );
-
+                TokenGeneration_SimpleOrderByTests_Results.GetOrderByNullsOrderingExpression(NullsOrdering.NullsFirst);
             Assert.Equal(expected, result);
         }
 
@@ -39,15 +32,8 @@ namespace Hyperboliq.Tests
                              .From<Person>()
                              .OrderBy<Person>(p => p.Age, Direction.Ascending, NullsOrdering.NullsLast);
             var result = expr.ToSqlExpression();
-
             var expected =
-                S.SelectNode(
-                    S.Select(S.Star<Person>()),
-                    S.From<Person>(),
-                    orderBy: S.OrderBy(
-                        S.OrderClause(S.Col<Person>("Age"), Direction.Ascending, NullsOrdering.NullsLast))
-                    );
-
+                TokenGeneration_SimpleOrderByTests_Results.GetOrderByNullsOrderingExpression(NullsOrdering.NullsLast);
             Assert.Equal(expected, result);
         }
 
@@ -59,17 +45,7 @@ namespace Hyperboliq.Tests
                              .OrderBy<Person>(p => p.Age, Direction.Ascending, NullsOrdering.NullsLast)
                              .ThenBy<Person>(p => p.Name, Direction.Descending, NullsOrdering.NullsFirst);
             var result = expr.ToSqlExpression();
-
-            var expected =
-                S.SelectNode(
-                    S.Select(S.Star<Person>()),
-                    S.From<Person>(),
-                    orderBy: S.OrderBy(
-                        S.OrderClause(S.Col<Person>("Name"), Direction.Descending, NullsOrdering.NullsFirst),
-                        S.OrderClause(S.Col<Person>("Age"), Direction.Ascending, NullsOrdering.NullsLast))
-                    );
-
-            Assert.Equal(expected, result);
+            Assert.Equal(TokenGeneration_SimpleOrderByTests_Results.orderByWithDifferentNullsOrderingPerColumnExpression, result);
         }
     }
 }
