@@ -19,18 +19,26 @@ type OverOrderBy internal (p : WindowNode) =
     inherit FluentOverPartitionBase(p)
 
     static let New expr = OverOrderBy(expr)
-
-    member internal x.InternalThenBy<'a>(selector : Expression<Func<'a, obj>>, ?direction : Direction, ?nullsOrdering : NullsOrdering) =
+    
+    member internal x.InternalThenBy<'a>(selector : VisitableExpression, ?direction : Direction, ?nullsOrdering : NullsOrdering) =
         let dir = defaultArg direction Direction.Ascending
         let nullsOrder = defaultArg nullsOrdering NullsOrdering.NullsUndefined
-        AddPartitionOrderBy x.Partition (LinqExpression(selector)) TableReferenceFromType<'a> dir nullsOrder
+        AddPartitionOrderBy x.Partition selector TableReferenceFromType<'a> dir nullsOrder
 
     member x.ThenBy<'a>(selector : Expression<Func<'a, obj>>) =
-        x.InternalThenBy(selector) |> New
+        x.InternalThenBy<'a>(LinqExpression(selector)) |> New
+    member x.ThenBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>) =
+        x.InternalThenBy<'a>(Quotation(selector)) |> New
+
     member x.ThenBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction) =
-        x.InternalThenBy(selector, direction) |> New
+        x.InternalThenBy<'a>(LinqExpression(selector), direction) |> New
+    member x.ThenBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>, direction : Direction) =
+        x.InternalThenBy<'a>(Quotation(selector), direction) |> New
+
     member x.ThenBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction, nullsOrder : NullsOrdering) =
-        x.InternalThenBy(selector, direction, nullsOrder) |> New
+        x.InternalThenBy<'a>(LinqExpression(selector), direction, nullsOrder) |> New
+    member x.ThenBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>, direction : Direction, nullsOrder : NullsOrdering) =
+        x.InternalThenBy<'a>(Quotation(selector), direction, nullsOrder) |> New
 
 type OverPartition internal (p : WindowNode) =
     inherit FluentOverPartitionBase(p)
@@ -38,8 +46,12 @@ type OverPartition internal (p : WindowNode) =
 
     member x.ThenBy<'a>(selector : Expression<Func<'a, obj>>) =
         AddPartitionBy x.Partition (LinqExpression(selector)) TableReferenceFromType<'a> |> New
+    member x.ThenBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>) =
+        AddPartitionBy x.Partition (Quotation(selector)) TableReferenceFromType<'a> |> New
 
     member x.OrderBy<'a>(selector : Expression<Func<'a, obj>>) = 
+        OverOrderBy(x.Partition).ThenBy(selector)
+    member x.OrderBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>) =
         OverOrderBy(x.Partition).ThenBy(selector)
 
 type Over private () =
@@ -50,12 +62,22 @@ type Over private () =
 
     static member PartitionBy<'a>(selector : Expression<Func<'a, obj>>) = 
         EmptyOverPartition.ThenBy(selector)
+    static member PartitionBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>) =
+        EmptyOverPartition.ThenBy(selector)
     
     static member OrderBy<'a>(selector : Expression<Func<'a, obj>>) =
         EmptyOverOrderBy.ThenBy(selector)
+    static member OrderBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>) =
+        EmptyOverOrderBy.ThenBy(selector)
+
     static member OrderBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction) =
         EmptyOverOrderBy.ThenBy(selector, direction)
+    static member OrderBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>, direction : Direction) =
+        EmptyOverOrderBy.ThenBy(selector, direction)
+
     static member OrderBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction, nullsOrder : NullsOrdering) =
+        EmptyOverOrderBy.ThenBy(selector, direction, nullsOrder)
+    static member OrderBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>, direction : Direction, nullsOrder : NullsOrdering) =
         EmptyOverOrderBy.ThenBy(selector, direction, nullsOrder)
 
     static member Empty with get() = EmptyOver

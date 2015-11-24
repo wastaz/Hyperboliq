@@ -41,6 +41,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
@@ -51,6 +52,7 @@
     <Compile Include="TokenGeneration_ParametrizedQueryTests.fs" />
     <Compile Include="TokenGeneration_SimpleJoinTests.fs" />
     <Compile Include="TokenGeneration_SimpleSelectTests.fs" />
+    <Compile Include="TokenGeneration_SelectPartitionTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Hyperbolic.Domain\Hyperboliq.fsproj">
