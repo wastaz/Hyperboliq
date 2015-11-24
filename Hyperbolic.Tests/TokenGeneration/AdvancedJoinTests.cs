@@ -1,5 +1,5 @@
 ﻿using Xunit;
-using Hyperboliq.Tests.Model;
+using Hyperboliq.Tests.TokenGeneration;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
 using JoinType = Hyperboliq.Domain.AST.JoinType;
 using BinaryOperation = Hyperboliq.Domain.AST.BinaryOperation;

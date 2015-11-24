@@ -64,9 +64,6 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
-    <Compile Include="Model\Car.cs" />
-    <Compile Include="Model\House.cs" />
-    <Compile Include="Model\Person.cs" />
     <Compile Include="SqlGeneration\AdvancedJoinTests.cs" />
     <Compile Include="SqlGeneration\CommonTableExpressions.cs" />
     <Compile Include="SqlGeneration\NullComparisonTests.cs" />
@@ -112,6 +109,10 @@
     <ProjectReference Include="..\Hyperboliq.Ansi\Hyperboliq.Ansi.fsproj">
       <Project>{0a984155-57b7-4a4f-a5da-34690baa2117}</Project>
       <Name>Hyperboliq.Ansi</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Hyperboliq.Tests.Common\Hyperboliq.Tests.Common.fsproj">
+      <Project>{6407f7f7-cef0-400e-a214-c7f8ba38c69c}</Project>
+      <Name>Hyperboliq.Tests.Common</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

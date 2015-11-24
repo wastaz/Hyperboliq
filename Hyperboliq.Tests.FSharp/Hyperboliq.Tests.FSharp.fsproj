@@ -52,7 +52,6 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Helpers.fs" />
     <Compile Include="TokenGeneration_SimpleDeleteTests.fs" />
     <Compile Include="TokenGeneration_ParameterizedQueryTests.fs" />
     <Compile Include="TokenGeneration_SimpleJoinTests.fs" />
@@ -99,6 +98,11 @@
     <ProjectReference Include="..\Hyperboliq.Ansi\Hyperboliq.Ansi.fsproj">
       <Name>Hyperboliq.Ansi</Name>
       <Project>{0a984155-57b7-4a4f-a5da-34690baa2117}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Hyperboliq.Tests.Common\Hyperboliq.Tests.Common.fsproj">
+      <Name>Hyperboliq.Tests.Common</Name>
+      <Project>{6407f7f7-cef0-400e-a214-c7f8ba38c69c}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>

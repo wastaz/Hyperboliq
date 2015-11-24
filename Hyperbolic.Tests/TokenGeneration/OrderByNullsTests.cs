@@ -1,5 +1,5 @@
 ﻿using Xunit;
-using Hyperboliq.Tests.Model;
+using Hyperboliq.Tests.TokenGeneration;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
 using Direction = Hyperboliq.Domain.AST.Direction;
 using NullsOrdering = Hyperboliq.Domain.AST.NullsOrdering;

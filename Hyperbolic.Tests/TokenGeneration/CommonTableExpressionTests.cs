@@ -1,18 +1,11 @@
 ﻿using Xunit;
 using Hyperboliq.Domain;
-using Hyperboliq.Tests.Model;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
 using BinaryOperation = Hyperboliq.Domain.AST.BinaryOperation;
 using AggregateType = Hyperboliq.Domain.AST.AggregateType;
 
 namespace Hyperboliq.Tests.TokenGeneration
 {
-    public class PersonLite
-    {
-        public string Name { get; set; }
-        public int Age { get; set; }
-    }
-
     [Trait("TokenGeneration", "CommonTableExpressions")]
     public class CommonTableExpressionTests
     {

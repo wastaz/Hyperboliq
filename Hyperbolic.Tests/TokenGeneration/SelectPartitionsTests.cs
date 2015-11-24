@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
+﻿using Xunit;
 using Hyperboliq.Domain;
-using Hyperboliq.Dialects;
-using Hyperboliq.Tests.Model;
 using AggregateType = Hyperboliq.Domain.AST.AggregateType;
 using Direction = Hyperboliq.Domain.AST.Direction;
 using NullsOrdering = Hyperboliq.Domain.AST.NullsOrdering;

@@ -1,5 +1,5 @@
 ﻿using Xunit;
-using Hyperboliq.Tests.Model;
+using Hyperboliq.Tests.TokenGeneration;
 using Direction = Hyperboliq.Domain.AST.Direction;
 using BinaryOperation = Hyperboliq.Domain.AST.BinaryOperation;
 using JoinType = Hyperboliq.Domain.AST.JoinType;

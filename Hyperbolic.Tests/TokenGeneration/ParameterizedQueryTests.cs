@@ -1,7 +1,5 @@
 ﻿using Xunit;
-using Hyperboliq.Tests.Model;
-using S = Hyperboliq.Tests.SqlStreamExtensions;
-using BinaryOperation = Hyperboliq.Domain.AST.BinaryOperation;
+using Hyperboliq.Tests.TokenGeneration;
 
 namespace Hyperboliq.Tests
 {
@@ -15,14 +13,8 @@ namespace Hyperboliq.Tests
                              .From<Person>()
                              .Where<Person>(p => p.Age < new ExpressionParameter<int>("age"));
             var result = expr.ToSqlExpression();
-            var expected =
-                S.SelectNode(
-                    S.Select(S.Star<Person>()),
-                    S.From<Person>(),
-                    S.Where(S.BinExp(S.Col<Person>("Age"), BinaryOperation.LessThan, S.Param("age")))
-                    );
 
-            Assert.Equal(expected, result);
+            Assert.Equal(TokenGeneration_ParametrizedQueryTests_Result.oneOffParameterExpression, result);
         }
 
         [Fact]
@@ -34,13 +26,7 @@ namespace Hyperboliq.Tests
                              .Where<Person>(p => p.Age > ageParam);
             var result = expr.ToSqlExpression();
 
-            var expected =
-                S.SelectNode(
-                    S.Select(S.Star<Person>()),
-                    S.From<Person>(),
-                    S.Where(S.BinExp(S.Col<Person>("Age"), BinaryOperation.GreaterThan, S.Param("age"))));
-
-            Assert.Equal(expected, result);
+            Assert.Equal(TokenGeneration_ParametrizedQueryTests_Result.parameterizedExpression, result);
         }
 
         [Fact]
@@ -53,18 +39,7 @@ namespace Hyperboliq.Tests
                              .Or<Person>(p => p.Age < ageParam);
             var result = expr.ToSqlExpression();
 
-            var expected =
-                S.SelectNode(
-                    S.Select(S.Star<Person>()),
-                    S.From<Person>(),
-                    S.Where(
-                        S.BinExp(
-                            S.BinExp(S.Col<Person>("Age"), BinaryOperation.GreaterThan, S.Param("age")),
-                            BinaryOperation.And,
-                            S.BinExp(S.Param("age"), BinaryOperation.LessThan, S.Const(90))
-                            ),
-                        S.Or(S.BinExp(S.Col<Person>("Age"), BinaryOperation.LessThan, S.Param("age")))));
-            Assert.Equal(expected, result);
+            Assert.Equal(TokenGeneration_ParametrizedQueryTests_Result.complexParameterizedExpression, result);
         }
     }
 }

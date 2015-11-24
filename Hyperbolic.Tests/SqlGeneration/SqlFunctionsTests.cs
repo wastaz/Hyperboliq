@@ -1,6 +1,6 @@
-﻿using Hyperboliq.Tests.Model;
-using Hyperboliq.Domain;
+﻿using Hyperboliq.Domain;
 using Hyperboliq.Dialects;
+using Hyperboliq.Tests.TokenGeneration;
 using Xunit;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
 using BinaryOperation = Hyperboliq.Domain.AST.BinaryOperation;

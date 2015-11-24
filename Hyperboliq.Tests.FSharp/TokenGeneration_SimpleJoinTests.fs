@@ -6,21 +6,7 @@ module TokenGeneration_SimpleJoinTests =
     open Hyperboliq
     open Hyperboliq.Domain.AST
     open Hyperboliq.Domain
-
-    let expectedStream joinType =
-        let pref = TableIdentifier<Person>()
-        let cref = TableIdentifier<Car>()
-        { TestHelpers.EmptySelect with
-            Select = { IsDistinct = false
-                       Values = [ ValueNode.StarColumn(pref.Reference) ] }
-            From = { Tables = [ pref ]
-                     Joins = [ { SourceTables = [ pref ]
-                                 TargetTable = cref
-                                 Type = joinType
-                                 Condition = { Operation = BinaryOperation.Equal
-                                               Lhs = ValueNode.Column("Id", typeof<int>, pref.Reference :> ITableReference)
-                                               Rhs = ValueNode.Column("DriverId", typeof<int>, cref.Reference :> ITableReference) } |> ValueNode.BinaryExpression |> Some } ] }
-        } |> TestHelpers.ToPlainSelect
+    open Hyperboliq.Tests.TokenGeneration.TokenGeneration_SimpleJoinTests_Results
 
     [<Test>]
     let ``It should be able to perform a simple inner join`` () =
@@ -28,7 +14,7 @@ module TokenGeneration_SimpleJoinTests =
                          .From<Person>()
                          .InnerJoin(<@ fun (p : Person) (c : Car) -> p.Id = c.DriverId @>)
         let result = expr.ToSqlExpression()
-        let expected = expectedStream JoinType.InnerJoin
+        let expected = expectedAst JoinType.InnerJoin
         result |> should equal expected
 
     [<Test>]
@@ -37,7 +23,7 @@ module TokenGeneration_SimpleJoinTests =
                          .From<Person>()
                          .LeftJoin(<@ fun (p : Person) (c : Car) -> p.Id = c.DriverId @>)
         let result = expr.ToSqlExpression()
-        let expected = expectedStream JoinType.LeftJoin
+        let expected = expectedAst JoinType.LeftJoin
         result |> should equal expected
 
     [<Test>]
@@ -46,7 +32,7 @@ module TokenGeneration_SimpleJoinTests =
                          .From<Person>()
                          .RightJoin(<@ fun (p : Person) (c : Car) -> p.Id = c.DriverId @>)
         let result = expr.ToSqlExpression()
-        let expected = expectedStream JoinType.RightJoin
+        let expected = expectedAst JoinType.RightJoin
         result |> should equal expected
     
     [<Test>]
@@ -55,7 +41,7 @@ module TokenGeneration_SimpleJoinTests =
                          .From<Person>()
                          .FullJoin(<@ fun (p : Person) (c : Car) -> p.Id = c.DriverId @>)
         let result = expr.ToSqlExpression()
-        let expected = expectedStream JoinType.FullJoin
+        let expected = expectedAst JoinType.FullJoin
         result |> should equal expected
         
     [<Test>]
@@ -66,23 +52,4 @@ module TokenGeneration_SimpleJoinTests =
                          .LeftJoin(<@ fun (p : Person) (c : Car) -> p.Id = c.DriverId @>)
         let result = expr.ToSqlExpression()
 
-        let pref, cref, href = TableIdentifier<Person>(), TableIdentifier<Car>(), TableIdentifier<House>()
-        let expected =
-            { TestHelpers.EmptySelect with
-                Select = { IsDistinct = false
-                           Values = [ ValueNode.StarColumn(href.Reference); ValueNode.StarColumn(cref.Reference); ValueNode.StarColumn(pref.Reference) ] } 
-                From = { Tables = [ href ]
-                         Joins = [ { SourceTables = [ pref] 
-                                     TargetTable = cref
-                                     Type = JoinType.LeftJoin
-                                     Condition = { Operation = BinaryOperation.Equal
-                                                   Lhs = ValueNode.Column("Id", typeof<int>, pref.Reference :> ITableReference)
-                                                   Rhs = ValueNode.Column("DriverId", typeof<int>, cref.Reference :> ITableReference) } |> ValueNode.BinaryExpression |> Some } 
-                                   { SourceTables = [ href ]
-                                     TargetTable = pref
-                                     Type = JoinType.InnerJoin
-                                     Condition = { Operation = BinaryOperation.Equal
-                                                   Lhs = ValueNode.Column("Id", typeof<int>, href.Reference :> ITableReference)
-                                                   Rhs = ValueNode.Column("LivesAtHouseId", typeof<int>, pref.Reference :> ITableReference) } |> ValueNode.BinaryExpression |> Some } ] }
-            } |> TestHelpers.ToPlainSelect
-        result |> should equal expected
+        result |> should equal multipleJoinExpression

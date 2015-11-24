@@ -1,8 +1,8 @@
-﻿using Hyperboliq.Tests.Model;
-using Xunit;
+﻿using Xunit;
 using Hyperboliq.Dialects;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
 using Hyperboliq.Domain;
+using Hyperboliq.Tests.TokenGeneration;
 using AggregateType = Hyperboliq.Domain.AST.AggregateType;
 using ValueNode = Hyperboliq.Domain.AST.ValueNode;
 

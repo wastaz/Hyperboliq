@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
-using Hyperboliq.Tests.Model;
+﻿using Xunit;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
 using Hyperboliq.Domain;
 using Hyperboliq.Dialects;
+using Hyperboliq.Tests.TokenGeneration;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {

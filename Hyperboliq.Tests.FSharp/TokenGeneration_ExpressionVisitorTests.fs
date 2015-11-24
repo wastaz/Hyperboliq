@@ -3,7 +3,6 @@
 module TokenGeneration_ExpressionVisitorTests =
     open NUnit.Framework
     open FsUnit
-    open TestModel
     open Hyperboliq
     open Hyperboliq.Domain
     open Hyperboliq.Domain.ExpressionVisitor

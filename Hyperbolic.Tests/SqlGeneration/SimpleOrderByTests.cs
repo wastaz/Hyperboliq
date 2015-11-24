@@ -4,8 +4,8 @@ using S = Hyperboliq.Tests.SqlStreamExtensions;
 using JoinType = Hyperboliq.Domain.AST.JoinType;
 using Direction = Hyperboliq.Domain.AST.Direction;
 using BinaryOperation = Hyperboliq.Domain.AST.BinaryOperation;
-using Hyperboliq.Tests.Model;
 using Hyperboliq.Dialects;
+using Hyperboliq.Tests.TokenGeneration;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {

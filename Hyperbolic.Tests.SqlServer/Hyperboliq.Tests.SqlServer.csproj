@@ -81,6 +81,10 @@
       <Project>{5712f2c2-4c5a-4847-a502-1a9c7137b381}</Project>
       <Name>Hyperboliq.Tests</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Hyperboliq.Tests.Common\Hyperboliq.Tests.Common.fsproj">
+      <Project>{6407f7f7-cef0-400e-a214-c7f8ba38c69c}</Project>
+      <Name>Hyperboliq.Tests.Common</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

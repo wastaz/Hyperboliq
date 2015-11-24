@@ -1,7 +1,7 @@
 ﻿using Xunit;
-using Hyperboliq.Tests.Model;
 using Hyperboliq.Dialects;
 using Hyperboliq.Domain;
+using Hyperboliq.Tests.TokenGeneration;
 using AggregateType = Hyperboliq.Domain.AST.AggregateType;
 using BinaryOperation = Hyperboliq.Domain.AST.BinaryOperation;
 using JoinType = Hyperboliq.Domain.AST.JoinType;

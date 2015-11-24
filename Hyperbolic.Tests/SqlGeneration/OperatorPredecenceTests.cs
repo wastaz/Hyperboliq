@@ -1,8 +1,8 @@
 ﻿using Xunit;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
-using Hyperboliq.Tests.Model;
 using Hyperboliq.Dialects;
 using Hyperboliq.Domain;
+using Hyperboliq.Tests.TokenGeneration;
 using BinaryOperation = Hyperboliq.Domain.AST.BinaryOperation;
 
 namespace Hyperboliq.Tests.SqlGeneration

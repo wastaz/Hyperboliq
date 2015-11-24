@@ -1,74 +1,62 @@
-﻿using System.Collections.Generic;
-using Xunit;
-using Hyperboliq.Tests.Model;
-using S = Hyperboliq.Tests.SqlStreamExtensions;
-using BinaryOperation = Hyperboliq.Domain.AST.BinaryOperation;
+﻿using Xunit;
+using Hyperboliq.Tests.TokenGeneration;
 using JoinType = Hyperboliq.Domain.AST.JoinType;
-using SqlExpression = Hyperboliq.Domain.AST.SqlExpression;
 
 namespace Hyperboliq.Tests
 {
     [Trait("TokenGeneration", "Joins")]
     public class TokenGeneration_SimpleJoinTests
     {
-        private SqlExpression GetExpectedStream(JoinType joinKeyword)
-        {
-            return S.SelectNode(
-                S.Select(S.Star<Car>(), S.Star<Person>()),
-                S.From<Person>(
-                    S.Join<Person, Car>(joinKeyword, S.BinExp(S.Col<Person>("Id"), BinaryOperation.Equal, S.Col<Car>("DriverId")))));
-        }
-
         [Fact]
         public void ItShouldBeAbleToPerformASimpleInnerJoin()
         {
             var expr =
-                Select.Star<Person>().Star<Car>()
+                Select.Star<Person>()
                       .From<Person>()
                       .InnerJoin<Person, Car>((p, c) => p.Id == c.DriverId);
 
             var result = expr.ToSqlExpression();
 
-            var expected = GetExpectedStream(JoinType.InnerJoin);
+            var expected = TokenGeneration_SimpleJoinTests_Results.expectedAst(JoinType.InnerJoin);
             Assert.Equal(expected, result);
         }
 
         [Fact]
         public void ItShouldBeAbleToPerformASimpleLeftJoin()
         {
-            var expr = Select.Star<Person>().Star<Car>()
+            var expr = Select.Star<Person>()
                              .From<Person>()
                              .LeftJoin<Person, Car>((p, c) => p.Id == c.DriverId);
 
             var result = expr.ToSqlExpression();
 
-            var expected = GetExpectedStream(JoinType.LeftJoin);
+            var expected = TokenGeneration_SimpleJoinTests_Results.expectedAst(JoinType.LeftJoin);
             Assert.Equal(expected, result);
         }
 
         [Fact]
         public void ItShouldBeAbleToPerformASimpleRightJoin()
         {
-            var expr = Select.Star<Person>().Star<Car>()
+            var expr = Select.Star<Person>()
                              .From<Person>()
                              .RightJoin<Person, Car>((p, c) => p.Id == c.DriverId);
 
             var result = expr.ToSqlExpression();
 
-            var expected = GetExpectedStream(JoinType.RightJoin);
+            var expected = TokenGeneration_SimpleJoinTests_Results.expectedAst(JoinType.RightJoin);
             Assert.Equal(expected, result);
         }
 
         [Fact]
         public void ItShouldBeAbleToPerformASimpleFullJoin()
         {
-            var expr = Select.Star<Person>().Star<Car>()
+            var expr = Select.Star<Person>()
                              .From<Person>()
                              .FullJoin<Person, Car>((p, c) => p.Id == c.DriverId);
 
             var result = expr.ToSqlExpression();
 
-            var expected = GetExpectedStream(JoinType.FullJoin);
+            var expected = TokenGeneration_SimpleJoinTests_Results.expectedAst(JoinType.FullJoin);
             Assert.Equal(expected, result);
         }
 
@@ -81,14 +69,7 @@ namespace Hyperboliq.Tests
                              .LeftJoin<Person, Car>((p, c) => p.Id == c.DriverId);
             var result = expr.ToSqlExpression();
 
-            var expected =
-                S.SelectNode(
-                    S.Select(S.Star<House>(), S.Star<Car>(), S.Star<Person>()),
-                    S.From<House>(
-                        S.Join<Person, Car>(JoinType.LeftJoin, S.BinExp(S.Col<Person>("Id"), BinaryOperation.Equal, S.Col<Car>("DriverId"))),
-                        S.Join<House, Person>(JoinType.InnerJoin, S.BinExp(S.Col<House>("Id"), BinaryOperation.Equal, S.Col<Person>("LivesAtHouseId")))));
-
-            Assert.Equal(expected, result);
+            Assert.Equal(TokenGeneration_SimpleJoinTests_Results.multipleJoinExpression, result);
         }
     }
 }

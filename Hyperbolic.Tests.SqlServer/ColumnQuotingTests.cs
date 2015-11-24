@@ -1,7 +1,6 @@
 ﻿using Xunit;
-using Hyperboliq.Tests.Model;
 using Hyperboliq.Domain;
-using Hyperboliq.Dialects;
+using Hyperboliq.Tests.TokenGeneration;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
 
 namespace Hyperboliq.Tests.SqlServer

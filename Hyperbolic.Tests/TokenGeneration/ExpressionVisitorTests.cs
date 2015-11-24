@@ -1,17 +1,13 @@
 ﻿using System;
 using System.Linq.Expressions;
-using Microsoft.FSharp.Core;
 using Microsoft.FSharp.Collections;
-using Hyperboliq.Tests.Model;
-using Hyperboliq.Domain;
 using Xunit;
 using Hyperboliq.Tests;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
 using BinaryOperation = Hyperboliq.Domain.AST.BinaryOperation;
 using ValueNode = Hyperboliq.Domain.AST.ValueNode;
-using System.Collections.Generic;
-using Xunit.Extensions;
 using System.Collections;
+using Hyperboliq.Tests.TokenGeneration;
 
 namespace Hyperboliq.Domain.Tests
 {

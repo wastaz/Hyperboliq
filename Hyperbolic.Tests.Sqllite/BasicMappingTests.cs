@@ -1,8 +1,8 @@
 ﻿using Xunit;
-using Hyperboliq.Tests.Model;
 using System.Linq;
 using Hyperboliq.Domain;
 using Hyperboliq.Dialects;
+using Hyperboliq.Tests.TokenGeneration;
 
 namespace Hyperboliq.Tests.Sqllite
 {

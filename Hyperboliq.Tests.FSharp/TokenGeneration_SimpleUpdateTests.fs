@@ -3,7 +3,6 @@
 module TokenGeneration_SimpleUpdateTests =
     open NUnit.Framework
     open FsUnit
-    open Hyperboliq.Tests.TokenGeneration.TestModel
     open Hyperboliq.Tests.TokenGeneration.TestHelpers
     open Hyperboliq.Domain
     open Hyperboliq.Domain.AST
