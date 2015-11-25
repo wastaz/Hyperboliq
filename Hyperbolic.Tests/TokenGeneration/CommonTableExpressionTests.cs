@@ -1,8 +1,5 @@
 ﻿using Xunit;
 using Hyperboliq.Domain;
-using S = Hyperboliq.Tests.SqlStreamExtensions;
-using BinaryOperation = Hyperboliq.Domain.AST.BinaryOperation;
-using AggregateType = Hyperboliq.Domain.AST.AggregateType;
 
 namespace Hyperboliq.Tests.TokenGeneration
 {
@@ -22,20 +19,7 @@ namespace Hyperboliq.Tests.TokenGeneration
                               .From<PersonLite>()
                               .Where<PersonLite>(p => p.Age == 42));
             var result = expr.ToSqlExpression();
-
-            var expected =
-                S.SelectNode(
-                    S.With(
-                        S.TableDef<PersonLite>(
-                            S.Select(S.Col<Person>("Name"), S.Col<Person>("Age")),
-                            S.From<Person>(),
-                            S.Where(S.BinExp(S.Col<Person>("Age"), BinaryOperation.GreaterThan, S.Const(15))))),
-                    S.Select(S.Col<PersonLite>("Name")),
-                    S.From<PersonLite>(),
-                    S.Where(S.BinExp(S.Col<PersonLite>("Age"), BinaryOperation.Equal, S.Const(42)))
-                );
-
-            Assert.Equal(expected, result);
+            Assert.Equal(TokenGeneration_CommonTableExpressions_Results.selectFromACteExpression, result);
         }
 
         [Fact]
@@ -61,45 +45,9 @@ namespace Hyperboliq.Tests.TokenGeneration
                               .From(oldies)
                               .InnerJoin(oldies, younglings, (old, young) => old.Age - 30 == young.Age));
             var result = expr.ToSqlExpression();
-
-            var expected =
-                S.SelectNode(
-                    S.With(
-                        S.TableDef(
-                            younglings,
-                            S.Select(S.Col<Person>("Name"), S.Col<Person>("Age")),
-                            S.From<Person>(),
-                            S.Where(S.BinExp(S.Col<Person>("Age"), BinaryOperation.LessThanOrEqual, S.Const(15)))),
-                        S.TableDef(
-                            oldies,
-                            S.Select(S.Col<Person>("Name"), S.Col<Person>("Age")),
-                            S.From<Person>(),
-                            S.Where(S.BinExp(S.Col<Person>("Age"), BinaryOperation.GreaterThan, S.Const(40))))
-                    ),
-                    S.Select(S.Col(oldies, "Name"), S.Col(younglings, "Name")),
-                    S.From(
-                        oldies,
-                        S.Join(
-                            oldies, 
-                            younglings, 
-                            Domain.AST.JoinType.InnerJoin, 
-                            S.BinExp(
-                                S.BinExp(S.Col(oldies, "Age"), BinaryOperation.Subtract, S.Const(30)),
-                                BinaryOperation.Equal,
-                                S.Col(younglings, "Age"))))
-                );
-
-            Assert.Equal(expected, result);
+            Assert.Equal(TokenGeneration_CommonTableExpressions_Results.selectFromSeveralCtesExpression, result);
         }
-
-
-        public class PersonLitePagingResult
-        {
-            public int RowNumber { get; set; }
-            public string Name { get; set; }
-            public int Age { get; set; }
-        }
-
+        
         [Fact]
         public void ItShouldBePossibleToDoPagingWithACommonTableExpression()
         {
@@ -118,38 +66,7 @@ namespace Hyperboliq.Tests.TokenGeneration
                           .Where<PersonLitePagingResult>(p => p.RowNumber >= 10 && p.RowNumber < 20)
                 );
             var result = expr.ToSqlExpression();
-
-            var expected =
-                S.SelectNode(
-                    S.With(
-                        S.TableDef<PersonLitePagingResult>(
-                            S.Select(
-                                S.Col<Person>("Name"),
-                                S.Col<Person>("Age"),
-                                S.WinCol(
-                                    AggregateType.RowNumber,
-                                    S.Null(),
-                                    orderBy: new[] { S.OrderClause(S.Col<Person>("Age"), AST.Direction.Ascending) })),
-                            S.From<Person>())
-                    ),
-                    S.Select(S.Col<PersonLitePagingResult>("Name"), S.Col<PersonLitePagingResult>("Age")),
-                    S.From<PersonLitePagingResult>(),
-                    S.Where(
-                        S.BinExp(
-                            S.BinExp(S.Col<PersonLitePagingResult>("RowNumber"), BinaryOperation.GreaterThanOrEqual, S.Const(10)),
-                            BinaryOperation.And,
-                            S.BinExp(S.Col<PersonLitePagingResult>("RowNumber"), BinaryOperation.LessThan, S.Const(20))
-                    )));
-
-            Assert.Equal(expected, result);
-        }
-
-
-        public class RecursivePerson
-        {
-            public int Level { get; set; }
-            public string Name { get; set; }
-            public int ParentId { get; set; }
+            Assert.Equal(TokenGeneration_CommonTableExpressions_Results.commonPagingExpression, result);
         }
 
         [Fact]
@@ -167,34 +84,7 @@ namespace Hyperboliq.Tests.TokenGeneration
                               .InnerJoin<Person, RecursivePerson>((p, rp) => p.Id == rp.ParentId)))
                     .Query(Select.Star<RecursivePerson>().From<RecursivePerson>());
             var result = expr.ToSqlExpression();
-
-            var expected =
-                S.SelectNode(
-                    S.With(
-                        S.TableDef<RecursivePerson>(
-                            S.UnionAll(
-                                S.PlainSelect(
-                                    S.Select(
-                                        S.AliasedCol(S.Const(0), "Level"),
-                                        S.Col<Person>("Name"),
-                                        S.Col<Person>("ParentId")),
-                                    S.From<Person>(),
-                                    S.Where(
-                                        S.BinExp(S.Col<Person>("Name"), BinaryOperation.Equal, S.Const("'Kalle'")))),
-                                S.PlainSelect(
-                                    S.Select(
-                                        S.Col<Person>("Name"),
-                                        S.Col<Person>("ParentId"), 
-                                        S.AliasedCol(S.BinExp(S.Col<RecursivePerson>("Level"), BinaryOperation.Add, S.Const(1)), "Level")),
-                                    S.From<Person>(
-                                        S.Join<Person, RecursivePerson>(
-                                            AST.JoinType.InnerJoin,
-                                            S.BinExp(S.Col<Person>("Id"), BinaryOperation.Equal, S.Col<RecursivePerson>("ParentId")))))))),
-                    S.PlainSelect(
-                        S.Select(S.Star<RecursivePerson>()),
-                        S.From<RecursivePerson>()));
-
-            Assert.Equal(expected, result);
+            Assert.Equal(TokenGeneration_CommonTableExpressions_Results.recursiveCommonTableExpression, result);
         }
     }
 }

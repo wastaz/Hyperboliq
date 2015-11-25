@@ -1,8 +1,6 @@
 ﻿using Xunit;
 using Hyperboliq.Domain;
 using Hyperboliq.Tests.TokenGeneration;
-using S = Hyperboliq.Tests.SqlStreamExtensions;
-using BinaryOperation = Hyperboliq.Domain.AST.BinaryOperation;
 
 namespace Hyperboliq.Tests
 {
@@ -18,21 +16,7 @@ namespace Hyperboliq.Tests
                                                                                 .From<Car>()
                                                                                 .Where<Car>(c => c.Id == 42)));
             var result = expr.ToSqlExpression();
-
-            var expected =
-                S.SelectNode(
-                    S.Select(S.Star<Person>()),
-                    S.From<Person>(),
-                    S.Where(
-                        S.BinExp(
-                            S.Col<Person>("Age"),
-                            BinaryOperation.GreaterThan,
-                            S.SubExp(
-                                S.Select(S.Col<Car>("Age")),
-                                S.From<Car>(),
-                                S.Where(S.BinExp(S.Col<Car>("Id"), BinaryOperation.Equal, S.Const(42)))))));
-
-            Assert.Equal(expected, result);
+            Assert.Equal(TokenGeneration_SubExpression_Results.compareAgainstSubExprInWhereExpression, result);
         }
 
         [Fact]
@@ -43,20 +27,7 @@ namespace Hyperboliq.Tests
                       .From<Person>()
                       .Where<Person>(p => Sql.In(p.Id, Select.Column<Car>(c => c.DriverId).From<Car>()));
             var result = expr.ToSqlExpression();
-
-            var expected =
-                S.SelectNode(
-                    S.Select(S.Star<Person>()),
-                    S.From<Person>(),
-                    S.Where(
-                        S.BinExp(
-                            S.Col<Person>("Id"),
-                            BinaryOperation.In,
-                            S.SubExp(
-                                S.Select(S.Col<Car>("DriverId")),
-                                S.From<Car>()))));
-
-            Assert.Equal(expected, result);
+            Assert.Equal(TokenGeneration_SubExpression_Results.subExprInInExpression, result);
         }
     }
 }

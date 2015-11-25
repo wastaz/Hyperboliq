@@ -7,6 +7,7 @@ module TokenGeneration_CommonTableExpressions =
     open Hyperboliq
     open Hyperboliq.Domain
     open Hyperboliq.Domain.AST
+    open Hyperboliq.Tests.TokenGeneration.TokenGeneration_CommonTableExpressions_Results
 
     [<Test>]
     let ``It should be possible to select from a common table expression`` () =
@@ -20,36 +21,7 @@ module TokenGeneration_CommonTableExpressions =
                           .From<PersonLite>()
                           .Where(<@ fun (p : PersonLite) -> p.Age = 42 @>))
         let result = expr.ToSqlExpression()
-
-        let pref = TableIdentifier<Person>()
-        let plref = TableIdentifier<PersonLite>()
-        let expected = 
-            ({ Definitions = [ { TableDef = plref
-                                 Query = { TestHelpers.EmptySelect with
-                                            Select = { IsDistinct = false
-                                                       Values = [ ValueNode.Column("Name", typeof<string>, pref.Reference :> ITableReference)
-                                                                  ValueNode.Column("Age", typeof<int>, pref.Reference :> ITableReference) ] }
-                                            From = { Tables = [ pref ]; Joins = [] }
-                                            Where = { Start = { Lhs = ValueNode.Column("Age", typeof<int>, pref.Reference :> ITableReference)
-                                                                Operation = BinaryOperation.GreaterThan
-                                                                Rhs = ValueNode.Constant("15") 
-                                                              } |> ValueNode.BinaryExpression
-                                                      AdditionalClauses = []
-                                                    } |> Some } |> PlainSelectExpression.Plain
-                               } ] }, 
-             { TestHelpers.EmptySelect with 
-                Select = { IsDistinct = false; Values = [ ValueNode.Column("Name", typeof<string>, plref.Reference :> ITableReference) ] }
-                From = { Tables = [ plref ]; Joins = [] }
-                Where = { Start = { Lhs = ValueNode.Column("Age", typeof<int>, plref.Reference :> ITableReference)
-                                    Operation = BinaryOperation.Equal
-                                    Rhs = ValueNode.Constant("42") 
-                                  } |> ValueNode.BinaryExpression 
-                          AdditionalClauses = [] 
-                        } |> Some 
-             } |> PlainSelectExpression.Plain) 
-            |> SelectExpression.Complex 
-            |> SqlExpression.Select
-        result |> should equal expected
+        result |> should equal selectFromACteExpression
 
     [<Test>]
     let ``It should be possible to select from several common table expressions`` () =
@@ -73,49 +45,41 @@ module TokenGeneration_CommonTableExpressions =
                           .From(oldies)
                           .InnerJoin(oldies, younglings, <@ fun (old : PersonLite) (young : PersonLite) -> old.Age - 30 = young.Age @>))
         let result = expr.ToSqlExpression()
+        result |> should equal selectFromSeveralCtesExpression
+
+    [<Test>]
+    let ``It should be possible to do paging with a common table expression`` () =
+        // To be honest, this case should be covered by the other test cases so this test case is a bit redundant.
+        // However, using common table expressions for paging is a quite common technique and it's good to know for sure that it works as expected, so 
+        // let's do some bad practice testing and test something that's already covered by other tests!
+
+        let expr =
+            With.Table<PersonLitePagingResult>(
+                Select.Column(<@ fun (p : Person) -> Sql.RowNumber() @>, Over.OrderBy(<@ fun (p : Person) -> p.Age @>))
+                      .Column(<@ fun (p : Person) -> p.Name, p.Age @>)
+                      .From<Person>()
+            ).Query(
+                Select.Column(<@ fun (p : PersonLitePagingResult) -> p.Name, p.Age @>)
+                      .From<PersonLitePagingResult>()
+                      .Where(<@ fun (p : PersonLitePagingResult) -> p.RowNumber >= 10 && p.RowNumber < 20 @>)
+            )
+        let result = expr.ToSqlExpression()
+        result |> should equal commonPagingExpression
+
+    [<Test>]
+    let ``It should be possible to do a recursive common table expression`` () =
+        let expr =
+            With.Table<RecursivePerson>(
+                SetOperations.UnionAll(
+                    Select.Column(<@ fun (p : Person) -> let Level = 0 in (Level, p.Name, p.ParentId) @>)
+                          .From<Person>()
+                          .Where(<@ fun (p : Person) -> p.Name = "Kalle" @>),
+                    Select.Column(<@ fun (rp : RecursivePerson) -> let Level = rp.Level + 1 in Level @>)
+                          .Column(<@ fun (p : Person) -> p.Name, p.ParentId @>)
+                          .From<Person>()
+                          .InnerJoin(<@ fun (p : Person) (rp : RecursivePerson) -> p.Id = rp.ParentId @>)))
+                .Query(Select.Star<RecursivePerson>()
+                             .From<RecursivePerson>());
+        let result = expr.ToSqlExpression()
+        result |> should equal recursiveCommonTableExpression
         
-        let oref = oldies.ToTableReference()
-        let yref = younglings.ToTableReference()
-        let pref = TableIdentifier<Person>()
-        let expected = 
-            ({ Definitions = [ { TableDef = yref
-                                 Query = { TestHelpers.EmptySelect with
-                                                Select = { IsDistinct = false
-                                                           Values = [ ValueNode.Column("Name", typeof<string>, pref.Reference :> ITableReference)
-                                                                      ValueNode.Column("Age", typeof<int>, pref.Reference :> ITableReference) ] }
-                                                From = { Tables = [ pref ]; Joins = [] }
-                                                Where = { Start = { Lhs = ValueNode.Column("Age", typeof<int>, pref.Reference :> ITableReference)
-                                                                    Operation = BinaryOperation.LessThanOrEqual
-                                                                    Rhs = ValueNode.Constant("15") 
-                                                                  } |> ValueNode.BinaryExpression 
-                                                          AdditionalClauses = [] } |> Some } |> PlainSelectExpression.Plain } 
-                               { TableDef = oref
-                                 Query = { TestHelpers.EmptySelect with
-                                                Select = { IsDistinct = false
-                                                           Values = [ ValueNode.Column("Name", typeof<string>, pref.Reference :> ITableReference)
-                                                                      ValueNode.Column("Age", typeof<int>, pref.Reference :> ITableReference) ] }
-                                                From = { Tables = [ pref ]; Joins = [] }
-                                                Where = { Start = { Lhs = ValueNode.Column("Age", typeof<int>, pref.Reference :> ITableReference)
-                                                                    Operation = BinaryOperation.GreaterThan
-                                                                    Rhs = ValueNode.Constant("40") 
-                                                                  } |> ValueNode.BinaryExpression 
-                                                          AdditionalClauses = [] } |> Some } |> PlainSelectExpression.Plain } ] },
-             { TestHelpers.EmptySelect with
-                    Select = { IsDistinct = false
-                               Values = [ ValueNode.Column("Name", typeof<string>, oref.Reference :> ITableReference)
-                                          ValueNode.Column("Name", typeof<string>, yref.Reference :> ITableReference) ] } 
-                    From = { Tables = [ oldies ]
-                             Joins = [ { SourceTables = [ oldies ]
-                                         TargetTable = younglings
-                                         Type = JoinType.InnerJoin
-                                         Condition = { Lhs = { Lhs = ValueNode.Column("Age", typeof<int>, oref.Reference :> ITableReference)
-                                                               Operation = BinaryOperation.Subtract
-                                                               Rhs = ValueNode.Constant("30") } |> ValueNode.BinaryExpression
-                                                       Operation = BinaryOperation.Equal
-                                                       Rhs = ValueNode.Column("Age", typeof<int>, yref.Reference :> ITableReference) 
-                                                     } |> ValueNode.BinaryExpression |> Some } 
-                                     ] } 
-             } |> PlainSelectExpression.Plain)
-            |> SelectExpression.Complex 
-            |> SqlExpression.Select
-        result |> should equal expected
