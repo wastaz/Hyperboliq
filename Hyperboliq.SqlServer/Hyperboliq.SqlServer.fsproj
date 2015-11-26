@@ -53,6 +53,7 @@
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="SqlServerDialect.fs" />
     <Content Include="app.config" />
+    <None Include="paket.template" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
@@ -63,8 +64,6 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
     <Reference Include="System.Numerics" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Hyperboliq\Hyperboliq.fsproj">
       <Name>Hyperboliq</Name>
       <Project>{b364b662-03a5-4700-a554-6b9e7eabd6cd}</Project>

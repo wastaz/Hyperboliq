@@ -24,6 +24,14 @@ let testAssemblies =
     "Hyperboliq.Tests.SqlServer.dll"
   ] |> List.map (fun s -> testArtifactsDir + s)
 
+let createNugetPackage templateFile =
+  Paket.Pack (fun p ->
+    { p with
+        TemplateFile = templateFile
+        Version = version
+        OutputPath = packagingDir
+    })
+
 Target "clean" (fun _ -> 
   trace "Clean"
   CleanDir artifactsDir
@@ -47,9 +55,51 @@ Target "runTests" (fun _ ->
   )
 )
 
-Target "buildRelease" (fun _ -> 
+Target "buildSqlLite" (fun _ ->
+  trace "Building SqlLite adapter..."
+  CreateFSharpAssemblyInfo "./Hyperboliq.Sqllite/AssemblyInfo.fs"
+    [ Attribute.Title "Hyperboliq.SqlLite"
+      Attribute.Description "Hyperboliq.SqlLite- Hyperboliq adapter for SqlLite"
+      Attribute.Product "Hyperboliq.SqlLite"
+      Attribute.Copyright "Copyright 2015 Fredrik Forssen"
+      Attribute.Version version
+      Attribute.FileVersion version
+    ]
+  MSBuildRelease "./Hyperboliq.SqlLite/bin/Release" "Build" [ "./Hyperboliq.SqlLite/Hyperboliq.SqlLite.fsproj" ]
+  |> Log "AppBuild-Output: "
+)
+
+Target "buildPostgres" (fun _ -> 
+  trace "Building Postgres adapter..."
+  CreateFSharpAssemblyInfo "./Hyperboliq.Postgres/AssemblyInfo.fs"
+    [ Attribute.Title "Hyperboliq.PostgreSQL"
+      Attribute.Description "Hyperboliq.PostgreSQL - Hyperboliq adapter for PostgreSQL"
+      Attribute.Product "Hyperboliq.PostgreSQL"
+      Attribute.Copyright "Copyright 2015 Fredrik Forssen"
+      Attribute.Version version
+      Attribute.FileVersion version
+    ]
+  MSBuildRelease "./Hyperboliq.Postgres/bin/Release" "Build" [ "./Hyperboliq.Postgres/Hyperboliq.Postgres.fsproj" ]
+  |> Log "AppBuild-Output: "
+)
+
+Target "buildSqlServer" (fun _ -> 
+  trace "Building Sql Server adapter..."
+  CreateFSharpAssemblyInfo "./Hyperboliq.SqlServer/AssemblyInfo.fs"
+    [ Attribute.Title "Hyperboliq.SqlServer"
+      Attribute.Description "Hyperboliq.SqlServer - Hyperboliq adapter for SQL Server"
+      Attribute.Product "Hyperboliq.SqlServer"
+      Attribute.Copyright "Copyright 2015 Fredrik Forssen"
+      Attribute.Version version
+      Attribute.FileVersion version
+    ]
+  MSBuildRelease "./Hyperboliq.SqlServer/bin/Release" "Build" [ "./Hyperboliq.SqlServer/Hyperboliq.SqlServer.fsproj" ]
+  |> Log "AppBuild-Output: "
+)
+
+Target "buildCore" (fun _ -> 
   trace "Build Release"
-  CreateFSharpAssemblyInfo "./Hyperboliq/AssemblyInfo.fs"
+  CreateFSharpAssemblyInfo "./Hyperboliq.Ansi/AssemblyInfo.fs"
     [ Attribute.Title "Hyperboliq"
       Attribute.Description "Hyperboliq - Predictable SQL"
       Attribute.Product "Hyperboliq"
@@ -57,36 +107,55 @@ Target "buildRelease" (fun _ ->
       Attribute.Version version
       Attribute.FileVersion version
     ]
-  MSBuildRelease artifactsDir "Build" [ "./Hyperboliq/Hyperboliq.fsproj" ]
+  MSBuildRelease "./Hyperboliq.Ansi/bin/Release" "Build" [ "./Hyperboliq.Ansi/Hyperboliq.Ansi.fsproj" ]
   |> Log "AppBuild-Output: "
 )
 
-Target "createPackage" (fun _ ->
-  trace "Create Package"
-  (*
-  Paket.Pack(fun p ->
-    { p with
-        Version = version
-        OutputPath = packagingDir
-    }) *)
+Target "createSqlLitePackage" (fun _ ->
+  trace "Create SqlLite package..."
+  createNugetPackage "./Hyperboliq.Sqllite/paket.template"
 )
 
-Target "publishPackage" (fun _ ->
+Target "createPostgresPackage" (fun _ ->
+  trace "Create Postgres package..."
+  createNugetPackage "./Hyperboliq.Postgres/paket.template"
+)
+
+Target "createSqlServerPackage" (fun _ ->
+  trace "Create Sql Server package..."
+  createNugetPackage "./Hyperboliq.SqlServer/paket.template"
+)
+
+Target "createCorePackage" (fun _ ->
+  trace "Create Package"
+  createNugetPackage "./Hyperboliq.Ansi/paket.template"
+)
+
+Target "publishPackages" (fun _ ->
   trace "Publish Package"
-  (*
-  Paket.Push(fun p -> { p with WorkingDir = packagingDir })
-  *)
+  //Paket.Push(fun p -> { p with WorkingDir = packagingDir })
 )
 
 Target "default" DoNothing
 
+Target "createPackages" DoNothing
+
+"createCorePackage" ==> "createPackages"
+"createSqlServerPackage" ==> "createPackages"
+"createPostgresPackage" ==> "createPackages"
+"createSqlLitePackage" ==> "createPackages"
+
+"buildCore" ==> "createCorePackage"
+"buildSqlServer" ==> "createSqlServerPackage"
+"buildPostgres" ==> "createPostgresPackage"
+"buildSqlLite" ==> "createSqlLitePackage"
+
 "clean"
 =?> ("buildTests", hasBuildParam "test" || hasBuildParam "publish")
-=?> ("runTests", hasBuildParam "test" || hasBuildParam "test")
+=?> ("runTests", hasBuildParam "test" || hasBuildParam "publish")
 
-=?> ("buildRelease", hasBuildParam "publish")
-=?> ("createPackage", hasBuildParam "publish")
-=?> ("publishPackage", hasBuildParam "publish")
+=?> ("createPackages", hasBuildParam "publish")
+=?> ("publishPackages", hasBuildParam "publish")
 ==> "default"
 
 RunTargetOrDefault "default"

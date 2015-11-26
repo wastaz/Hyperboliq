@@ -1,0 +1,12 @@
+type project
+licenseUrl http://opensource.org/licenses/Apache-2.0
+projectUrl https://github.com/wastaz/Hyperboliq
+id Hyperboliq.SqlLite
+authors Fredrik Forssen
+files
+    bin/Release/Hyperboliq.Sqllite.* ==> lib/net40
+frameworkAssemblies
+    System.Data
+dependencies
+    System.Data.SQLite.Core >= LOCKEDVERSION
+    Hyperboliq >= CURRENTVERSION
