@@ -1,74 +1,74 @@
-﻿using Xunit;
+﻿using NUnit.Framework;
 using Hyperboliq.Domain;
 
 namespace Hyperboliq.Tests.TokenGeneration
 {
-    [Trait("TokenGeneration", "Update")]
+    [TestFixture]
     public class SimpleUpdateTests
     {
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToPerformAGlobalUpdate()
         {
             var expr = Update<Person>.Set(p => p.Name, "Kalle");
             var result = expr.ToSqlExpression();
-            Assert.Equal(TokenGeneration_SimpleUpdateTests_Results.globalUpdateExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SimpleUpdateTests_Results.globalUpdateExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToSetMultipleValues()
         {
             var expr = Update<Person>.Set(p => p.Age, 42)
                                      .Set(p => p.Name, "Kalle");
             var result = expr.ToSqlExpression();
-            Assert.Equal(TokenGeneration_SimpleUpdateTests_Results.multipleSetsExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SimpleUpdateTests_Results.multipleSetsExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToSetMultipleValueInASingleStatement()
         {
             var expr = Update<Person>.Set(p => new { p.Name, p.Age }, 
                                           new { Name = "Kalle", Age = 42});
             var result = expr.ToSqlExpression();
-            Assert.Equal(TokenGeneration_SimpleUpdateTests_Results.multipleSetsExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SimpleUpdateTests_Results.multipleSetsExpression));
         }
 
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToUpdateInPlace()
         {
             var expr = Update<Person>.Set(p => p.Age, p => p.Age + 1);
             var result = expr.ToSqlExpression();
-            Assert.Equal(TokenGeneration_SimpleUpdateTests_Results.updateInPlaceExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SimpleUpdateTests_Results.updateInPlaceExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToUpdateMultipleInPlace()
         {
             var expr = Update<Person>.Set(p => new { p.Name, p.Age },
                                           p => new { Name = "Kalle" + p.Name, Age = p.Age - 2 });
             var result = expr.ToSqlExpression();
-            Assert.Equal(TokenGeneration_SimpleUpdateTests_Results.updateMultipleColumnsInPlaceExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SimpleUpdateTests_Results.updateMultipleColumnsInPlaceExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToUpdateValuesToASubExpression()
         {
             var expr = Update<Person>.Set(p => p.Age,
                                           Select.Column<Car>(c => Sql.Max(c.Age)).From<Car>());
             var result = expr.ToSqlExpression();
-            Assert.Equal(TokenGeneration_SimpleUpdateTests_Results.updateValuesToSubExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SimpleUpdateTests_Results.updateValuesToSubExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToPerformAConditionalUpdate()
         {
             var expr = Update<Person>.Set(p => p.Age, 42)
                                      .Where(p => p.Name == "Kalle");
             var result = expr.ToSqlExpression();
-            Assert.Equal(TokenGeneration_SimpleUpdateTests_Results.conditionalUpdateExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SimpleUpdateTests_Results.conditionalUpdateExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToHaveMultipleConditionsOnTheUpdate()
         {
             var expr = Update<Person>.Set(p => p.Age, 42)
@@ -76,7 +76,7 @@ namespace Hyperboliq.Tests.TokenGeneration
                                      .Or(p => p.Name == "Pelle")
                                      .And(p => p.Age < 18);
             var result = expr.ToSqlExpression();
-            Assert.Equal(TokenGeneration_SimpleUpdateTests_Results.multipleConditionsUpdateExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SimpleUpdateTests_Results.multipleConditionsUpdateExpression));
         }
     }
 }

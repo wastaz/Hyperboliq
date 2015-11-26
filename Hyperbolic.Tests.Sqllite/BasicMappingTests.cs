@@ -1,4 +1,4 @@
-﻿using Xunit;
+﻿using NUnit.Framework;
 using System.Linq;
 using Hyperboliq.Domain;
 using Hyperboliq.Dialects;
@@ -6,10 +6,10 @@ using Hyperboliq.Tests.TokenGeneration;
 
 namespace Hyperboliq.Tests.Sqllite
 {
-    [Trait("Sqlite", "Mapping")]
+    [TestFixture]
     public class BasicMappingTests
     {
-        [Fact]
+        [Test]
         public void ItShouldReturnTheNumberOfAffectedRowsWhenExecutingANonQuery()
         {
             var factory = new HyperboliqConnectionFactory(SqlLite.Dialect, ":memory:");
@@ -26,11 +26,11 @@ namespace Hyperboliq.Tests.Sqllite
                     new Person { Id = 3, Name = "Gustav", Age = 45 });
                 int affected = con.ExecuteNonQuery(insertQuery);
 
-                Assert.Equal(3, affected);
+                Assert.That(affected, Is.EqualTo(3));
             }
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBeAbleToMapTheResultsOfASimpleQuery()
         {
             var factory = new HyperboliqConnectionFactory(SqlLite.Dialect, ":memory:");
@@ -47,15 +47,15 @@ namespace Hyperboliq.Tests.Sqllite
                 var selectQuery = Select.Star<Person>().From<Person>();
                 var persons = con.Query<Person>(selectQuery);
 
-                Assert.Equal(1, persons.Count());
+                Assert.That(persons, Has.Count.EqualTo(1));
                 var person = persons.First();
-                Assert.Equal("Kalle", person.Name);
-                Assert.Equal(1, person.Id);
-                Assert.Equal(42, person.Age);
+                Assert.That(person.Name, Is.EqualTo("Kalle"));
+                Assert.That(person.Id, Is.EqualTo(1));
+                Assert.That(person.Age, Is.EqualTo(42));
             }
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBeAbleToMapTheResultsOfAScalarQuery()
         {
             var factory = new HyperboliqConnectionFactory(SqlLite.Dialect, ":memory:");
@@ -75,7 +75,7 @@ namespace Hyperboliq.Tests.Sqllite
                 var selectQuery = Select.Column<Person>(p => new { Count = Sql.Count(), }).From<Person>();
                 var result = (long)con.ExecuteScalar(selectQuery);
 
-                Assert.Equal(3, result);
+                Assert.That(result, Is.EqualTo(3));
             }
         }
 
@@ -91,7 +91,7 @@ namespace Hyperboliq.Tests.Sqllite
             public int AliasAge { get; set; }
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBeAbleToMapAClassByUsingAliases()
         {
             var factory = new HyperboliqConnectionFactory(SqlLite.Dialect, ":memory:");
@@ -108,15 +108,15 @@ namespace Hyperboliq.Tests.Sqllite
                 var selectQuery = Select.Star<Person>().From<Person>();
                 var persons = con.Query<AliasPerson>(selectQuery);
 
-                Assert.Equal(1, persons.Count());
+                Assert.That(persons, Has.Count.EqualTo(1));
                 var person = persons.First();
-                Assert.Equal(1, person.Id);
-                Assert.Equal("Kalle", person.AliasName);
-                Assert.Equal(42, person.AliasAge);
+                Assert.That(person.Id, Is.EqualTo(1));
+                Assert.That(person.AliasName, Is.EqualTo("Kalle"));
+                Assert.That(person.AliasAge, Is.EqualTo(42));
             }
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBeAbleToDoDynamicMapping()
         {
             var factory = new HyperboliqConnectionFactory(SqlLite.Dialect, ":memory:");
@@ -133,15 +133,15 @@ namespace Hyperboliq.Tests.Sqllite
                 var selectQuery = Select.Star<Person>().From<Person>();
                 var persons = con.DynamicQuery(selectQuery);
 
-                Assert.Equal(1, persons.Count());
+                Assert.That(persons, Has.Count.EqualTo(1));
                 dynamic person = persons.First();
-                Assert.Equal(person.Id, 1);
-                Assert.Equal(person.Name, "Kalle");
-                Assert.Equal(person.Age, 42);
+                Assert.That(person.Id, Is.EqualTo(1));
+                Assert.That(person.Name, Is.EqualTo("Kalle"));
+                Assert.That(person.Age, Is.EqualTo(42));
             }
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToRunAQueryWithParameters()
         {
             var factory = new HyperboliqConnectionFactory(SqlLite.Dialect, ":memory:");
@@ -160,11 +160,11 @@ namespace Hyperboliq.Tests.Sqllite
                 nameParam.SetValue("Kalle");
                 var persons = con.Query<Person>(selectQuery, nameParam);
 
-                Assert.Equal(1, persons.Count());
+                Assert.That(persons, Has.Count.EqualTo(1));
                 var person = persons.First();
-                Assert.Equal(1, person.Id);
-                Assert.Equal("Kalle", person.Name);
-                Assert.Equal(42, person.Age);
+                Assert.That(person.Id, Is.EqualTo(1));
+                Assert.That(person.Name, Is.EqualTo("Kalle"));
+                Assert.That(person.Age, Is.EqualTo(42));
             }
         }
 
@@ -174,7 +174,7 @@ namespace Hyperboliq.Tests.Sqllite
             public long Count { get; set; }
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToMapAliasedColumns()
         {
             var factory = new HyperboliqConnectionFactory(SqlLite.Dialect, ":memory:");
@@ -194,19 +194,19 @@ namespace Hyperboliq.Tests.Sqllite
                 var selectQuery = Select.Column<Person>(p => new { p.Age, Count = Sql.Count() }).From<Person>().GroupBy<Person>(p => p.Age);
                 var result = con.Query<MapAliasTestResultSet>(selectQuery);
 
-                Assert.Equal(2, result.Count());
+                Assert.That(result, Has.Count.EqualTo(2));
 
                 var first = result.ElementAt(0);
-                Assert.Equal(42, first.Age);
-                Assert.Equal(2, first.Count);
+                Assert.That(first.Age, Is.EqualTo(42));
+                Assert.That(first.Count, Is.EqualTo(2));
 
                 var second = result.ElementAt(1);
-                Assert.Equal(45, second.Age);
-                Assert.Equal(1, second.Count);
+                Assert.That(second.Age, Is.EqualTo(45));
+                Assert.That(second.Count, Is.EqualTo(1));
             }
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToMapUnions()
         {
             var factory = new HyperboliqConnectionFactory(SqlLite.Dialect, ":memory:");
@@ -230,7 +230,7 @@ namespace Hyperboliq.Tests.Sqllite
                     );
                 var result = con.Query<Person>(selectQuery);
 
-                Assert.Equal(2, result.Count());
+                Assert.That(result, Has.Count.EqualTo(2));
 
                 Assert.True(result.Any(p => p.Id == 1 && p.Name == "Kalle" && p.Age == 42));
                 Assert.True(result.Any(p => p.Id == 3 && p.Name == "Putte" && p.Age == 45));

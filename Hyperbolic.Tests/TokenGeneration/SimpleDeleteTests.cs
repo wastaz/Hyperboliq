@@ -1,30 +1,30 @@
-﻿using Xunit;
+﻿using NUnit.Framework;
 using Hyperboliq.Domain;
 
 namespace Hyperboliq.Tests.TokenGeneration
 {
-    [Trait("TokenGeneration", "Delete")]
+    [TestFixture]
     public class TokenGeneration_SimpleDeleteTests
     {
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToGenerateADeleteAllRowsFromTableStatement()
         {
             var expr = Delete.From<Person>();
             var result = expr.ToSqlExpression();
 
-            Assert.Equal(TokenGeneration_SimpleDeleteTests_Results.deleteAllRowsExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SimpleDeleteTests_Results.deleteAllRowsExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToPutAWhereExpressionOnADeleteStatement()
         {
             var expr = Delete.From<Person>().Where<Person>(p => p.Age > 42);
             var result = expr.ToSqlExpression();
 
-            Assert.Equal(TokenGeneration_SimpleDeleteTests_Results.deleteWithWhereExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SimpleDeleteTests_Results.deleteWithWhereExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToUseAndAndOrOnAWhereStatementOnADeleteStatement()
         {
             var expr = Delete.From<Person>()
@@ -33,10 +33,10 @@ namespace Hyperboliq.Tests.TokenGeneration
                              .Or<Person>(p => p.Name == "Henrik");
             var result = expr.ToSqlExpression();
 
-            Assert.Equal(TokenGeneration_SimpleDeleteTests_Results.deleteWithWhereWithAndOrExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SimpleDeleteTests_Results.deleteWithWhereWithAndOrExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToDeleteWithASubQuery()
         {
             var expr = Delete.From<Car>()
@@ -48,7 +48,7 @@ namespace Hyperboliq.Tests.TokenGeneration
                                           .Where<Person>(p => p.Age > 18)));
             var result = expr.ToSqlExpression();
             
-            Assert.Equal(TokenGeneration_SimpleDeleteTests_Results.deleteWithSubQueryExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SimpleDeleteTests_Results.deleteWithSubQueryExpression));
         }
     }
 }

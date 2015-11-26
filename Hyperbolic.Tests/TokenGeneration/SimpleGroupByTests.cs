@@ -1,33 +1,33 @@
-﻿using Xunit;
+﻿using NUnit.Framework;
 using Hyperboliq.Domain;
 using Hyperboliq.Tests.TokenGeneration;
 
 namespace Hyperboliq.Tests
 {
-    [Trait("TokenGeneration", "GroupBy")]
+    [TestFixture]
     public class TokenGeneration_SimpleGroupByTests
     {
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToGroupByASingleColumn()
         {
             var expr = Select.Column<Person>(p => new { p.Name, maxAge = Sql.Max(p.Age) })
                              .From<Person>()
                              .GroupBy<Person>(p => p.Name);
             var result = expr.ToSqlExpression();
-            Assert.Equal(TokenGeneration_SimpleGroupByTests_Results.groupBySingleColumnExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SimpleGroupByTests_Results.groupBySingleColumnExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToGroupByMultipleColumns()
         {
             var expr = Select.Column<Person>(p => new { p.Name, p.LivesAtHouseId, minAge = Sql.Min(p.Age) })
                              .From<Person>()
                              .GroupBy<Person>(p => new { p.Name, p.LivesAtHouseId });
             var result = expr.ToSqlExpression();
-            Assert.Equal(TokenGeneration_SimpleGroupByTests_Results.groupByMultipleColumnsExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SimpleGroupByTests_Results.groupByMultipleColumnsExpression));
         }
         
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToGroupByColumnsFromMultipleTables()
         {
             var expr = Select.Column<Person>(p => new { p.Name, averageAge = Sql.Avg(p.Age) })
@@ -37,10 +37,10 @@ namespace Hyperboliq.Tests
                              .GroupBy<Person>(p => p.Name)
                              .ThenBy<Car>(c => c.Brand);
             var result = expr.ToSqlExpression();
-            Assert.Equal(TokenGeneration_SimpleGroupByTests_Results.groupByColumnsFromMultipleTablesExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SimpleGroupByTests_Results.groupByColumnsFromMultipleTablesExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToUseASingleHavingExpression()
         {
             var expr = Select.Column<Person>(p => new { p.Name, averageAge = Sql.Avg(p.Age) })
@@ -48,10 +48,10 @@ namespace Hyperboliq.Tests
                              .GroupBy<Person>(p => p.Name)
                              .Having<Person>(p => Sql.Avg(p.Age) > 42);
             var result = expr.ToSqlExpression();
-            Assert.Equal(TokenGeneration_SimpleGroupByTests_Results.groupByWithSingleHavingExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SimpleGroupByTests_Results.groupByWithSingleHavingExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToUseMultipleHavingExpressions()
         {
             var expr = Select.Column<Person>(p => new { p.Name, averageAge = Sql.Avg(p.Age) })
@@ -62,7 +62,7 @@ namespace Hyperboliq.Tests
                              .Having<Person>(p => Sql.Avg(p.Age) > 42)
                              .And<Car>(c => Sql.Min(c.Age) > 2);
             var result = expr.ToSqlExpression();
-            Assert.Equal(TokenGeneration_SimpleGroupByTests_Results.groupByWithMultipleHavingExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SimpleGroupByTests_Results.groupByWithMultipleHavingExpression));
         }
     }
 }

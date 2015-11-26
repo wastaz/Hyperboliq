@@ -1,4 +1,4 @@
-﻿using Xunit;
+﻿using NUnit.Framework;
 using Hyperboliq.Domain;
 using Hyperboliq.Tests.TokenGeneration;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
@@ -14,10 +14,10 @@ namespace Hyperboliq.Tests.SqlGeneration
         public int Age { get; set; }
     }
 
-    [Trait("SqlGeneration", "CommonTableExpressions")]
+    [TestFixture]
     public class SqlGeneration_CommonTableExpressions
     {
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToSelectFromACommonTableExpression()
         {
             var expr =
@@ -43,10 +43,10 @@ namespace Hyperboliq.Tests.SqlGeneration
                 "FROM PersonLite PersonLiteRef " +
                 "WHERE PersonLiteRef.Age = 42";
 
-            Assert.Equal(expected, result);
+            Assert.That(result, Is.EqualTo(expected));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToSelectFromSeveralCommonTableExpressions()
         {
             var oldies = Table<PersonLite>.WithTableAlias("Oldies");
@@ -95,7 +95,7 @@ namespace Hyperboliq.Tests.SqlGeneration
                 "FROM Oldies OldiesRef " +
                 "INNER JOIN YoungOnes YoungOnesRef ON OldiesRef.Age - 30 = YoungOnesRef.Age";
 
-            Assert.Equal(expected, result);
+            Assert.That(result, Is.EqualTo(expected));
         }
 
         public class PersonLitePagingResult
@@ -105,7 +105,7 @@ namespace Hyperboliq.Tests.SqlGeneration
             public int Age { get; set; }
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToDoPagingWithACommonTableExpression()
         {
             // To be honest, this case should be covered by the other test cases so this test case is a bit redundant.
@@ -146,7 +146,7 @@ namespace Hyperboliq.Tests.SqlGeneration
                 "FROM PersonLitePagingResult PersonLitePagingResultRef " +
                 "WHERE PersonLitePagingResultRef.RowNumber >= 10 AND PersonLitePagingResultRef.RowNumber < 20";
 
-            Assert.Equal(expected, result);
+            Assert.That(result, Is.EqualTo(expected));
         }
 
 
@@ -157,7 +157,7 @@ namespace Hyperboliq.Tests.SqlGeneration
             public int ParentId { get; set; }
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToDoARecursiveCommonTableExpression()
         {
             var stream =
@@ -198,7 +198,7 @@ namespace Hyperboliq.Tests.SqlGeneration
                 ") " +
                 "SELECT RecursivePersonRef.* FROM RecursivePerson RecursivePersonRef";
 
-            Assert.Equal(expected, result);
+            Assert.That(result, Is.EqualTo(expected));
         }
     }
 }

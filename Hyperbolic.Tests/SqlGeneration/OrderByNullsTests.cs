@@ -1,4 +1,4 @@
-﻿using Xunit;
+﻿using NUnit.Framework;
 using Hyperboliq.Dialects;
 using Hyperboliq.Domain;
 using Hyperboliq.Tests.TokenGeneration;
@@ -8,14 +8,14 @@ using NullsOrdering = Hyperboliq.Domain.AST.NullsOrdering;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
-    [Trait("SqlGeneration", "OrderBy")]
+    [TestFixture]
     public class SqlGeneration_OrderByNullsTests
     {
         // According to ANSI SQL the order by clause should support the keywords NULLS FIRST/NULLS LAST
         // after ASC/DESC in an ordering clause. However some DBMS'es does not implement this part of the standard...
         // But some do!
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToSpecifyNullsFirstOrdering()
         {
             var stream =
@@ -24,10 +24,10 @@ namespace Hyperboliq.Tests.SqlGeneration
                     S.From<Person>(),
                     orderBy: S.OrderBy(S.OrderClause(S.Col<Person>("Age"), Direction.Ascending, NullsOrdering.NullsFirst)));
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
-            Assert.Equal("SELECT PersonRef.* FROM Person PersonRef ORDER BY PersonRef.Age ASC NULLS FIRST", result);
+            Assert.That(result, Is.EqualTo("SELECT PersonRef.* FROM Person PersonRef ORDER BY PersonRef.Age ASC NULLS FIRST"));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToSpecifyNullsLastOrdering()
         {
             var stream =
@@ -39,10 +39,10 @@ namespace Hyperboliq.Tests.SqlGeneration
                             S.OrderClause(S.Col<Person>("Age"), Direction.Ascending, NullsOrdering.NullsLast)
                         ));
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
-            Assert.Equal("SELECT PersonRef.* FROM Person PersonRef ORDER BY PersonRef.Age ASC NULLS LAST", result);
+            Assert.That(result, Is.EqualTo("SELECT PersonRef.* FROM Person PersonRef ORDER BY PersonRef.Age ASC NULLS LAST"));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToSpecifyDifferentNullsFirstOrLastOrderingOnEachColumn()
         {
             var stream =
@@ -55,7 +55,7 @@ namespace Hyperboliq.Tests.SqlGeneration
                             S.OrderClause(S.Col<Person>("Name"), Direction.Descending, NullsOrdering.NullsFirst)
                         ));
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
-            Assert.Equal("SELECT PersonRef.* FROM Person PersonRef ORDER BY PersonRef.Age ASC NULLS LAST, PersonRef.Name DESC NULLS FIRST", result);
+            Assert.That(result, Is.EqualTo("SELECT PersonRef.* FROM Person PersonRef ORDER BY PersonRef.Age ASC NULLS LAST, PersonRef.Name DESC NULLS FIRST"));
         }
     }
 }

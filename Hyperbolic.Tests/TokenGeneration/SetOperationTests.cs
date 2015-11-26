@@ -1,12 +1,14 @@
-﻿using Xunit;
+﻿using Hyperboliq.Dialects;
+using Hyperboliq.Domain;
+using NUnit.Framework;
 
 namespace Hyperboliq.Tests.TokenGeneration
 {
-    [Trait("TokenGeneration", "SetOperations")]
+    [TestFixture]
     public class TokenGeneration_SetOperationTests
     {
 
-        [Fact]
+        [Test]
         public void ItCanDoASimpleUnion()
         {
             var expr =
@@ -19,10 +21,10 @@ namespace Hyperboliq.Tests.TokenGeneration
                           .Where<Person>(p => p.Name == "Kalle")
                     );
             var result = expr.ToSqlExpression();
-            Assert.Equal(TokenGeneration_SetOperationTests_Results.simpleUnionExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SetOperationTests_Results.simpleUnionExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItCanDoASimpleUnionAll()
         {
             var expr =
@@ -35,10 +37,10 @@ namespace Hyperboliq.Tests.TokenGeneration
                           .Where<Person>(p => p.Name == "Kalle")
                     );
             var result = expr.ToSqlExpression();
-            Assert.Equal(TokenGeneration_SetOperationTests_Results.simpleUnionAllExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SetOperationTests_Results.simpleUnionAllExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItCanDoASimpleIntersect()
         {
             var expr = SetOperations.Intersect(
@@ -48,10 +50,10 @@ namespace Hyperboliq.Tests.TokenGeneration
                       .From<Person>()
                       .Where<Person>(p => p.Age > 42));
             var result = expr.ToSqlExpression();
-            Assert.Equal(TokenGeneration_SetOperationTests_Results.simpleIntersectExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SetOperationTests_Results.simpleIntersectExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItCanDoASimpleMinus()
         {
             var expr = SetOperations.Minus(
@@ -61,10 +63,10 @@ namespace Hyperboliq.Tests.TokenGeneration
                       .From<Person>()
                       .Where<Person>(p => p.Age > 42));
             var result = expr.ToSqlExpression();
-            Assert.Equal(TokenGeneration_SetOperationTests_Results.simpleMinusExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SetOperationTests_Results.simpleMinusExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItCanDoAUnionsWithCommonTableExpressions()
         {
             var identifier = Table<Person>.WithTableAlias("cte");
@@ -80,7 +82,9 @@ namespace Hyperboliq.Tests.TokenGeneration
                             Select.Star(identifier).From(identifier).Where<Person>(identifier, p => p.Name == "Kalle")));
 
             var result = expr.ToSqlExpression();
-            Assert.Equal(TokenGeneration_SetOperationTests_Results.unionsInACommonTableExpression, result);
+            var sql = SqlGen.SqlifyExpression(AnsiSql.Dialect, result);
+            var sql2 = SqlGen.SqlifyExpression(AnsiSql.Dialect, TokenGeneration_SetOperationTests_Results.unionsInACommonTableExpression);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SetOperationTests_Results.unionsInACommonTableExpression));
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using Xunit;
+﻿using NUnit.Framework;
 using Hyperboliq.Domain;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
 using JoinType = Hyperboliq.Domain.AST.JoinType;
@@ -9,10 +9,10 @@ using Hyperboliq.Tests.TokenGeneration;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
-    [Trait("SqlGeneration", "OrderBy")]
+    [TestFixture]
     public class SqlGeneration_SimpleOrderByTests
     {
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToOrderAscendingByAColumn()
         {
             var stream =
@@ -23,10 +23,10 @@ namespace Hyperboliq.Tests.SqlGeneration
                         S.OrderClause(S.Col<Person>("Age"), Direction.Ascending))
                     );
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
-            Assert.Equal(@"SELECT PersonRef.* FROM Person PersonRef ORDER BY PersonRef.Age ASC", result);
+            Assert.That(result, Is.EqualTo(@"SELECT PersonRef.* FROM Person PersonRef ORDER BY PersonRef.Age ASC"));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToOrderDescendingByAColumn()
         {
             var stream =
@@ -35,10 +35,10 @@ namespace Hyperboliq.Tests.SqlGeneration
                     S.From<Person>(),
                     orderBy: S.OrderBy(S.OrderClause(S.Col<Person>("Age"), Direction.Descending)));
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
-            Assert.Equal(@"SELECT PersonRef.* FROM Person PersonRef ORDER BY PersonRef.Age DESC", result);
+            Assert.That(result, Is.EqualTo(@"SELECT PersonRef.* FROM Person PersonRef ORDER BY PersonRef.Age DESC"));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToOrderBySeveralColumns()
         {
             var stream =
@@ -51,10 +51,12 @@ namespace Hyperboliq.Tests.SqlGeneration
                             S.OrderClause(S.Col<Person>("Age"), Direction.Ascending),
                             S.OrderClause(S.Col<Car>("Brand"), Direction.Descending)));
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
-            Assert.Equal(
-                @"SELECT PersonRef.*, CarRef.* FROM Person PersonRef " +
-                "INNER JOIN Car CarRef ON PersonRef.Id = CarRef.DriverId " +
-                "ORDER BY PersonRef.Age ASC, CarRef.Brand DESC", result);
+            Assert.That(
+                result, 
+                Is.EqualTo(
+                    @"SELECT PersonRef.*, CarRef.* FROM Person PersonRef " +
+                    "INNER JOIN Car CarRef ON PersonRef.Id = CarRef.DriverId " +
+                    "ORDER BY PersonRef.Age ASC, CarRef.Brand DESC"));
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using Xunit;
+﻿using NUnit.Framework;
 using Hyperboliq.Dialects;
 using Hyperboliq.Domain;
 using Hyperboliq.Tests.TokenGeneration;
@@ -7,10 +7,10 @@ using S = Hyperboliq.Tests.SqlStreamExtensions;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
-    [Trait("SqlGeneration", "Parameters")]
+    [TestFixture]
     public class SqlGeneration_ParameterizedQueryTests
     {
-        [Fact]
+        [Test]
         public void ItShouldBeAbleToParameterizeAQuery()
         {
             var stream =
@@ -20,10 +20,10 @@ namespace Hyperboliq.Tests.SqlGeneration
                     S.Where(S.BinExp(S.Col<Person>("Age"), BinaryOperation.GreaterThan, S.Param("age"))));
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
 
-            Assert.Equal("SELECT PersonRef.* FROM Person PersonRef WHERE PersonRef.Age > @age", result);
+            Assert.That(result, Is.EqualTo("SELECT PersonRef.* FROM Person PersonRef WHERE PersonRef.Age > @age"));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToUseTheParameterInMoreComplexExpressions()
         {
             var stream =
@@ -40,12 +40,13 @@ namespace Hyperboliq.Tests.SqlGeneration
                     ));
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
 
-            Assert.Equal(
-                @"SELECT PersonRef.* " +
-                "FROM Person PersonRef " +
-                "WHERE PersonRef.Age > @age "+
-                "AND @age < 90 " +
-                "OR PersonRef.Age < @age", result);
+            Assert.That(result,
+                Is.EqualTo(
+                    @"SELECT PersonRef.* " +
+                    "FROM Person PersonRef " +
+                    "WHERE PersonRef.Age > @age "+
+                    "AND @age < 90 " +
+                    "OR PersonRef.Age < @age"));
         }
     }
 }

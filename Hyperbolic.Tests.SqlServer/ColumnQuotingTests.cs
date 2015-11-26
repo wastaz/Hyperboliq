@@ -1,14 +1,14 @@
-﻿using Xunit;
+﻿using NUnit.Framework;
 using Hyperboliq.Domain;
 using Hyperboliq.Tests.TokenGeneration;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
 
 namespace Hyperboliq.Tests.SqlServer
 {
-    [Trait("SqlServer", "Quoting")]
+    [TestFixture]
     public class SqlServer_ColumnQuotingTests
     {
-        [Fact]
+        [Test]
         public void ItShouldProperlyQuoteColumnNames()
         {
             var stream =
@@ -20,7 +20,7 @@ namespace Hyperboliq.Tests.SqlServer
                     S.From<Person>());
 
             var result = SqlGen.SqlifyExpression(Dialects.SqlServer.Dialect, stream);
-            Assert.Equal(@"SELECT PersonRef.[Name], PersonRef.[Age], PersonRef.[Id] FROM Person PersonRef", result);
+            Assert.That(result, Is.EqualTo(@"SELECT PersonRef.[Name], PersonRef.[Age], PersonRef.[Id] FROM Person PersonRef"));
         }
     }
 }

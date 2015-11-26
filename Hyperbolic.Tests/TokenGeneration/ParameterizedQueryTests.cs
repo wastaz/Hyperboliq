@@ -1,12 +1,12 @@
-﻿using Xunit;
+﻿using NUnit.Framework;
 using Hyperboliq.Tests.TokenGeneration;
 
 namespace Hyperboliq.Tests
 {
-    [Trait("TokenGeneration", "Parameters")]
+    [TestFixture]
     public class TokenGeneration_ParameterizedQueryTests
     {
-        [Fact]
+        [Test]
         public void ItShouldBeAbleToUseAOneOffParameterInAQuery()
         {
             var expr = Select.Star<Person>()
@@ -14,10 +14,10 @@ namespace Hyperboliq.Tests
                              .Where<Person>(p => p.Age < new ExpressionParameter<int>("age"));
             var result = expr.ToSqlExpression();
 
-            Assert.Equal(TokenGeneration_ParametrizedQueryTests_Result.oneOffParameterExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_ParametrizedQueryTests_Result.oneOffParameterExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBeAbleToParameterizeAQuery()
         {
             var ageParam = new ExpressionParameter<int>("age");
@@ -26,10 +26,10 @@ namespace Hyperboliq.Tests
                              .Where<Person>(p => p.Age > ageParam);
             var result = expr.ToSqlExpression();
 
-            Assert.Equal(TokenGeneration_ParametrizedQueryTests_Result.parameterizedExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_ParametrizedQueryTests_Result.parameterizedExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToUseTheParameterInMoreComplexExpressions()
         {
             var ageParam = new ExpressionParameter<int>("age");
@@ -39,7 +39,7 @@ namespace Hyperboliq.Tests
                              .Or<Person>(p => p.Age < ageParam);
             var result = expr.ToSqlExpression();
 
-            Assert.Equal(TokenGeneration_ParametrizedQueryTests_Result.complexParameterizedExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_ParametrizedQueryTests_Result.complexParameterizedExpression));
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using Xunit;
+﻿using NUnit.Framework;
 using Hyperboliq.Dialects;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
 using Hyperboliq.Domain;
@@ -9,10 +9,10 @@ using ValueNode = Hyperboliq.Domain.AST.ValueNode;
 namespace Hyperboliq.Tests.SqlGeneration
 {
     
-    [Trait("SqlGeneration", "Select")]
+    [TestFixture]
     public class SqlGeneration_SimpleSelectTests
     {
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToSqlifyASimpleSelect()
         {
             var stream =
@@ -21,10 +21,10 @@ namespace Hyperboliq.Tests.SqlGeneration
                     S.From<Person>());
 
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
-            Assert.Equal(@"SELECT PersonRef.* FROM Person PersonRef", result);
+            Assert.That(result, Is.EqualTo(@"SELECT PersonRef.* FROM Person PersonRef"));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToSqlifyASelectWithManyColumns()
         {
             var stream =
@@ -36,10 +36,10 @@ namespace Hyperboliq.Tests.SqlGeneration
                     S.From<Person>());
 
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
-            Assert.Equal(@"SELECT PersonRef.Name, PersonRef.Age, PersonRef.Id FROM Person PersonRef", result);
+            Assert.That(result, Is.EqualTo(@"SELECT PersonRef.Name, PersonRef.Age, PersonRef.Id FROM Person PersonRef"));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToSelectWithColumnAliases()
         {
             var stream =
@@ -51,10 +51,10 @@ namespace Hyperboliq.Tests.SqlGeneration
                            "NumberOfPersons")),
                    S.From<Person>());
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
-            Assert.Equal(@"SELECT COUNT(*) AS NumberOfPersons FROM Person PersonRef", result);
+            Assert.That(result, Is.EqualTo(@"SELECT COUNT(*) AS NumberOfPersons FROM Person PersonRef"));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToMixAliasedAndUnAliasedColumns()
         {
             var stream =
@@ -72,7 +72,7 @@ namespace Hyperboliq.Tests.SqlGeneration
                     S.From<Person>(),
                     groupBy: S.GroupBy(S.Col<Person>("Name")));
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
-            Assert.Equal(@"SELECT PersonRef.Name, MAX(PersonRef.Age) AS MaxAge, MIN(PersonRef.Age) AS MinAge FROM Person PersonRef GROUP BY PersonRef.Name", result);
+            Assert.That(result, Is.EqualTo(@"SELECT PersonRef.Name, MAX(PersonRef.Age) AS MaxAge, MIN(PersonRef.Age) AS MinAge FROM Person PersonRef GROUP BY PersonRef.Name"));
         }
     }
     

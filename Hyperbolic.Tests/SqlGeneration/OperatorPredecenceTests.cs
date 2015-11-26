@@ -1,4 +1,4 @@
-﻿using Xunit;
+﻿using NUnit.Framework;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
 using Hyperboliq.Dialects;
 using Hyperboliq.Domain;
@@ -8,10 +8,10 @@ using BinaryOperation = Hyperboliq.Domain.AST.BinaryOperation;
 namespace Hyperboliq.Tests.SqlGeneration
 {
     
-    [Trait("SqlGeneration", "OperatorPredecence")]
+    [TestFixture]
     public class SqlGeneration_OperatorPredecenceTests
     {
-        [Fact]
+        [Test]
         public void ItShouldAddParensWhenNecessaryToPreserveAndOrPredecence()
         {
             var stream = 
@@ -30,7 +30,7 @@ namespace Hyperboliq.Tests.SqlGeneration
                        )));
 
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
-            Assert.Equal(@"SELECT PersonRef.* FROM Person PersonRef WHERE (PersonRef.Age < 10 OR PersonRef.Name = 'Karl') AND PersonRef.Age > 42", result);
+            Assert.That(result, Is.EqualTo(@"SELECT PersonRef.* FROM Person PersonRef WHERE (PersonRef.Age < 10 OR PersonRef.Name = 'Karl') AND PersonRef.Age > 42"));
         }
     }
 }

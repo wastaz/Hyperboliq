@@ -1,13 +1,13 @@
-﻿using Xunit;
+﻿using NUnit.Framework;
 using Hyperboliq.Tests.TokenGeneration;
 using JoinType = Hyperboliq.Domain.AST.JoinType;
 
 namespace Hyperboliq.Tests
 {
-    [Trait("TokenGeneration", "Joins")]
+    [TestFixture]
     public class TokenGeneration_SimpleJoinTests
     {
-        [Fact]
+        [Test]
         public void ItShouldBeAbleToPerformASimpleInnerJoin()
         {
             var expr =
@@ -18,10 +18,10 @@ namespace Hyperboliq.Tests
             var result = expr.ToSqlExpression();
 
             var expected = TokenGeneration_SimpleJoinTests_Results.expectedAst(JoinType.InnerJoin);
-            Assert.Equal(expected, result);
+            Assert.That(result, Is.EqualTo(expected));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBeAbleToPerformASimpleLeftJoin()
         {
             var expr = Select.Star<Person>()
@@ -31,10 +31,10 @@ namespace Hyperboliq.Tests
             var result = expr.ToSqlExpression();
 
             var expected = TokenGeneration_SimpleJoinTests_Results.expectedAst(JoinType.LeftJoin);
-            Assert.Equal(expected, result);
+            Assert.That(result, Is.EqualTo(expected));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBeAbleToPerformASimpleRightJoin()
         {
             var expr = Select.Star<Person>()
@@ -44,10 +44,10 @@ namespace Hyperboliq.Tests
             var result = expr.ToSqlExpression();
 
             var expected = TokenGeneration_SimpleJoinTests_Results.expectedAst(JoinType.RightJoin);
-            Assert.Equal(expected, result);
+            Assert.That(result, Is.EqualTo(expected));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBeAbleToPerformASimpleFullJoin()
         {
             var expr = Select.Star<Person>()
@@ -57,10 +57,10 @@ namespace Hyperboliq.Tests
             var result = expr.ToSqlExpression();
 
             var expected = TokenGeneration_SimpleJoinTests_Results.expectedAst(JoinType.FullJoin);
-            Assert.Equal(expected, result);
+            Assert.That(result, Is.EqualTo(expected));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBeAbleToPerformMultipleJoins()
         {
             var expr = Select.Star<Person>().Star<Car>().Star<House>()
@@ -69,7 +69,7 @@ namespace Hyperboliq.Tests
                              .LeftJoin<Person, Car>((p, c) => p.Id == c.DriverId);
             var result = expr.ToSqlExpression();
 
-            Assert.Equal(TokenGeneration_SimpleJoinTests_Results.multipleJoinExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SimpleJoinTests_Results.multipleJoinExpression));
         }
     }
 }

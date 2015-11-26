@@ -1,4 +1,4 @@
-﻿using Xunit;
+﻿using NUnit.Framework;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
 using Hyperboliq.Domain;
 using Hyperboliq.Dialects;
@@ -6,10 +6,10 @@ using Hyperboliq.Tests.TokenGeneration;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
-    [Trait("SqlGeneration", "SetOperations")]
+    [TestFixture]
     public class SqlGeneration_SetOperationTests
     {
-        [Fact]
+        [Test]
         public void ItShouldHandleASimpleUnion()
         {
             var stream =
@@ -34,10 +34,10 @@ namespace Hyperboliq.Tests.SqlGeneration
                 "SELECT PersonRef.* FROM Person PersonRef WHERE PersonRef.Age > 42 " +
                 "UNION " +
                 "SELECT PersonRef.* FROM Person PersonRef WHERE PersonRef.Name = 'Kalle'";
-            Assert.Equal(expected, result);
+            Assert.That(result, Is.EqualTo(expected));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldHandleASimpleUnionAll()
         {
             var stream =
@@ -62,10 +62,10 @@ namespace Hyperboliq.Tests.SqlGeneration
                 "SELECT PersonRef.* FROM Person PersonRef WHERE PersonRef.Age > 42 " +
                 "UNION ALL " +
                 "SELECT PersonRef.* FROM Person PersonRef WHERE PersonRef.Name = 'Kalle'";
-            Assert.Equal(expected, result);
+            Assert.That(result, Is.EqualTo(expected));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldHandleASimpleIntersect()
         {
             var stream =
@@ -87,10 +87,10 @@ namespace Hyperboliq.Tests.SqlGeneration
                 "SELECT PersonRef.* FROM Person PersonRef " +
                 "INTERSECT " +
                 "SELECT PersonRef.* FROM Person PersonRef WHERE PersonRef.Age > 42";
-            Assert.Equal(expected, result);
+            Assert.That(result, Is.EqualTo(expected));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldHandleASimpleMinus()
         {
             var stream =
@@ -112,7 +112,7 @@ namespace Hyperboliq.Tests.SqlGeneration
                 "SELECT PersonRef.* FROM Person PersonRef " +
                 "MINUS " +
                 "SELECT PersonRef.* FROM Person PersonRef WHERE PersonRef.Age > 42";
-            Assert.Equal(expected, result);
+            Assert.That(result, Is.EqualTo(expected));
         }
     }
 }

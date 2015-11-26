@@ -1,12 +1,12 @@
-﻿using Xunit;
+﻿using NUnit.Framework;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
 
 namespace Hyperboliq.Tests.TokenGeneration
 {
-    [Trait("TokenGeneration", "Insert")]
+    [TestFixture]
     public class TokenGeneration_SimpleInsertTests
     {
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToDoASimpleInsert()
         {
             var val = new Person { Id = 2, Name = "Kalle", Age = 42, LivesAtHouseId = 5, ParentId = 0 };
@@ -26,10 +26,10 @@ namespace Hyperboliq.Tests.TokenGeneration
                         S.InsConst(0))
                 );
 
-            Assert.Equal(expected, result);
+            Assert.That(result, Is.EqualTo(expected));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToSpecifyColumnsForAnInsert()
         {
             var val = new Person { Id = 2, Name = "Kalle", Age = 42, LivesAtHouseId = 5, ParentId = 0 };
@@ -45,10 +45,10 @@ namespace Hyperboliq.Tests.TokenGeneration
                         S.InsConst("'Kalle'"),
                         S.InsConst(42)));
 
-            Assert.Equal(expected, result);
+            Assert.That(result, Is.EqualTo(expected));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToInsertMultipleValuesInOneStatement()
         {
             var val1 = new Person { Id = 2, Name = "Kalle", Age = 42, LivesAtHouseId = 5, ParentId = 0 };
@@ -76,7 +76,7 @@ namespace Hyperboliq.Tests.TokenGeneration
                         S.InsConst(0))
                     );
 
-            Assert.Equal(expected, result);
+            Assert.That(result, Is.EqualTo(expected));
         }
     }
 }

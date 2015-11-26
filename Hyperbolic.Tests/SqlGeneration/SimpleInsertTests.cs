@@ -1,4 +1,4 @@
-﻿using Xunit;
+﻿using NUnit.Framework;
 using Hyperboliq.Dialects;
 using Hyperboliq.Domain;
 using Hyperboliq.Tests.TokenGeneration;
@@ -6,10 +6,10 @@ using S = Hyperboliq.Tests.SqlStreamExtensions;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
-    [Trait("SqlGeneration", "Insert")]
+    [TestFixture]
     public class SqlGeneration_SimpleInsertTests
     {
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToDoASimpleInsert()
         {
             var stream =
@@ -25,10 +25,12 @@ namespace Hyperboliq.Tests.SqlGeneration
 
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
 
-            Assert.Equal("INSERT INTO Person (Age, Id, LivesAtHouseId, Name, ParentId) VALUES (42, 2, 5, 'Kalle', 0)", result);
+            Assert.That(
+                result,
+                Is.EqualTo("INSERT INTO Person (Age, Id, LivesAtHouseId, Name, ParentId) VALUES (42, 2, 5, 'Kalle', 0)"));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToSpecifyColumnsForAnInsert()
         {
             var stream = 
@@ -39,10 +41,12 @@ namespace Hyperboliq.Tests.SqlGeneration
                         S.InsConst(42))
                     );
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
-            Assert.Equal("INSERT INTO Person (Name, Age) VALUES ('Kalle', 42)", result);
+            Assert.That(
+                result,
+                Is.EqualTo("INSERT INTO Person (Name, Age) VALUES ('Kalle', 42)"));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToInsertMultipleValuesInOneStatement()
         {
             var stream =
@@ -64,10 +68,10 @@ namespace Hyperboliq.Tests.SqlGeneration
                     );
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
 
-            Assert.Equal(
-                "INSERT INTO Person (Age, Id, LivesAtHouseId, Name, ParentId) " +
-                "VALUES (42, 2, 5, 'Kalle', 0), (12, 3, 3, 'Pelle', 2)",
-                result);
+            Assert.That(
+                result,
+                Is.EqualTo("INSERT INTO Person (Age, Id, LivesAtHouseId, Name, ParentId) " +
+                           "VALUES (42, 2, 5, 'Kalle', 0), (12, 3, 3, 'Pelle', 2)"));
         }
     }
 }

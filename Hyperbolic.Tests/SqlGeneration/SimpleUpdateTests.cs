@@ -1,4 +1,4 @@
-﻿using Xunit;
+﻿using NUnit.Framework;
 using Hyperboliq.Dialects;
 using Hyperboliq.Domain;
 using Hyperboliq.Tests.TokenGeneration;
@@ -8,10 +8,10 @@ using BinaryOperation = Hyperboliq.Domain.AST.BinaryOperation;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
-    [Trait("SqlGeneration", "Update")]
+    [TestFixture]
     public class SimpleUpdateTests
     {
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToPerformAGlobalUpdate()
         {
             var stream =
@@ -20,10 +20,10 @@ namespace Hyperboliq.Tests.SqlGeneration
                         S.Ust<Person>("Name", "'Kalle'")));
 
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
-            Assert.Equal("UPDATE Person SET Name = 'Kalle'", result);
+            Assert.That(result, Is.EqualTo("UPDATE Person SET Name = 'Kalle'"));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToSetMultipleValues()
         {
             var stream =
@@ -33,11 +33,11 @@ namespace Hyperboliq.Tests.SqlGeneration
                       S.Ust<Person>("Age", 42)));
 
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
-            Assert.Equal("UPDATE Person SET Name = 'Kalle', Age = 42", result);
+            Assert.That(result, Is.EqualTo("UPDATE Person SET Name = 'Kalle', Age = 42"));
         }
 
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToUpdateInPlace()
         {
             var stream =
@@ -46,10 +46,10 @@ namespace Hyperboliq.Tests.SqlGeneration
                       S.Ust<Person>("Age", S.BinExp(S.Col<Person>("Age"), BinaryOperation.Add, S.Const(1)))));
 
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
-            Assert.Equal("UPDATE Person SET Age = Age + 1", result);
+            Assert.That(result, Is.EqualTo("UPDATE Person SET Age = Age + 1"));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToUpdateMultipleInPlace()
         {
             var stream =
@@ -59,10 +59,10 @@ namespace Hyperboliq.Tests.SqlGeneration
                        S.Ust<Person>("Name", S.BinExp(S.Const("'Kalle'"), BinaryOperation.Add, S.Col<Person>("Name")))));
 
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
-            Assert.Equal("UPDATE Person SET Age = Age - 2, Name = 'Kalle' + Name", result);
+            Assert.That(result, Is.EqualTo("UPDATE Person SET Age = Age - 2, Name = 'Kalle' + Name"));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToUpdateValuesToASubExpression()
         {
             var stream =
@@ -75,10 +75,10 @@ namespace Hyperboliq.Tests.SqlGeneration
                                 S.From<Car>()))));
 
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
-            Assert.Equal("UPDATE Person SET Age = (SELECT MAX(CarRef.Age) FROM Car CarRef)", result);
+            Assert.That(result, Is.EqualTo("UPDATE Person SET Age = (SELECT MAX(CarRef.Age) FROM Car CarRef)"));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToPerformAConditionalUpdate()
         {
             var stream =
@@ -87,10 +87,10 @@ namespace Hyperboliq.Tests.SqlGeneration
                     S.Where(S.BinExp(S.Col<Person>("Name"), BinaryOperation.Equal, S.Const("'Kalle'"))));
 
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
-            Assert.Equal("UPDATE Person SET Age = 42 WHERE Name = 'Kalle'", result);
+            Assert.That(result, Is.EqualTo("UPDATE Person SET Age = 42 WHERE Name = 'Kalle'"));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToHaveMultipleConditionsOnTheUpdate()
         {
             var stream =
@@ -102,7 +102,7 @@ namespace Hyperboliq.Tests.SqlGeneration
                         S.And(S.BinExp(S.Col<Person>("Age"), BinaryOperation.LessThan, S.Const(18)))));
 
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
-            Assert.Equal("UPDATE Person SET Age = 42 WHERE Name = 'Kalle' OR Name = 'Pelle' AND Age < 18", result);
+            Assert.That(result, Is.EqualTo("UPDATE Person SET Age = 42 WHERE Name = 'Kalle' OR Name = 'Pelle' AND Age < 18"));
         }
     }
 }

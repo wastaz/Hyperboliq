@@ -1,4 +1,4 @@
-﻿using Xunit;
+﻿using NUnit.Framework;
 using Hyperboliq.Dialects;
 using Hyperboliq.Domain;
 using Hyperboliq.Tests.TokenGeneration;
@@ -8,10 +8,10 @@ using BinaryOperation = Hyperboliq.Domain.AST.BinaryOperation;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
-    [Trait("SqlGeneration", "Joins")]
+    [TestFixture]
     public class SqlGeneration_AdvancedJoinTests
     {
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToJoinATableToItself()
         {
             var child = Table<Person>.WithReferenceName("child");
@@ -23,9 +23,9 @@ namespace Hyperboliq.Tests.SqlGeneration
                         child,
                         S.Join(child, parent, JoinType.InnerJoin, S.BinExp(S.Col(child, "ParentId"), BinaryOperation.Equal, S.Col(parent, "Id")))));
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
-            Assert.Equal(
-                "SELECT child.Name, parent.Name FROM Person child "+
-                "INNER JOIN Person parent ON child.ParentId = parent.Id", result);
+            Assert.That(result,
+                Is.EqualTo("SELECT child.Name, parent.Name FROM Person child " +
+                           "INNER JOIN Person parent ON child.ParentId = parent.Id"));
         }
     }
 }

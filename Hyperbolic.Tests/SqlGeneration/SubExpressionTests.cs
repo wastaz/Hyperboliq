@@ -1,4 +1,4 @@
-﻿using Xunit;
+﻿using NUnit.Framework;
 using Hyperboliq.Dialects;
 using Hyperboliq.Domain;
 using Hyperboliq.Tests.TokenGeneration;
@@ -7,10 +7,10 @@ using BinaryOperation = Hyperboliq.Domain.AST.BinaryOperation;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
-    [Trait("SqlGeneration", "Subexpressions")]
+    [TestFixture]
     public class SqlGeneration_SubExpressionTests
     {
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToSqlifyACompareAgainstASubExpressionInAWhereExpression()
         {
             var stream =
@@ -26,10 +26,10 @@ namespace Hyperboliq.Tests.SqlGeneration
                                 S.From<Car>(),
                                 S.Where(S.BinExp(S.Col<Car>("Id"), BinaryOperation.Equal, S.Const(42)))))));
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
-            Assert.Equal(@"SELECT PersonRef.* FROM Person PersonRef WHERE PersonRef.Age > (SELECT CarRef.Age FROM Car CarRef WHERE CarRef.Id = 42)", result);
+            Assert.That(result, Is.EqualTo(@"SELECT PersonRef.* FROM Person PersonRef WHERE PersonRef.Age > (SELECT CarRef.Age FROM Car CarRef WHERE CarRef.Id = 42)"));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToSqlifyAQueryWithAnInSubExpression()
         {
 
@@ -45,7 +45,7 @@ namespace Hyperboliq.Tests.SqlGeneration
                                 S.Select(S.Col<Car>("DriverId")),
                                 S.From<Car>()))));
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
-            Assert.Equal(@"SELECT PersonRef.* FROM Person PersonRef WHERE PersonRef.Id IN (SELECT CarRef.DriverId FROM Car CarRef)", result);
+            Assert.That(result, Is.EqualTo(@"SELECT PersonRef.* FROM Person PersonRef WHERE PersonRef.Id IN (SELECT CarRef.DriverId FROM Car CarRef)"));
         }
     }
 }

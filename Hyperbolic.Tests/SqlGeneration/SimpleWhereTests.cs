@@ -1,4 +1,4 @@
-﻿using Xunit;
+﻿using NUnit.Framework;
 using Hyperboliq.Dialects;
 using Hyperboliq.Domain;
 using Hyperboliq.Tests.TokenGeneration;
@@ -8,10 +8,10 @@ using BinaryOperation = Hyperboliq.Domain.AST.BinaryOperation;
 namespace Hyperboliq.Tests.SqlGeneration
 {
     
-    [Trait("SqlGeneration", "Where")]
+    [TestFixture]
     public class SqlGeneration_SimpleWhereTests
     {
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToSqlifyAWhere()
         {
             var stream =
@@ -21,10 +21,10 @@ namespace Hyperboliq.Tests.SqlGeneration
                     S.Where(S.BinExp(S.Col<Person>("Age"), BinaryOperation.GreaterThan, S.Const(42))));
 
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
-            Assert.Equal(@"SELECT PersonRef.* FROM Person PersonRef WHERE PersonRef.Age > 42", result);
+            Assert.That(result, Is.EqualTo(@"SELECT PersonRef.* FROM Person PersonRef WHERE PersonRef.Age > 42"));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToSqlifyAWhereWithAndAndOr()
         {
             var stream = 
@@ -43,10 +43,10 @@ namespace Hyperboliq.Tests.SqlGeneration
                     )));
 
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
-            Assert.Equal(@"SELECT PersonRef.* FROM Person PersonRef WHERE PersonRef.Age > 42 OR PersonRef.Age < 10 AND PersonRef.Name = 'Karl'", result);
+            Assert.That(result, Is.EqualTo(@"SELECT PersonRef.* FROM Person PersonRef WHERE PersonRef.Age > 42 OR PersonRef.Age < 10 AND PersonRef.Name = 'Karl'"));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToSqlifyAWhereWithAndOrsThatIsNotInBinaryExpressions()
         {
             var stream =
@@ -58,7 +58,7 @@ namespace Hyperboliq.Tests.SqlGeneration
                         S.And(S.BinExp(S.Col<Person>("Age"), BinaryOperation.GreaterThan, S.Const(12))),
                         S.Or(S.BinExp(S.Col<Person>("Name"), BinaryOperation.Equal, S.Const("'Karl'")))));
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
-            Assert.Equal(@"SELECT PersonRef.* FROM Person PersonRef WHERE PersonRef.Age < 42 AND PersonRef.Age > 12 OR PersonRef.Name = 'Karl'", result);
+            Assert.That(result, Is.EqualTo(@"SELECT PersonRef.* FROM Person PersonRef WHERE PersonRef.Age < 42 AND PersonRef.Age > 12 OR PersonRef.Name = 'Karl'"));
         }
     }
 }

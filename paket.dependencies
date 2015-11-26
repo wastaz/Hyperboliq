@@ -9,9 +9,4 @@ nuget FAKE
 nuget FsUnit
 nuget NUnit
 nuget NUnit.Runners.Net4
-nuget xunit
-nuget xunit.abstractions
-nuget xunit.assert
-nuget xunit.core
-nuget xunit.extensibility.core
-nuget xunit.runner.visualstudio
+

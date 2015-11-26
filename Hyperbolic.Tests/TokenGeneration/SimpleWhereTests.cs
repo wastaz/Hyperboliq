@@ -1,32 +1,32 @@
-﻿using Xunit;
+﻿using NUnit.Framework;
 using Hyperboliq.Tests.TokenGeneration;
 
 namespace Hyperboliq.Tests
 {
-    [Trait("TokenGeneration", "Where")]
+    [TestFixture]
     public class TokenGeneration_SimpleWhereTests
     {
-        [Fact]
+        [Test]
         public void ItShouldHandleASimpleWhereCondition()
         {
             var expr = Select.Star<Person>()
                              .From<Person>()
                              .Where<Person>(p => p.Age > 42);
             var result = expr.ToSqlExpression();
-            Assert.Equal(TokenGeneration_SimpleWhereTests_Results.simpleWhereConditionExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SimpleWhereTests_Results.simpleWhereConditionExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldHandleAWhereConditionWithAndAndOrsInTheExpression()
         {
             var expr = Select.Star<Person>()
                              .From<Person>()
                              .Where<Person>(p => p.Age > 42 || (p.Age < 10 && p.Name == "Karl"));
             var result = expr.ToSqlExpression();
-            Assert.Equal(TokenGeneration_SimpleWhereTests_Results.conditionalWithAndAndOrsExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SimpleWhereTests_Results.conditionalWithAndAndOrsExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldHandleAWhereConditionWithAndAndOrsThatIsNotInTheExpression()
         {
             var expr = Select.Star<Person>()
@@ -35,11 +35,11 @@ namespace Hyperboliq.Tests
                              .And<Person>(p => p.Age > 12)
                              .Or<Person>(p => p.Name == "Karl");
             var result = expr.ToSqlExpression();
-            Assert.Equal(TokenGeneration_SimpleWhereTests_Results.conditionalWithAndAndOrsOutsideExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SimpleWhereTests_Results.conditionalWithAndAndOrsOutsideExpression));
         }
 
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToMakeWhereConditionsOnJoinedTables()
         {
             var expr = Select.Star<Person>().Star<Car>()
@@ -48,10 +48,10 @@ namespace Hyperboliq.Tests
                              .Where<Person>(p => p.Age > 42)
                              .And<Car>(c => c.Brand == "SAAB");
             var result = expr.ToSqlExpression();
-            Assert.Equal(TokenGeneration_SimpleWhereTests_Results.conditionsOnJoinedTablesExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SimpleWhereTests_Results.conditionsOnJoinedTablesExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBeAbleToReferenceSeveralTablesInAWhereCondition()
         {
             var expr = Select.Star<Person>().Star<Car>()
@@ -59,10 +59,10 @@ namespace Hyperboliq.Tests
                              .InnerJoin<Person, Car>((p, c) => p.Id == c.DriverId)
                              .Where<Person, Car>((p, c) => p.Age > c.DriverId);
             var result = expr.ToSqlExpression();
-            Assert.Equal(TokenGeneration_SimpleWhereTests_Results.conditionalReferencingSeveralTablesExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SimpleWhereTests_Results.conditionalReferencingSeveralTablesExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToReferenceSeveralTablesInAWhereConditionWithAndAndOr()
         {
             var expr = Select.Star<Person>().Star<Car>()
@@ -72,7 +72,7 @@ namespace Hyperboliq.Tests
                              .And<Person, Car>((p, c) => p.Age > c.Age)
                              .Or<Person, Car>((p, c) => p.Name == c.Brand);
             var result = expr.ToSqlExpression();
-            Assert.Equal(TokenGeneration_SimpleWhereTests_Results.conditionalReferencingSeveralTablesWithAndAndOrsExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SimpleWhereTests_Results.conditionalReferencingSeveralTablesWithAndAndOrsExpression));
         }
     }
 }

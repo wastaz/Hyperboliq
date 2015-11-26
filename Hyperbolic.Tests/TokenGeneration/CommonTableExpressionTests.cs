@@ -1,12 +1,12 @@
-﻿using Xunit;
+﻿using NUnit.Framework;
 using Hyperboliq.Domain;
 
 namespace Hyperboliq.Tests.TokenGeneration
 {
-    [Trait("TokenGeneration", "CommonTableExpressions")]
+    [TestFixture]
     public class CommonTableExpressionTests
     {
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToSelectFromACommonTableExpression() 
         {
             var expr =
@@ -19,10 +19,10 @@ namespace Hyperboliq.Tests.TokenGeneration
                               .From<PersonLite>()
                               .Where<PersonLite>(p => p.Age == 42));
             var result = expr.ToSqlExpression();
-            Assert.Equal(TokenGeneration_CommonTableExpressions_Results.selectFromACteExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_CommonTableExpressions_Results.selectFromACteExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToSelectFromSeveralCommonTableExpressions()
         {
             var oldies = Table<PersonLite>.WithTableAlias("Oldies");
@@ -45,10 +45,10 @@ namespace Hyperboliq.Tests.TokenGeneration
                               .From(oldies)
                               .InnerJoin(oldies, younglings, (old, young) => old.Age - 30 == young.Age));
             var result = expr.ToSqlExpression();
-            Assert.Equal(TokenGeneration_CommonTableExpressions_Results.selectFromSeveralCtesExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_CommonTableExpressions_Results.selectFromSeveralCtesExpression));
         }
         
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToDoPagingWithACommonTableExpression()
         {
             // To be honest, this case should be covered by the other test cases so this test case is a bit redundant.
@@ -66,10 +66,10 @@ namespace Hyperboliq.Tests.TokenGeneration
                           .Where<PersonLitePagingResult>(p => p.RowNumber >= 10 && p.RowNumber < 20)
                 );
             var result = expr.ToSqlExpression();
-            Assert.Equal(TokenGeneration_CommonTableExpressions_Results.commonPagingExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_CommonTableExpressions_Results.commonPagingExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToDoARecursiveCommonTableExpression()
         {
             var expr =
@@ -84,7 +84,7 @@ namespace Hyperboliq.Tests.TokenGeneration
                               .InnerJoin<Person, RecursivePerson>((p, rp) => p.Id == rp.ParentId)))
                     .Query(Select.Star<RecursivePerson>().From<RecursivePerson>());
             var result = expr.ToSqlExpression();
-            Assert.Equal(TokenGeneration_CommonTableExpressions_Results.recursiveCommonTableExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_CommonTableExpressions_Results.recursiveCommonTableExpression));
         }
     }
 }

@@ -1,14 +1,14 @@
-﻿using Xunit;
+﻿using NUnit.Framework;
 using Hyperboliq.Domain;
 using Direction = Hyperboliq.Domain.AST.Direction;
 using NullsOrdering = Hyperboliq.Domain.AST.NullsOrdering;
 
 namespace Hyperboliq.Tests.TokenGeneration
 {
-    [Trait("TokenGeneration", "SelectOver")]
+    [TestFixture]
     public class TokenGeneration_SelectPartitionsTests
     {
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToUseAnEmptyOverClause()
         {
             var expr = Select.Column<Person>(p => p.Name)
@@ -16,10 +16,10 @@ namespace Hyperboliq.Tests.TokenGeneration
                              .From<Person>();
             var result = expr.ToSqlExpression();
 
-            Assert.Equal(TokenGeneration_SelectPartitionTests_Results.emptyOverClauseExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SelectPartitionTests_Results.emptyOverClauseExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToPartitionByAColumn()
         {
             var expr = Select.Column<Person>(p => p.Name)
@@ -27,10 +27,10 @@ namespace Hyperboliq.Tests.TokenGeneration
                              .From<Person>();
             var result = expr.ToSqlExpression();
             
-            Assert.Equal(TokenGeneration_SelectPartitionTests_Results.partitionByColumnExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SelectPartitionTests_Results.partitionByColumnExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToPartitionByMultipleColumns()
         {
             var expr = Select.Column<Person>(p => p.Name)
@@ -38,10 +38,10 @@ namespace Hyperboliq.Tests.TokenGeneration
                              .From<Person>();
             var result = expr.ToSqlExpression();
 
-            Assert.Equal(TokenGeneration_SelectPartitionTests_Results.partitionByMultipleColumnsExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SelectPartitionTests_Results.partitionByMultipleColumnsExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToOrderByAColumn()
         {
             var expr = Select.Column<Person>(p => p.Name)
@@ -49,10 +49,10 @@ namespace Hyperboliq.Tests.TokenGeneration
                              .From<Person>();
             var result = expr.ToSqlExpression();
             
-            Assert.Equal(TokenGeneration_SelectPartitionTests_Results.orderByColumnExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SelectPartitionTests_Results.orderByColumnExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToOrderByMultipleColumns()
         {
             var expr = Select.Column<Person>(p => p.Name)
@@ -60,10 +60,10 @@ namespace Hyperboliq.Tests.TokenGeneration
                              .From<Person>();
             var result = expr.ToSqlExpression();
             
-            Assert.Equal(TokenGeneration_SelectPartitionTests_Results.orderByMultipleColumnsExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SelectPartitionTests_Results.orderByMultipleColumnsExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToBothPartitionAndOrderByAColumn()
         {
             var expr = Select.Column<Person>(p => p.Name)
@@ -73,7 +73,7 @@ namespace Hyperboliq.Tests.TokenGeneration
                              .From<Person>();
             var result = expr.ToSqlExpression();
             
-            Assert.Equal(TokenGeneration_SelectPartitionTests_Results.orderAndPartitionByColumnExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SelectPartitionTests_Results.orderAndPartitionByColumnExpression));
         }
     }
 }

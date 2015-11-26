@@ -1,4 +1,4 @@
-﻿using Xunit;
+﻿using NUnit.Framework;
 using Hyperboliq.Domain;
 using Hyperboliq.Dialects;
 using Hyperboliq.Tests.TokenGeneration;
@@ -9,10 +9,10 @@ using S = Hyperboliq.Tests.SqlStreamExtensions;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
-    [Trait("SqlGeneration", "SelectOver")]
+    [TestFixture]
     public class SqlGeneration_SelectPartitionsTests
     {
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToUseAnEmptyOverClause()
         {
             var expr =
@@ -25,12 +25,10 @@ namespace Hyperboliq.Tests.SqlGeneration
                     S.From<Person>());
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, expr);
 
-            Assert.Equal(
-                "SELECT PersonRef.Name, SUM(PersonRef.Age) OVER () FROM Person PersonRef", 
-                result);
+            Assert.That(result, Is.EqualTo("SELECT PersonRef.Name, SUM(PersonRef.Age) OVER () FROM Person PersonRef"));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToPartitionByAColumn()
         {
             var expr =
@@ -44,12 +42,10 @@ namespace Hyperboliq.Tests.SqlGeneration
                     S.From<Person>());
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, expr);
 
-            Assert.Equal(
-                "SELECT PersonRef.Name, MAX(PersonRef.Age) OVER (PARTITION BY PersonRef.Name) FROM Person PersonRef", 
-                result);
+            Assert.That(result, Is.EqualTo("SELECT PersonRef.Name, MAX(PersonRef.Age) OVER (PARTITION BY PersonRef.Name) FROM Person PersonRef"));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToPartitionByMultipleColumns()
         {
             var expr =
@@ -64,12 +60,10 @@ namespace Hyperboliq.Tests.SqlGeneration
                 );
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, expr);
 
-            Assert.Equal(
-                "SELECT PersonRef.Name, MAX(PersonRef.Age) OVER (PARTITION BY PersonRef.Name, PersonRef.LivesAtHouseId) FROM Person PersonRef", 
-                result);
+            Assert.That(result, Is.EqualTo("SELECT PersonRef.Name, MAX(PersonRef.Age) OVER (PARTITION BY PersonRef.Name, PersonRef.LivesAtHouseId) FROM Person PersonRef"));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToOrderByAColumn()
         {
             var expr =
@@ -83,12 +77,10 @@ namespace Hyperboliq.Tests.SqlGeneration
                     S.From<Person>());
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, expr);
 
-            Assert.Equal(
-                "SELECT PersonRef.Name, SUM(PersonRef.Age) OVER (ORDER BY PersonRef.Age ASC) FROM Person PersonRef", 
-                result);
+            Assert.That(result, Is.EqualTo("SELECT PersonRef.Name, SUM(PersonRef.Age) OVER (ORDER BY PersonRef.Age ASC) FROM Person PersonRef"));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToOrderByMultipleColumns()
         {
             var expr =
@@ -106,12 +98,10 @@ namespace Hyperboliq.Tests.SqlGeneration
                     S.From<Person>());
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, expr);
 
-            Assert.Equal(
-                "SELECT PersonRef.Name, SUM(PersonRef.Age) OVER (ORDER BY PersonRef.Age ASC NULLS LAST, PersonRef.Name DESC) FROM Person PersonRef", 
-                result);
+            Assert.That(result, Is.EqualTo("SELECT PersonRef.Name, SUM(PersonRef.Age) OVER (ORDER BY PersonRef.Age ASC NULLS LAST, PersonRef.Name DESC) FROM Person PersonRef"));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToBothPartitionAndOrderByAColumn()
         {
             var expr =
@@ -127,9 +117,7 @@ namespace Hyperboliq.Tests.SqlGeneration
                     S.From<Person>());
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, expr);
 
-            Assert.Equal(
-                "SELECT PersonRef.Name, SUM(PersonRef.Age) OVER (PARTITION BY PersonRef.Name ORDER BY PersonRef.Age ASC) FROM Person PersonRef", 
-                result);
+            Assert.That(result, Is.EqualTo("SELECT PersonRef.Name, SUM(PersonRef.Age) OVER (PARTITION BY PersonRef.Name ORDER BY PersonRef.Age ASC) FROM Person PersonRef"));
         }
     }
 }

@@ -1,13 +1,13 @@
-﻿using Xunit;
+﻿using NUnit.Framework;
 using Hyperboliq.Tests.TokenGeneration;
 using Direction = Hyperboliq.Domain.AST.Direction;
 
 namespace Hyperboliq.Tests
 {
-    [Trait("TokenGeneration", "OrderBy")]
+    [TestFixture]
     public class TokenGeneration_SimpleOrderByTests
     {
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToOrderAscendingByAColumn()
         {
             var expr = Select.Star<Person>()
@@ -15,10 +15,10 @@ namespace Hyperboliq.Tests
                              .OrderBy<Person>(p => p.Age, Direction.Ascending);
             var result = expr.ToSqlExpression();
             var expected = TokenGeneration_SimpleOrderByTests_Results.GetOrderByDirectionExpression(Direction.Ascending);
-            Assert.Equal(expected, result);
+            Assert.That(result, Is.EqualTo(expected));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToOrderDescendingByAColumn()
         {
             var expr = Select.Star<Person>()
@@ -26,10 +26,10 @@ namespace Hyperboliq.Tests
                              .OrderBy<Person>(p => p.Age, Direction.Descending);
             var result = expr.ToSqlExpression();
             var expected = TokenGeneration_SimpleOrderByTests_Results.GetOrderByDirectionExpression(Direction.Descending);
-            Assert.Equal(expected, result);
+            Assert.That(result, Is.EqualTo(expected));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToOrderBySeveralColumns()
         {
             var expr = Select.Star<Person>().Star<Car>()
@@ -38,7 +38,7 @@ namespace Hyperboliq.Tests
                              .OrderBy<Person>(p => p.Age, Direction.Ascending)
                              .ThenBy<Car>(c => c.Brand, Direction.Descending);
             var result = expr.ToSqlExpression();
-            Assert.Equal(TokenGeneration_SimpleOrderByTests_Results.orderByMultipleColumnsExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SimpleOrderByTests_Results.orderByMultipleColumnsExpression));
         }
     }
 }

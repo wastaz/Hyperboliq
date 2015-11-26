@@ -1,4 +1,4 @@
-﻿using Xunit;
+﻿using NUnit.Framework;
 using Hyperboliq.Dialects;
 using Hyperboliq.Domain;
 using Hyperboliq.Tests.TokenGeneration;
@@ -9,10 +9,10 @@ using S = Hyperboliq.Tests.SqlStreamExtensions;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
-    [Trait("SqlGeneration", "GroupBy")]
+    [TestFixture]
     public class SqlGeneration_SimpleGroupByTests
     {
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToGroupByASingleColumn()
         {
             var stream =
@@ -21,10 +21,10 @@ namespace Hyperboliq.Tests.SqlGeneration
                     S.From<Person>(),
                     groupBy: S.GroupBy(S.Col<Person>("Name")));
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
-            Assert.Equal(@"SELECT PersonRef.Name, MAX(PersonRef.Age) FROM Person PersonRef GROUP BY PersonRef.Name", result);
+            Assert.That(result, Is.EqualTo(@"SELECT PersonRef.Name, MAX(PersonRef.Age) FROM Person PersonRef GROUP BY PersonRef.Name"));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToGroupByMultipleColumns()
         {
             var stream =
@@ -33,13 +33,14 @@ namespace Hyperboliq.Tests.SqlGeneration
                     S.From<Person>(),
                     groupBy: S.GroupBy(S.Col<Person>("Name"), S.Col<Person>("LivesAtHouseId")));
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
-            Assert.Equal(
-                @"SELECT PersonRef.Name, PersonRef.LivesAtHouseId, MIN(PersonRef.Age) FROM Person PersonRef " +
-                "GROUP BY PersonRef.Name, PersonRef.LivesAtHouseId",
-                result);
+            Assert.That(
+                result,
+                Is.EqualTo(
+                    @"SELECT PersonRef.Name, PersonRef.LivesAtHouseId, MIN(PersonRef.Age) FROM Person PersonRef " +
+                    "GROUP BY PersonRef.Name, PersonRef.LivesAtHouseId"));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToGroupByColumnsFromSeveralTables()
         {
             var stream =
@@ -52,15 +53,17 @@ namespace Hyperboliq.Tests.SqlGeneration
                     groupBy: S.GroupBy(S.Col<Person>("Age"), S.Col<Car>("Brand")));
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
 
-            Assert.Equal(
-                "SELECT PersonRef.Age, CarRef.Brand, COUNT(*) " +
-                "FROM Person PersonRef " +
-                "INNER JOIN Car CarRef ON PersonRef.Id = CarRef.DriverId " +
-                "GROUP BY PersonRef.Age, CarRef.Brand",
-                result);
+            Assert.That(
+                result,
+                Is.EqualTo(
+                    "SELECT PersonRef.Age, CarRef.Brand, COUNT(*) " +
+                    "FROM Person PersonRef " +
+                    "INNER JOIN Car CarRef ON PersonRef.Id = CarRef.DriverId " +
+                    "GROUP BY PersonRef.Age, CarRef.Brand"));
+                
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToUseASingleHavingExpression()
         {
             var stream =
@@ -72,15 +75,16 @@ namespace Hyperboliq.Tests.SqlGeneration
                             new[] { S.Col<Person>("Name") },
                             S.And(S.BinExp(S.Aggregate(AggregateType.Avg, S.Col<Person>("Age")), BinaryOperation.GreaterThan, S.Const(42)))));
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
-            Assert.Equal(
-                "SELECT PersonRef.Name, AVG(PersonRef.Age) " +
-                "FROM Person PersonRef " +
-                "GROUP BY PersonRef.Name " +
-                "HAVING AVG(PersonRef.Age) > 42",
-                result);
+            Assert.That(
+                result,
+                Is.EqualTo(
+                    "SELECT PersonRef.Name, AVG(PersonRef.Age) " +
+                    "FROM Person PersonRef " +
+                    "GROUP BY PersonRef.Name " +
+                    "HAVING AVG(PersonRef.Age) > 42"));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToUseMultipleHavingExpressions()
         {
             var stream =
@@ -98,14 +102,15 @@ namespace Hyperboliq.Tests.SqlGeneration
                             S.And(S.BinExp(S.Aggregate(AggregateType.Avg, S.Col<Person>("Age")), BinaryOperation.GreaterThan, S.Const(42))),
                             S.And(S.BinExp(S.Aggregate(AggregateType.Min, S.Col<Car>("Age")), BinaryOperation.GreaterThan, S.Const(2)))));
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
-            Assert.Equal(
-                "SELECT PersonRef.Name, AVG(PersonRef.Age), CarRef.Brand, MIN(CarRef.Age) " +
-                "FROM Person PersonRef " +
-                "INNER JOIN Car CarRef ON PersonRef.Id = CarRef.DriverId " +
-                "GROUP BY PersonRef.Name, CarRef.Brand " +
-                "HAVING AVG(PersonRef.Age) > 42 " +
-                "AND MIN(CarRef.Age) > 2",
-                result);
+            Assert.That(
+                result,
+                Is.EqualTo(
+                    "SELECT PersonRef.Name, AVG(PersonRef.Age), CarRef.Brand, MIN(CarRef.Age) " +
+                    "FROM Person PersonRef " +
+                    "INNER JOIN Car CarRef ON PersonRef.Id = CarRef.DriverId " +
+                    "GROUP BY PersonRef.Name, CarRef.Brand " +
+                    "HAVING AVG(PersonRef.Age) > 42 " +
+                    "AND MIN(CarRef.Age) > 2"));
         }
     }
 }

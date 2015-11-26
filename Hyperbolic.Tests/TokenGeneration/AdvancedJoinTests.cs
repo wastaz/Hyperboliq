@@ -1,4 +1,4 @@
-﻿using Xunit;
+﻿using NUnit.Framework;
 using Hyperboliq.Tests.TokenGeneration;
 using S = Hyperboliq.Tests.SqlStreamExtensions;
 using JoinType = Hyperboliq.Domain.AST.JoinType;
@@ -6,10 +6,10 @@ using BinaryOperation = Hyperboliq.Domain.AST.BinaryOperation;
 
 namespace Hyperboliq.Tests
 {
-    [Trait("TokenGeneration", "Joins")]
+    [TestFixture]
     public class TokenGeneration_AdvancedJoinTests
     {
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToJoinATableToItself()
         {
             var child = Table<Person>.WithReferenceName("child");
@@ -27,10 +27,10 @@ namespace Hyperboliq.Tests
                     S.From(
                         child,
                         S.Join(child, parent, JoinType.InnerJoin, S.BinExp(S.Col(child, "ParentId"), BinaryOperation.Equal, S.Col(parent, "Id")))));
-            Assert.Equal(expected, result);
+            Assert.That(result, Is.EqualTo(expected));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToInnerJoinATableOnSeveralOtherTables()
         {
             var expr = Select.Star<Car>()
@@ -52,10 +52,10 @@ namespace Hyperboliq.Tests
                         S.Join<House, Person>(
                             JoinType.InnerJoin,
                             S.BinExp(S.Col<House>("Id"), BinaryOperation.Equal, S.Col<Person>("LivesAtHouseId")))));
-            Assert.Equal(expected, result);
+            Assert.That(result, Is.EqualTo(expected));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToInnerJoinATableOnItselfSeveralTimes()
         {
             var child = Table<Person>.WithReferenceName("child");
@@ -85,7 +85,7 @@ namespace Hyperboliq.Tests
                                 BinaryOperation.And,
                                 S.BinExp(S.Col(child, "LivesAtHouseId"), BinaryOperation.Equal, S.Col(grandparent, "LivesAtHouseId")))),
                         S.Join(child, parent, JoinType.InnerJoin, S.BinExp(S.Col(child, "ParentId"), BinaryOperation.Equal, S.Col(parent, "Id")))));
-            Assert.Equal(expected, result);
+            Assert.That(result, Is.EqualTo(expected));
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using Xunit;
+﻿using NUnit.Framework;
 using Hyperboliq.Domain;
 using Hyperboliq.Dialects;
 using Hyperboliq.Tests.TokenGeneration;
@@ -6,10 +6,10 @@ using S = Hyperboliq.Tests.SqlStreamExtensions;
 
 namespace Hyperboliq.Tests.Sqllite
 {
-    [Trait("Sqlite", "Quoting")]
+    [TestFixture]
     public class SqlLite_ColumnQuotingTests
     {
-        [Fact]
+        [Test]
         public void ItShouldProperlyQuoteColumnNames()
         {
             var stream =
@@ -21,7 +21,7 @@ namespace Hyperboliq.Tests.Sqllite
                     S.From<Person>());
 
             var result = SqlGen.SqlifyExpression(SqlLite.Dialect, stream);
-            Assert.Equal(@"SELECT PersonRef.""Name"", PersonRef.""Age"", PersonRef.""Id"" FROM Person PersonRef", result);
+            Assert.That(result, Is.EqualTo(@"SELECT PersonRef.""Name"", PersonRef.""Age"", PersonRef.""Id"" FROM Person PersonRef"));
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using Xunit;
+﻿using NUnit.Framework;
 using Hyperboliq.Dialects;
 using Hyperboliq.Domain;
 using Hyperboliq.Tests.TokenGeneration;
@@ -7,20 +7,20 @@ using S = Hyperboliq.Tests.SqlStreamExtensions;
 
 namespace Hyperboliq.Tests.SqlGeneration
 {
-    [Trait("SqlGeneration", "Delete")]
+    [TestFixture]
     public class SqlGeneration_SimpleDeleteTests
     {
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToGenerateADeleteAllRowsFromTableStatement()
         {
             var stream =
                 S.DeleteNode(S.From<Person>());
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
 
-            Assert.Equal(@"DELETE FROM Person PersonRef", result);
+            Assert.That(result, Is.EqualTo(@"DELETE FROM Person PersonRef"));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToPutAWhereExpressionOnADeleteStatement()
         {
             var stream =
@@ -29,10 +29,10 @@ namespace Hyperboliq.Tests.SqlGeneration
                     S.Where(S.BinExp(S.Col<Person>("Age"), BinaryOperation.GreaterThan, S.Const(42))));
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
 
-            Assert.Equal(@"DELETE FROM Person PersonRef WHERE PersonRef.Age > 42", result);
+            Assert.That(result, Is.EqualTo(@"DELETE FROM Person PersonRef WHERE PersonRef.Age > 42"));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToUseAndAndOrOnAWhereStatementOnADeleteStatement()
         {
             var stream =
@@ -44,15 +44,15 @@ namespace Hyperboliq.Tests.SqlGeneration
                         S.Or(S.BinExp(S.Col<Person>("Name"), BinaryOperation.Equal, S.Const("'Henrik'")))));
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
 
-            Assert.Equal(
-                "DELETE FROM Person PersonRef " +
-                "WHERE PersonRef.Age > 42 " +
-                "AND PersonRef.Name = 'Kalle' " +
-                "OR PersonRef.Name = 'Henrik'",
-                result);
+            Assert.That(result,
+                Is.EqualTo(
+                    "DELETE FROM Person PersonRef " +
+                    "WHERE PersonRef.Age > 42 " +
+                    "AND PersonRef.Name = 'Kalle' " +
+                    "OR PersonRef.Name = 'Henrik'"));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToDeleteWithASubQuery()
         {
             var stream =
@@ -68,14 +68,15 @@ namespace Hyperboliq.Tests.SqlGeneration
                                 S.Where(S.BinExp(S.Col<Person>("Age"), BinaryOperation.LessThan, S.Const(18)))))));
             var result = SqlGen.SqlifyExpression(AnsiSql.Dialect, stream);
 
-            Assert.Equal(
-                "DELETE FROM Car CarRef " +
-                "WHERE CarRef.DriverId IN (" +
-                    "SELECT PersonRef.Id " +
-                    "FROM Person PersonRef " +
-                    "WHERE PersonRef.Age < 18" +
-                ")",
-                result);
+            Assert.That(
+                result,
+                Is.EqualTo(
+                    "DELETE FROM Car CarRef " +
+                    "WHERE CarRef.DriverId IN (" +
+                        "SELECT PersonRef.Id " +
+                        "FROM Person PersonRef " +
+                        "WHERE PersonRef.Age < 18" +
+                    ")"));
         }
     }
 }

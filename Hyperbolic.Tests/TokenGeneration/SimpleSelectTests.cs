@@ -1,78 +1,78 @@
-﻿using Xunit;
+﻿using NUnit.Framework;
 using Hyperboliq.Domain;
 using Hyperboliq.Tests.TokenGeneration;
 
 namespace Hyperboliq.Tests
 {
-    [Trait("TokenGeneration", "Select")]
+    [TestFixture]
     public class TokenGeneration_SimpleSelectTests
     {
-        [Fact]
+        [Test]
         public void ItShouldBeAbleToSelectDistinctFromATable()
         {
             var expr = Select.Distinct.Star<Person>()
                              .From<Person>();
             var result = expr.ToSqlExpression();
 
-            Assert.Equal(TokenGeneration_SimpleSelectTests_Results.selectDistinctExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SimpleSelectTests_Results.selectDistinctExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToSelectAConstant()
         {
             var expr = Select.Column<Person>(p => new { favoriteNumber = 42, name = p.Name })
                              .From<Person>();
             var result = expr.ToSqlExpression();
 
-            Assert.Equal(TokenGeneration_SimpleSelectTests_Results.selectConstantExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SimpleSelectTests_Results.selectConstantExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBeAbleToSelectSingleColumnsFromATable()
         {
             var expr = Select.Column<Person>(p => new { p.Name, p.Age })
                              .From<Person>();
             var result = expr.ToSqlExpression();
 
-            Assert.Equal(TokenGeneration_SimpleSelectTests_Results.selectColumnsExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SimpleSelectTests_Results.selectColumnsExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldOrderTheColumnsInTheExceptedOrderWhenCallingColumnSeveralTimes()
         {
             var expr = Select.Column<Person>(p => p.Name).Column<Person>(p => p.Age)
                              .From<Person>();
             var result = expr.ToSqlExpression();
 
-            Assert.Equal(TokenGeneration_SimpleSelectTests_Results.selectColumnsExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SimpleSelectTests_Results.selectColumnsExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBeAbleToSelectDistinctSingleColumnsFromATable()
         {
             var expr = Select.Distinct.Column<Person>(p => p.Age)
                              .From<Person>();
             var result = expr.ToSqlExpression();
 
-            Assert.Equal(TokenGeneration_SimpleSelectTests_Results.selectDistinctSingleColumnsExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SimpleSelectTests_Results.selectDistinctSingleColumnsExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToSelectTheNumberOfRowsFromATable()
         {
             var expr = Select.Column<Person>(p => Sql.Count()).From<Person>();
             var result = expr.ToSqlExpression();
 
-            Assert.Equal(TokenGeneration_SimpleSelectTests_Results.selectCountExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SimpleSelectTests_Results.selectCountExpression));
         }
 
-        [Fact]
+        [Test]
         public void ItShouldBePossibleToSelectTheNumberOfRowsFromATableAndNameTheColumn()
         {
             var expr = Select.Column<Person>(p => new { numberOfPersons = Sql.Count() }).From<Person>();
             var result = expr.ToSqlExpression();
 
-            Assert.Equal(TokenGeneration_SimpleSelectTests_Results.selectNamedCountExpression, result);
+            Assert.That(result, Is.EqualTo(TokenGeneration_SimpleSelectTests_Results.selectNamedCountExpression));
         }
 
     }
