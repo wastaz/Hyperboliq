@@ -8,7 +8,7 @@ open System
 let artifactsDir = "./artifacts/"
 let testArtifactsDir = "./testartifacts/"
 let packagingDir = "./packaging/"
-let version = "0.1.0"
+let version = "0.1.1"
 
 let testProjectFiles =
   [ "./Hyperboliq.Tests/Hyperboliq.Tests.csproj"
@@ -35,6 +35,7 @@ let createNugetPackage templateFile =
 Target "clean" (fun _ -> 
   trace "Clean"
   CleanDir artifactsDir
+  CleanDir packagingDir
 )
 
 Target "buildTests" (fun _ ->
