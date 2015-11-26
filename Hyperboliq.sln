@@ -12,17 +12,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".paket", ".paket", "{ED9B0B
 		paket.lock = paket.lock
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hyperboliq.Tests", "Hyperbolic.Tests\Hyperboliq.Tests.csproj", "{5712F2C2-4C5A-4847-A502-1A9C7137B381}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hyperboliq.Tests", "Hyperboliq.Tests\Hyperboliq.Tests.csproj", "{5712F2C2-4C5A-4847-A502-1A9C7137B381}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hyperboliq", "Hyperbolic.Domain\Hyperboliq.fsproj", "{B364B662-03A5-4700-A554-6B9E7EABD6CD}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hyperboliq", "Hyperboliq\Hyperboliq.fsproj", "{B364B662-03A5-4700-A554-6B9E7EABD6CD}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hyperboliq.Sqllite", "Hyperbolic.Sqllite\Hyperboliq.Sqllite.fsproj", "{062F44CD-0CE5-48DB-BF85-FADD3101F22E}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hyperboliq.Sqllite", "Hyperboliq.Sqllite\Hyperboliq.Sqllite.fsproj", "{062F44CD-0CE5-48DB-BF85-FADD3101F22E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hyperboliq.Tests.Sqllite", "Hyperbolic.Tests.Sqllite\Hyperboliq.Tests.Sqllite.csproj", "{0B2C4A38-AD61-4B03-851F-F7F91F44553D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hyperboliq.Tests.Sqllite", "Hyperboliq.Tests.Sqllite\Hyperboliq.Tests.Sqllite.csproj", "{0B2C4A38-AD61-4B03-851F-F7F91F44553D}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hyperboliq.SqlServer", "Hyperbolic.SqlServer\Hyperboliq.SqlServer.fsproj", "{9F311956-BCFB-4308-A2F1-9720D9353297}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hyperboliq.SqlServer", "Hyperboliq.SqlServer\Hyperboliq.SqlServer.fsproj", "{9F311956-BCFB-4308-A2F1-9720D9353297}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hyperboliq.Tests.SqlServer", "Hyperbolic.Tests.SqlServer\Hyperboliq.Tests.SqlServer.csproj", "{A819F5BC-F169-4336-BF20-156F3745C397}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hyperboliq.Tests.SqlServer", "Hyperboliq.Tests.SqlServer\Hyperboliq.Tests.SqlServer.csproj", "{A819F5BC-F169-4336-BF20-156F3745C397}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hyperboliq.Ansi", "Hyperboliq.Ansi\Hyperboliq.Ansi.fsproj", "{0A984155-57B7-4A4F-A5DA-34690BAA2117}"
 EndProject

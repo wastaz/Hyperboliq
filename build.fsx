@@ -10,20 +10,34 @@ let testArtifactsDir = "./testartifacts/"
 let packagingDir = "./packaging/"
 let version = "0.1.0"
 
+let testProjectFiles =
+  [ "./Hyperbolic.Tests/Hyperboliq.Tests.csproj"
+    "./Hyperboliq.Tests.FSharp/Hyperboliq.Tests.FSharp.fsproj"
+    "./Hyperbolic.Tests.Sqllite/Hyperboliq.Tests.Sqllite.csproj"
+    "./Hyperbolic.Tests.SqlServer/Hyperboliq.Tests.SqlServer.csproj"
+  ]
+
+let testAssemblies =
+  [ "Hyperboliq.Tests.dll"
+    "Hyperboliq.Tests.FSharp.dll"
+    "Hyperboliq.Tests.Sqllite.dll"
+    "Hyperboliq.Tests.SqlServer.dll"
+  ] |> List.map (fun s -> testArtifactsDir + s)
+
 Target "clean" (fun _ -> 
   trace "Clean"
   CleanDir artifactsDir
 )
 
 Target "buildTests" (fun _ ->
-  [ "./Hyperboliq.Tests.FSharp/Hyperboliq.Tests.FSharp.fsproj" ]
+  testProjectFiles
   |> MSBuildDebug testArtifactsDir "Build"
   |> Log "TestBuild-Output: "
 )
 
 Target "runTests" (fun _ ->
   trace "Run tests"
-  [ testArtifactsDir + "Hyperboliq.Tests.FSharp.dll" ]
+  testAssemblies
   |> NUnitSequential.NUnit (fun p ->
     { p with
         StopOnError = true
@@ -71,8 +85,8 @@ Target "publishPackage" (fun _ ->
 Target "default" DoNothing
 
 "clean"
-=?> ("buildTests", hasBuildParam "test")
-=?> ("runTests", hasBuildParam "test")
+=?> ("buildTests", hasBuildParam "test" || hasBuildParam "publish")
+=?> ("runTests", hasBuildParam "test" || hasBuildParam "test")
 
 =?> ("buildRelease", hasBuildParam "publish")
 =?> ("createPackage", hasBuildParam "publish")
