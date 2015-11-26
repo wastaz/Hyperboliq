@@ -3,6 +3,12 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".paket", ".paket", "{ED9B0B2A-3784-4012-9A1A-20E82F120AE0}"
+	ProjectSection(SolutionItems) = preProject
+		paket.dependencies = paket.dependencies
+		paket.lock = paket.lock
+	EndProjectSection
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hyperboliq.Tests", "Hyperbolic.Tests\Hyperboliq.Tests.csproj", "{5712F2C2-4C5A-4847-A502-1A9C7137B381}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hyperboliq", "Hyperbolic.Domain\Hyperboliq.fsproj", "{B364B662-03A5-4700-A554-6B9E7EABD6CD}"
@@ -16,13 +22,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hyperboliq.Tests.SqlServer", "Hyperbolic.Tests.SqlServer\Hyperboliq.Tests.SqlServer.csproj", "{A819F5BC-F169-4336-BF20-156F3745C397}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hyperboliq.Ansi", "Hyperboliq.Ansi\Hyperboliq.Ansi.fsproj", "{0A984155-57B7-4A4F-A5DA-34690BAA2117}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{A575A57E-C952-406F-8336-DA9D3F70B6F5}"
-	ProjectSection(SolutionItems) = preProject
-		.nuget\NuGet.Config = .nuget\NuGet.Config
-		.nuget\NuGet.exe = .nuget\NuGet.exe
-		.nuget\NuGet.targets = .nuget\NuGet.targets
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5D5F4FC2-1C8C-4B12-B338-3AA663CCF050}"
 	ProjectSection(SolutionItems) = preProject

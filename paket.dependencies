@@ -1,0 +1,14 @@
+source https://www.nuget.org/api/v2/
+
+nuget Unquote 3.0.0 framework: >= net451
+nuget Npgsql 3.0.2 framework: >= net451
+nuget System.Data.SQLite.Core framework: >= net451
+
+nuget FsUnit
+nuget NUnit
+nuget xunit
+nuget xunit.abstractions
+nuget xunit.assert
+nuget xunit.core
+nuget xunit.extensibility.core
+nuget xunit.runner.visualstudio
