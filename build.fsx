@@ -133,12 +133,16 @@ Target "createCorePackage" (fun _ ->
 
 Target "publishPackages" (fun _ ->
   trace "Publish Package"
-  //Paket.Push(fun p -> { p with WorkingDir = packagingDir })
+  if hasBuildParam "publish" then
+    Paket.Push(fun p -> { p with WorkingDir = packagingDir })
+  else
+    trace "IMPORTANT!"
+    trace "To actually publish, add the build parameter \"publish\". Otherwise nothing will be published."
 )
 
-Target "default" DoNothing
-
 Target "createPackages" DoNothing
+
+Target "default" DoNothing
 
 "createCorePackage" ==> "createPackages"
 "createSqlServerPackage" ==> "createPackages"
@@ -151,11 +155,14 @@ Target "createPackages" DoNothing
 "buildSqlLite" ==> "createSqlLitePackage"
 
 "clean"
-=?> ("buildTests", hasBuildParam "test" || hasBuildParam "publish")
-=?> ("runTests", hasBuildParam "test" || hasBuildParam "publish")
-
-=?> ("createPackages", hasBuildParam "publish")
-=?> ("publishPackages", hasBuildParam "publish")
+==> "buildTests"
+==> "runTests"
 ==> "default"
+
+
+"runTests"
+==> "createPackages"
+==> "publishPackages"
+
 
 RunTargetOrDefault "default"
