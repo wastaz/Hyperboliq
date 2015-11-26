@@ -3,15 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".paket", ".paket", "{ED9B0B2A-3784-4012-9A1A-20E82F120AE0}"
-	ProjectSection(SolutionItems) = preProject
-		.gitignore = .gitignore
-		build.cmd = build.cmd
-		build.fsx = build.fsx
-		paket.dependencies = paket.dependencies
-		paket.lock = paket.lock
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hyperboliq.Tests", "Hyperboliq.Tests\Hyperboliq.Tests.csproj", "{5712F2C2-4C5A-4847-A502-1A9C7137B381}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hyperboliq", "Hyperboliq\Hyperboliq.fsproj", "{B364B662-03A5-4700-A554-6B9E7EABD6CD}"
@@ -28,7 +19,12 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hyperboliq.Ansi", "Hyperbol
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5D5F4FC2-1C8C-4B12-B338-3AA663CCF050}"
 	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		build.cmd = build.cmd
+		build.fsx = build.fsx
 		LICENSE = LICENSE
+		paket.dependencies = paket.dependencies
+		paket.lock = paket.lock
 		README.md = README.md
 	EndProjectSection
 EndProject
