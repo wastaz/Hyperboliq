@@ -8,5 +8,5 @@ files
 frameworkAssemblies
     System.Data
 dependencies
-    FSharp.Core >= 4.4.0
+    FSharp.Core >= 4.0.0.1
     Unquote >= 3.0.0
