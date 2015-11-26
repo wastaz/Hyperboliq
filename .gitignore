@@ -185,3 +185,7 @@ UpgradeLog*.htm
 FakesAssemblies/
 
 .paket/paket.exe
+artifacts
+packaging
+testartifacts
+.fake
