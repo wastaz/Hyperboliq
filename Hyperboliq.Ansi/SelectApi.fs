@@ -124,12 +124,24 @@ type SelectWhere internal (expr : SelectExpressionToken) =
     member x.And<'a>([<ReflectedDefinition>] predicate : Quotations.Expr<'a -> bool>) =
         { expr with Where = AddOrCreateWhereAndClause expr.Where (Quotation(predicate)) [| TableReferenceFromType<'a>|] |> Some }
         |> New
+    member x.And<'a>(tbl : ITableIdentifier<'a>, predicate : Expression<Func<'a, bool>>) =
+        { expr with Where = AddOrCreateWhereAndClause expr.Where (LinqExpression(predicate)) [| tbl.Reference |] |> Some }
+        |> New
+    member x.And<'a>(tbl : ITableIdentifier<'a>, [<ReflectedDefinition>] predicate : Quotations.Expr<'a -> bool>) =
+        { expr with Where = AddOrCreateWhereAndClause expr.Where (Quotation(predicate)) [| tbl.Reference |] |> Some }
+        |> New
 
     member x.And<'a, 'b>(predicate : Expression<Func<'a, 'b, bool>>) =
         { expr with Where = AddOrCreateWhereAndClause expr.Where (LinqExpression(predicate)) [| TableReferenceFromType<'a>; TableReferenceFromType<'b> |] |> Some }
         |> New
     member x.And<'a, 'b>([<ReflectedDefinition>] predicate : Quotations.Expr<'a -> 'b -> bool>) =
         { expr with Where = AddOrCreateWhereAndClause expr.Where (Quotation(predicate)) [| TableReferenceFromType<'a>; TableReferenceFromType<'b> |] |> Some }
+        |> New
+    member x.And<'a, 'b>(tbl1 : ITableIdentifier<'a>, tbl2 : ITableIdentifier<'b>, predicate : Expression<Func<'a, 'b, bool>>) =
+        { expr with Where = AddOrCreateWhereAndClause expr.Where (LinqExpression(predicate)) [| tbl1.Reference; tbl2.Reference |] |> Some }
+        |> New
+    member x.And<'a, 'b>(tbl1 : ITableIdentifier<'a>, tbl2 : ITableIdentifier<'b>, [<ReflectedDefinition>] predicate : Quotations.Expr<'a -> 'b -> bool>) =
+        { expr with Where = AddOrCreateWhereAndClause expr.Where (Quotation(predicate)) [| tbl1.Reference; tbl2.Reference |] |> Some }
         |> New
 
     member x.Or<'a>(predicate : Expression<Func<'a, bool>>) =
@@ -138,12 +150,24 @@ type SelectWhere internal (expr : SelectExpressionToken) =
     member x.Or<'a>([<ReflectedDefinition>] predicate : Quotations.Expr<'a -> bool>) =
         { expr with Where = AddOrCreateWhereOrClause expr.Where (Quotation(predicate)) [| TableReferenceFromType<'a> |] |> Some }
         |> New
+    member x.Or<'a>(tbl : ITableIdentifier<'a>, predicate : Expression<Func<'a, bool>>) =
+        { expr with Where = AddOrCreateWhereOrClause expr.Where (LinqExpression(predicate)) [| tbl.Reference |] |> Some }
+        |> New
+    member x.Or<'a>(tbl : ITableIdentifier<'a>, [<ReflectedDefinition>] predicate : Quotations.Expr<'a -> bool>) =
+        { expr with Where = AddOrCreateWhereOrClause expr.Where (Quotation(predicate)) [| tbl.Reference |] |> Some }
+        |> New
 
     member x.Or<'a, 'b>(predicate : Expression<Func<'a, 'b, bool>>) =
         { expr with Where = AddOrCreateWhereOrClause expr.Where (LinqExpression(predicate)) [| TableReferenceFromType<'a>; TableReferenceFromType<'b> |] |> Some }
         |> New
     member x.Or<'a, 'b>([<ReflectedDefinition>] predicate : Quotations.Expr<'a -> 'b -> bool>) =
         { expr with Where = AddOrCreateWhereOrClause expr.Where (Quotation(predicate)) [| TableReferenceFromType<'a>; TableReferenceFromType<'b> |] |> Some }
+        |> New
+    member x.Or<'a, 'b>(tbl1 : ITableIdentifier<'a>, tbl2 : ITableIdentifier<'b>, predicate : Expression<Func<'a, 'b, bool>>) =
+        { expr with Where = AddOrCreateWhereOrClause expr.Where (LinqExpression(predicate)) [| tbl1.Reference; tbl2.Reference |] |> Some }
+        |> New
+    member x.Or<'a, 'b>(tbl1 : ITableIdentifier<'a>, tbl2 : ITableIdentifier<'b>, [<ReflectedDefinition>] predicate : Quotations.Expr<'a -> 'b -> bool>) =
+        { expr with Where = AddOrCreateWhereOrClause expr.Where (Quotation(predicate)) [| tbl1.Reference; tbl2.Reference |] |> Some }
         |> New
 
     member x.GroupBy<'a>(selector : Expression<Func<'a, obj>>) = SelectGroupBy(expr).ThenBy(selector)
@@ -237,11 +261,15 @@ type Join internal (expr : SelectExpressionToken) =
         Join3 JoinType.FullJoin (TableIdentifier<'src1>()) (TableIdentifier<'src2>()) (TableIdentifier<'tgt>()) (Quotation(predicate))
         |> New
 
-    member x.Where<'a>(predicate : Expression<Func<'a, bool>>) = SelectWhere(expr).And(predicate)
-    member x.Where<'a>([<ReflectedDefinition>] predicate : Quotations.Expr<'a -> bool>) = SelectWhere(expr).And(predicate)
+    member x.Where<'a>(predicate : Expression<Func<'a, bool>>) = SelectWhere(x.Expression).And predicate
+    member x.Where<'a>([<ReflectedDefinition>] predicate : Quotations.Expr<'a -> bool>) = SelectWhere(x.Expression).And predicate
+    member x.Where<'a>(tbl : ITableIdentifier<'a>, predicate : Expression<Func<'a, bool>>) = SelectWhere(x.Expression).And(tbl, predicate)
+    member x.Where<'a>(tbl : ITableIdentifier<'a>, [<ReflectedDefinition>] predicate : Quotations.Expr<'a -> bool>) = SelectWhere(x.Expression).And(tbl, predicate)
 
-    member x.Where<'a, 'b>(predicate : Expression<Func<'a, 'b, bool>>) = SelectWhere(expr).And(predicate)
-    member x.Where<'a, 'b>([<ReflectedDefinition>] predicate : Quotations.Expr<'a -> 'b -> bool>) = SelectWhere(expr).And(predicate)
+    member x.Where<'a, 'b>(predicate : Expression<Func<'a, 'b, bool>>) = SelectWhere(x.Expression).And predicate
+    member x.Where<'a, 'b>([<ReflectedDefinition>] predicate : Quotations.Expr<'a -> 'b -> bool>) = SelectWhere(x.Expression).And predicate
+    member x.Where<'a, 'b>(tbl1 : ITableIdentifier<'a>, tbl2 : ITableIdentifier<'b>, predicate : Expression<Func<'a, 'b, bool>>) = SelectWhere(x.Expression).And(tbl1, tbl2, predicate)
+    member x.Where<'a, 'b>(tbl1 : ITableIdentifier<'a>, tbl2 : ITableIdentifier<'b>, [<ReflectedDefinition>] predicate : Quotations.Expr<'a -> 'b -> bool>) = SelectWhere(x.Expression).And(tbl1, tbl2, predicate)
 
     member x.GroupBy<'a>(selector : Expression<Func<'a, obj>>) = SelectGroupBy(expr).ThenBy(selector)
     member x.GroupBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>) = SelectGroupBy(expr).ThenBy(selector)
@@ -300,10 +328,14 @@ type SelectFrom<'a> internal (tbl: ITableIdentifier, exprNode : SelectValuesExpr
 
     member x.Where<'a>(predicate : Expression<Func<'a, bool>>) = SelectWhere(x.Expression).And predicate
     member x.Where<'a>([<ReflectedDefinition>] predicate : Quotations.Expr<'a -> bool>) = SelectWhere(x.Expression).And predicate
+    member x.Where<'a>(tbl : ITableIdentifier<'a>, predicate : Expression<Func<'a, bool>>) = SelectWhere(x.Expression).And(tbl, predicate)
+    member x.Where<'a>(tbl : ITableIdentifier<'a>, [<ReflectedDefinition>] predicate : Quotations.Expr<'a -> bool>) = SelectWhere(x.Expression).And(tbl, predicate)
+
     member x.Where<'a, 'b>(predicate : Expression<Func<'a, 'b, bool>>) = SelectWhere(x.Expression).And predicate
     member x.Where<'a, 'b>([<ReflectedDefinition>] predicate : Quotations.Expr<'a -> 'b -> bool>) = SelectWhere(x.Expression).And predicate
-
-
+    member x.Where<'a, 'b>(tbl1 : ITableIdentifier<'a>, tbl2 : ITableIdentifier<'b>, predicate : Expression<Func<'a, 'b, bool>>) = SelectWhere(x.Expression).And(tbl1, tbl2, predicate)
+    member x.Where<'a, 'b>(tbl1 : ITableIdentifier<'a>, tbl2 : ITableIdentifier<'b>, [<ReflectedDefinition>] predicate : Quotations.Expr<'a -> 'b -> bool>) = SelectWhere(x.Expression).And(tbl1, tbl2, predicate)
+    
     member x.GroupBy<'a>(selector : Expression<Func<'a, obj>>) = SelectGroupBy(x.Expression).ThenBy(selector)
     member x.GroupBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<('a -> 'b)>) = SelectGroupBy(x.Expression).ThenBy(selector)
 
@@ -324,6 +356,8 @@ type SelectImpl internal (expr : SelectValuesExpressionNode) =
     
     member x.Star<'a>() = 
         SelectImpl(SelectAllColumns expr (TableIdentifier<'a>()))
+    member x.Star<'a>(tbl : ITableIdentifier<'a>) =
+        SelectImpl(SelectAllColumns expr tbl)
 
     member x.Column<'a>(tbl : ITableIdentifier<'a>, selector : Expression<Func<'a, obj>>) = 
         SelectImpl(SelectColumns expr (LinqExpression(selector)) tbl)
@@ -343,7 +377,9 @@ type SelectImpl internal (expr : SelectValuesExpressionNode) =
 
 type Select private () =
     static member Distinct with get() = (SelectImpl()).Distinct
+    
     static member Star<'a>() = (SelectImpl()).Star<'a>()
+    static member Star<'a>(tbl : ITableIdentifier<'a>) = (SelectImpl()).Star<'a>(tbl)
 
     static member Column<'a>(selector : Expression<Func<'a, obj>>) = (SelectImpl()).Column<'a>(selector)
     static member Column<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>) = (SelectImpl()).Column<'a, 'b>(selector)

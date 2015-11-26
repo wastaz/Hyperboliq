@@ -1,5 +1,4 @@
 ﻿using Xunit;
-using S = Hyperboliq.Tests.SqlStreamExtensions;
 
 namespace Hyperboliq.Tests.TokenGeneration
 {
@@ -20,25 +19,7 @@ namespace Hyperboliq.Tests.TokenGeneration
                           .Where<Person>(p => p.Name == "Kalle")
                     );
             var result = expr.ToSqlExpression();
-
-            var expected =
-                Domain.AST.SqlExpression.NewSelect(
-                    Domain.AST.SelectExpression.NewPlain(
-                        Domain.AST.PlainSelectExpression.NewSet(
-                            S.Union(
-                                S.PlainSelect(
-                                    S.Select(S.Star<Person>()),
-                                    S.From<Person>(),
-                                    S.Where(
-                                        S.BinExp(S.Col<Person>("Age"), Domain.AST.BinaryOperation.GreaterThan, S.Const(42)))),
-                                S.PlainSelect(
-                                    S.Select(S.Star<Person>()),
-                                    S.From<Person>(),
-                                    S.Where(
-                                        S.BinExp(S.Col<Person>("Name"), Domain.AST.BinaryOperation.Equal, S.Const("'Kalle'"))))
-                            ))));
-
-            Assert.Equal(expected, result);
+            Assert.Equal(TokenGeneration_SetOperationTests_Results.simpleUnionExpression, result);
         }
 
         [Fact]
@@ -54,25 +35,7 @@ namespace Hyperboliq.Tests.TokenGeneration
                           .Where<Person>(p => p.Name == "Kalle")
                     );
             var result = expr.ToSqlExpression();
-
-            var expected =
-                Domain.AST.SqlExpression.NewSelect(
-                    Domain.AST.SelectExpression.NewPlain(
-                        Domain.AST.PlainSelectExpression.NewSet(
-                            S.UnionAll(
-                                S.PlainSelect(
-                                    S.Select(S.Star<Person>()),
-                                    S.From<Person>(),
-                                    S.Where(
-                                        S.BinExp(S.Col<Person>("Age"), Domain.AST.BinaryOperation.GreaterThan, S.Const(42)))),
-                                S.PlainSelect(
-                                    S.Select(S.Star<Person>()),
-                                    S.From<Person>(),
-                                    S.Where(
-                                        S.BinExp(S.Col<Person>("Name"), Domain.AST.BinaryOperation.Equal, S.Const("'Kalle'"))))
-                            ))));
-
-            Assert.Equal(expected, result);
+            Assert.Equal(TokenGeneration_SetOperationTests_Results.simpleUnionAllExpression, result);
         }
 
         [Fact]
@@ -85,21 +48,7 @@ namespace Hyperboliq.Tests.TokenGeneration
                       .From<Person>()
                       .Where<Person>(p => p.Age > 42));
             var result = expr.ToSqlExpression();
-
-            var expected =
-                Domain.AST.SqlExpression.NewSelect(
-                    Domain.AST.SelectExpression.NewPlain(
-                        Domain.AST.PlainSelectExpression.NewSet(
-                            S.Intersect(
-                                S.PlainSelect(
-                                    S.Select(S.Star<Person>()),
-                                    S.From<Person>()),
-                                S.PlainSelect(
-                                    S.Select(S.Star<Person>()),
-                                    S.From<Person>(),
-                                    S.Where(
-                                        S.BinExp(S.Col<Person>("Age"), Domain.AST.BinaryOperation.GreaterThan, S.Const(42))))))));
-            Assert.Equal(expected, result);
+            Assert.Equal(TokenGeneration_SetOperationTests_Results.simpleIntersectExpression, result);
         }
 
         [Fact]
@@ -112,27 +61,12 @@ namespace Hyperboliq.Tests.TokenGeneration
                       .From<Person>()
                       .Where<Person>(p => p.Age > 42));
             var result = expr.ToSqlExpression();
-
-            var expected =
-                Domain.AST.SqlExpression.NewSelect(
-                    Domain.AST.SelectExpression.NewPlain(
-                        Domain.AST.PlainSelectExpression.NewSet(
-                            S.Minus(
-                                S.PlainSelect(
-                                    S.Select(S.Star<Person>()),
-                                    S.From<Person>()),
-                                S.PlainSelect(
-                                    S.Select(S.Star<Person>()),
-                                    S.From<Person>(),
-                                    S.Where(
-                                        S.BinExp(S.Col<Person>("Age"), Domain.AST.BinaryOperation.GreaterThan, S.Const(42))))))));
-            Assert.Equal(expected, result);
+            Assert.Equal(TokenGeneration_SetOperationTests_Results.simpleMinusExpression, result);
         }
 
         [Fact]
         public void ItCanDoAUnionsWithCommonTableExpressions()
         {
-            
             var identifier = Table<Person>.WithTableAlias("cte");
             var expr =
                 With.Table(
@@ -142,40 +76,11 @@ namespace Hyperboliq.Tests.TokenGeneration
                             Select.Star<Person>().From<Person>().Where<Person>(p => p.Name == "Kalle")))
                     .Query(
                         SetOperations.Union(
-                            Select.Star<Person>().From(identifier).Where<Person>(p => p.Age == 50),
-                            Select.Star<Person>().From(identifier).Where<Person>(p => p.Name == "Kalle")));
+                            Select.Star(identifier).From(identifier).Where<Person>(identifier, p => p.Age == 50),
+                            Select.Star(identifier).From(identifier).Where<Person>(identifier, p => p.Name == "Kalle")));
 
             var result = expr.ToSqlExpression();
-
-            var union =
-                S.Union(
-                    S.PlainSelect(
-                        S.Select(S.Star<Person>()),
-                        S.From(identifier),
-                        S.Where(
-                            S.BinExp(S.Col<Person>("Age"), Domain.AST.BinaryOperation.Equal, S.Const(50)))),
-                    S.PlainSelect(
-                        S.Select(S.Star<Person>()),
-                        S.From(identifier),
-                        S.Where(
-                            S.BinExp(S.Col<Person>("Name"), Domain.AST.BinaryOperation.Equal, S.Const("'Kalle'")))));
-            var with =
-                    S.With(
-                        S.TableDef(
-                            identifier,
-                            S.Union(
-                                S.PlainSelect(
-                                    S.Select(S.Star<Person>()),
-                                    S.From<Person>(),
-                                    S.Where(
-                                        S.BinExp(S.Col<Person>("Age"), Domain.AST.BinaryOperation.GreaterThan, S.Const(42)))),
-                                S.PlainSelect(
-                                    S.Select(S.Star<Person>()),
-                                    S.From<Person>(),
-                                    S.Where(
-                                        S.BinExp(S.Col<Person>("Name"), Domain.AST.BinaryOperation.Equal, S.Const("'Kalle'")))))));
-            var expected = S.SelectNode(with, union);
-            Assert.Equal(expected, result);
+            Assert.Equal(TokenGeneration_SetOperationTests_Results.unionsInACommonTableExpression, result);
         }
     }
 }
