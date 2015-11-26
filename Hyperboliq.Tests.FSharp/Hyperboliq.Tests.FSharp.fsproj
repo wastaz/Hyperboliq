@@ -79,11 +79,6 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Hyperbolic.Domain\Hyperboliq.fsproj">
-      <Name>Hyperboliq</Name>
-      <Project>{b364b662-03a5-4700-a554-6b9e7eabd6cd}</Project>
-      <Private>True</Private>
-    </ProjectReference>
     <ProjectReference Include="..\Hyperboliq.Ansi\Hyperboliq.Ansi.fsproj">
       <Name>Hyperboliq.Ansi</Name>
       <Project>{0a984155-57b7-4a4f-a5da-34690baa2117}</Project>
@@ -92,6 +87,11 @@
     <ProjectReference Include="..\Hyperboliq.Tests.Common\Hyperboliq.Tests.Common.fsproj">
       <Name>Hyperboliq.Tests.Common</Name>
       <Project>{6407f7f7-cef0-400e-a214-c7f8ba38c69c}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Hyperboliq\Hyperboliq.fsproj">
+      <Name>Hyperboliq</Name>
+      <Project>{b364b662-03a5-4700-a554-6b9e7eabd6cd}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>

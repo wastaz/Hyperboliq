@@ -1,5 +1,13 @@
 ﻿namespace Hyperboliq.Domain
 
+open System.Runtime.CompilerServices
+
+[<assembly: InternalsVisibleTo("Hyperboliq.Ansi")>]
+[<assembly: InternalsVisibleTo("Hyperboliq.Tests")>]
+[<assembly: InternalsVisibleTo("Hyperboliq.Migration.Tests")>]
+[<assembly: InternalsVisibleTo("Hyperboliq.Tests.FSharp")>]
+do ()
+
 module Array =
     let tryHead arr =
         if Array.isEmpty arr then None else Some (arr.[0])

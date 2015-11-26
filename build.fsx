@@ -11,10 +11,10 @@ let packagingDir = "./packaging/"
 let version = "0.1.0"
 
 let testProjectFiles =
-  [ "./Hyperbolic.Tests/Hyperboliq.Tests.csproj"
+  [ "./Hyperboliq.Tests/Hyperboliq.Tests.csproj"
     "./Hyperboliq.Tests.FSharp/Hyperboliq.Tests.FSharp.fsproj"
-    "./Hyperbolic.Tests.Sqllite/Hyperboliq.Tests.Sqllite.csproj"
-    "./Hyperbolic.Tests.SqlServer/Hyperboliq.Tests.SqlServer.csproj"
+    "./Hyperboliq.Tests.Sqllite/Hyperboliq.Tests.Sqllite.csproj"
+    "./Hyperboliq.Tests.SqlServer/Hyperboliq.Tests.SqlServer.csproj"
   ]
 
 let testAssemblies =
@@ -45,10 +45,6 @@ Target "runTests" (fun _ ->
         ToolPath = "./packages/NUnit.Runners.Net4/tools/"
     }
   )
-)
-
-Target "buildDebug" (fun _ ->
-  trace "Build debug"
 )
 
 Target "buildRelease" (fun _ -> 

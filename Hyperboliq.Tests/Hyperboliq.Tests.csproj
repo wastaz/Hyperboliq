@@ -89,10 +89,6 @@
     <Compile Include="TokenGeneration\ParameterizedQueryTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Hyperboliq\Hyperboliq.fsproj">
-      <Project>{b364b662-03a5-4700-a554-6b9e7eabd6cd}</Project>
-      <Name>Hyperboliq</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Hyperboliq.Ansi\Hyperboliq.Ansi.fsproj">
       <Project>{0a984155-57b7-4a4f-a5da-34690baa2117}</Project>
       <Name>Hyperboliq.Ansi</Name>
@@ -100,6 +96,10 @@
     <ProjectReference Include="..\Hyperboliq.Tests.Common\Hyperboliq.Tests.Common.fsproj">
       <Project>{6407f7f7-cef0-400e-a214-c7f8ba38c69c}</Project>
       <Name>Hyperboliq.Tests.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Hyperboliq\Hyperboliq.fsproj">
+      <Project>{b364b662-03a5-4700-a554-6b9e7eabd6cd}</Project>
+      <Name>Hyperboliq</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
