@@ -80,7 +80,7 @@ type HyperboliqConnectionFactory(dialect : ISqlDialect, connectionString : strin
     member private x.Dialect = dialect
     member val ConnectionString = connectionString with get
     member x.OpenDbConnection() =
-        let con = dialect.CreateConnection("Data Source=" + x.ConnectionString)
+        let con = dialect.CreateConnection(x.ConnectionString)
         con.Open()
         new HyperboliqConnection(x.Dialect, con)
 

@@ -12,7 +12,7 @@ namespace Hyperboliq.Tests.Sqllite
         [Test]
         public void ItShouldReturnTheNumberOfAffectedRowsWhenExecutingANonQuery()
         {
-            var factory = new HyperboliqConnectionFactory(SqlLite.Dialect, ":memory:");
+            var factory = new HyperboliqConnectionFactory(SqlLite.Dialect, "Data source=:memory:");
             using (var con = factory.OpenDbConnection())
             {
                 const string createTable = "CREATE TABLE Person (Id INT, Name VARCHAR(50), Age INT, LivesAtHouseId INT, ParentId INT)";
@@ -33,7 +33,7 @@ namespace Hyperboliq.Tests.Sqllite
         [Test]
         public void ItShouldBeAbleToMapTheResultsOfASimpleQuery()
         {
-            var factory = new HyperboliqConnectionFactory(SqlLite.Dialect, ":memory:");
+            var factory = new HyperboliqConnectionFactory(SqlLite.Dialect, "Data source=:memory:");
             using (var con = factory.OpenDbConnection())
             {
                 const string createTable = "CREATE TABLE Person (Id INT, Name VARCHAR(50), Age INT, LivesAtHouseId INT, ParentId INT)";
@@ -58,7 +58,7 @@ namespace Hyperboliq.Tests.Sqllite
         [Test]
         public void ItShouldBeAbleToMapTheResultsOfAScalarQuery()
         {
-            var factory = new HyperboliqConnectionFactory(SqlLite.Dialect, ":memory:");
+            var factory = new HyperboliqConnectionFactory(SqlLite.Dialect, "Data source=:memory:");
             using (var con = factory.OpenDbConnection())
             {
                 const string createTable = "CREATE TABLE Person (Id INT, Name VARCHAR(50), Age INT, LivesAtHouseId INT, ParentId INT)";
@@ -94,7 +94,7 @@ namespace Hyperboliq.Tests.Sqllite
         [Test]
         public void ItShouldBeAbleToMapAClassByUsingAliases()
         {
-            var factory = new HyperboliqConnectionFactory(SqlLite.Dialect, ":memory:");
+            var factory = new HyperboliqConnectionFactory(SqlLite.Dialect, "Data source=:memory:");
             using (var con = factory.OpenDbConnection())
             {
                 const string createTable = "CREATE TABLE Person (Id INT, Name VARCHAR(50), Age INT, LivesAtHouseId INT, ParentId INT)";
@@ -119,7 +119,7 @@ namespace Hyperboliq.Tests.Sqllite
         [Test]
         public void ItShouldBeAbleToDoDynamicMapping()
         {
-            var factory = new HyperboliqConnectionFactory(SqlLite.Dialect, ":memory:");
+            var factory = new HyperboliqConnectionFactory(SqlLite.Dialect, "Data source=:memory:");
             using (var con = factory.OpenDbConnection())
             {
                 const string createTable = "CREATE TABLE Person (Id INT, Name VARCHAR(50), Age INT, LivesAtHouseId INT, ParentId INT)";
@@ -144,7 +144,7 @@ namespace Hyperboliq.Tests.Sqllite
         [Test]
         public void ItShouldBePossibleToRunAQueryWithParameters()
         {
-            var factory = new HyperboliqConnectionFactory(SqlLite.Dialect, ":memory:");
+            var factory = new HyperboliqConnectionFactory(SqlLite.Dialect, "Data source=:memory:");
             using (var con = factory.OpenDbConnection())
             {
                 const string createTable = "CREATE TABLE Person (Id INT, Name VARCHAR(50), Age INT, LivesAtHouseId INT, ParentId INT)";
@@ -177,7 +177,7 @@ namespace Hyperboliq.Tests.Sqllite
         [Test]
         public void ItShouldBePossibleToMapAliasedColumns()
         {
-            var factory = new HyperboliqConnectionFactory(SqlLite.Dialect, ":memory:");
+            var factory = new HyperboliqConnectionFactory(SqlLite.Dialect, "Data source=:memory:");
             using (var con = factory.OpenDbConnection())
             {
                 const string createTable = "CREATE TABLE Person (Id INT, Name VARCHAR(50), Age INT, LivesAtHouseId INT, ParentId INT)";
@@ -209,7 +209,7 @@ namespace Hyperboliq.Tests.Sqllite
         [Test]
         public void ItShouldBePossibleToMapUnions()
         {
-            var factory = new HyperboliqConnectionFactory(SqlLite.Dialect, ":memory:");
+            var factory = new HyperboliqConnectionFactory(SqlLite.Dialect, "Data source=:memory:");
             using (var con = factory.OpenDbConnection())
             {
                 const string createTable = "CREATE TABLE Person (Id INT, Name VARCHAR(50), Age INT, LivesAtHouseId INT, ParentId INT)";
