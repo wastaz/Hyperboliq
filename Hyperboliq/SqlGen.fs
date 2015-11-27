@@ -65,9 +65,17 @@ module internal SqlGenUtils =
     let JoinWithSpace = Join " "
     let JoinOptionsWithSpace = List.choose id >> JoinWithSpace
 
-    let HandleTableRef (tref : ITableReference) = tref.ReferenceName
-    let HandleTableDefinition (tdef : ITableDefinition) = tdef.Name
-    let HandleTableDefinitionWithRef (ti : ITableIdentifier) = ti.Definition.Name + " " + ti.Reference.ReferenceName
+    let HandleTableRef (dialect : ISqlDialect) (tref : ITableReference) = 
+        dialect.QuoteIdentifier tref.ReferenceName 
+
+    let HandleTableDefinition (dialect : ISqlDialect) (tdef : ITableDefinition) = 
+        match tdef.Schema with
+        | None -> dialect.QuoteIdentifier tdef.Name
+        | Some schema -> sprintf "%s.%s" <| dialect.QuoteIdentifier schema <| dialect.QuoteIdentifier tdef.Name
+        
+
+    let HandleTableDefinitionWithRef (dialect : ISqlDialect) (ti : ITableIdentifier) = 
+        sprintf "%s %s" <| HandleTableDefinition dialect ti.Definition <| HandleTableRef dialect ti.Reference
 
     let HandleConditionalClauses (valueHandler : ValueNode -> string) (clauses : WhereClauseNode list) =
         match clauses with
@@ -88,9 +96,9 @@ module internal SqlGenUtils =
     let HandleParameter (name : ParameterToken) = sprintf "@%s" name
 
     let HandleColumn (includeTableRef : bool) (dialect : ISqlDialect) ((col, colType, tbl) : ColumnToken) =
-        let cname = dialect.QuoteColumnName col
+        let cname = dialect.QuoteIdentifier col
         if includeTableRef then
-            sprintf "%s.%s" (HandleTableRef tbl) cname
+            sprintf "%s.%s" (HandleTableRef dialect tbl) cname
         else
             cname
 
@@ -257,14 +265,14 @@ module SelectSqlGen =
             | JoinType.FullJoin -> "FULL JOIN"
 
         let HandleJoin (jc : JoinClauseNode) =
-            let joinHead = sprintf "%s %s" (TranslateJoinType jc.Type) (HandleTableDefinitionWithRef jc.TargetTable)
+            let joinHead = sprintf "%s %s" (TranslateJoinType jc.Type) (HandleTableDefinitionWithRef dialect jc.TargetTable)
             match jc.Condition with
             | None -> joinHead
             | Some(c) -> sprintf "%s ON %s" joinHead (HandleSelectValue dialect c)
 
         let fromPart = 
             from.Tables
-            |> List.map HandleTableDefinitionWithRef
+            |> List.map (HandleTableDefinitionWithRef dialect)
             |> JoinWithComma
             |> sprintf "FROM %s"
         
@@ -333,7 +341,7 @@ module SelectSqlGen =
     and HandleCommonTableExpression dialect (cte : CommonTableExpression) =
         let HandleDefinition dialect (definition : ICommonTableDefinition) = 
             let query = HandlePlainSelectExpression dialect definition.Query
-            let tref = HandleTableDefinition definition.Table.Definition
+            let tref = HandleTableDefinition dialect definition.Table.Definition
             sprintf "%s AS (%s)" tref query
 
         cte.Definitions
@@ -368,7 +376,7 @@ module UpdateSqlGen =
         updateSet.SetExpressions
         |> List.map (HandleUpdateSetToken dialect)
         |> JoinWithComma
-        |> sprintf "UPDATE %s SET %s" updateSet.Table.Table.Name    
+        |> sprintf "UPDATE %s SET %s" updateSet.Table.Table.Name
 
     let HandleUpdateExpression dialect (update : UpdateExpression) =
         [
@@ -382,7 +390,7 @@ module DeleteSqlGen =
 
     let HandleFrom dialect (from : FromExpressionNode) =
         from.Tables
-        |> List.map HandleTableDefinitionWithRef
+        |> List.map (HandleTableDefinitionWithRef dialect)
         |> JoinWithComma
         |> sprintf "DELETE FROM %s"
 

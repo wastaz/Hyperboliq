@@ -9,4 +9,4 @@ type public SqlLite private () =
     static member Dialect with get() = SqlLite._dialect.Value
     interface ISqlDialect with
         member x.CreateConnection connectionString = new SQLiteConnection(connectionString) :> IDbConnection
-        member x.QuoteColumnName colname = @"""" + colname + @""""
+        member x.QuoteIdentifier identifier = sprintf "\"%s\"" identifier

@@ -9,5 +9,5 @@ type public PostgreSql private () =
     static member private _dialect = lazy(new PostgreSql())
     static member Dialect with get() = PostgreSql._dialect.Value
     interface ISqlDialect with
-        member x.QuoteColumnName colname = @"""" + colname + @""""
+        member x.QuoteIdentifier identifier = sprintf "\"%s\"" identifier
         member x.CreateConnection connectionString = new NpgsqlConnection(connectionString) :> IDbConnection

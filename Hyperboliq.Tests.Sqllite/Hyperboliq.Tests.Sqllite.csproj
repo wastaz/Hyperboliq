@@ -55,7 +55,7 @@
     </When>
   </Choose>
   <ItemGroup>
-    <Compile Include="ColumnQuotingTests.cs" />
+    <Compile Include="IdentifierQuotingTests.cs" />
     <Compile Include="ConnectionTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="BasicMappingTests.cs" />

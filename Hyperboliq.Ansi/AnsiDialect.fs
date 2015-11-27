@@ -7,4 +7,4 @@ type public AnsiSql private () =
     static member Dialect with get() = AnsiSql._dialect.Value
     interface ISqlDialect with
         member x.CreateConnection connectionString = null
-        member x.QuoteColumnName colname = colname
+        member x.QuoteIdentifier identifier = identifier

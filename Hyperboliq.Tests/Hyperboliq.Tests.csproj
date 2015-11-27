@@ -55,6 +55,7 @@
     <Compile Include="SqlGeneration\NullComparisonTests.cs" />
     <Compile Include="SqlGeneration\OperatorPredecenceTests.cs" />
     <Compile Include="SqlGeneration\OrderByNullsTests.cs" />
+    <Compile Include="SqlGeneration\SchemaTests.cs" />
     <Compile Include="SqlGeneration\SelectPartitionsTests.cs" />
     <Compile Include="SqlGeneration\SetOperationTests.cs" />
     <Compile Include="SqlGeneration\SimpleDeleteTests.cs" />
