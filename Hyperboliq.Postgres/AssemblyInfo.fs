@@ -5,9 +5,9 @@ open System.Reflection
 [<assembly: AssemblyDescriptionAttribute("Hyperboliq.PostgreSQL - Hyperboliq adapter for PostgreSQL")>]
 [<assembly: AssemblyProductAttribute("Hyperboliq.PostgreSQL")>]
 [<assembly: AssemblyCopyrightAttribute("Copyright 2015 Fredrik Forssen")>]
-[<assembly: AssemblyVersionAttribute("0.1.1")>]
-[<assembly: AssemblyFileVersionAttribute("0.1.1")>]
+[<assembly: AssemblyVersionAttribute("0.1.2")>]
+[<assembly: AssemblyFileVersionAttribute("0.1.2")>]
 do ()
 
 module internal AssemblyVersionInformation =
-    let [<Literal>] Version = "0.1.1"
+    let [<Literal>] Version = "0.1.2"

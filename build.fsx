@@ -8,7 +8,7 @@ open System
 let artifactsDir = "./artifacts/"
 let testArtifactsDir = "./testartifacts/"
 let packagingDir = "./packaging/"
-let version = "0.1.1"
+let version = "0.1.2"
 
 let testProjectFiles =
   [ "./Hyperboliq.Tests/Hyperboliq.Tests.csproj"
@@ -155,11 +155,15 @@ Target "default" DoNothing
 "buildPostgres" ==> "createPostgresPackage"
 "buildSqlLite" ==> "createSqlLitePackage"
 
+"clean" ?=> "buildCore"
+"clean" ?=> "buildSqlServer"
+"clean" ?=> "buildPostgres"
+"clean" ?=> "buildSqlLite"
+
 "clean"
 ==> "buildTests"
 ==> "runTests"
 ==> "default"
-
 
 "runTests"
 ==> "createPackages"
