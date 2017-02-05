@@ -58,6 +58,7 @@ Target "runTests" (fun _ ->
         ToolPath = "./packages/NUnit.Runners.Net4/tools/"
     })
   environVarOrNone "BUILDENV"
+  |> function | Some("CI") -> None | x -> x
   |> Option.iter (fun _ -> 
     integrationTestAssemblies
     |> NUnitSequential.NUnit (fun p ->
