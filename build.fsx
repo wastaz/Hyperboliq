@@ -20,6 +20,10 @@ let testProjectFiles =
 let testAssemblies =
   [ "Hyperboliq.Tests.dll"
     "Hyperboliq.Tests.FSharp.dll"
+  ] |> List.map (fun s -> testArtifactsDir + s)
+
+let integrationTestAssemblies =
+  [ 
     "Hyperboliq.Tests.Sqllite.dll"
     "Hyperboliq.Tests.SqlServer.dll"
   ] |> List.map (fun s -> testArtifactsDir + s)
@@ -52,7 +56,16 @@ Target "runTests" (fun _ ->
         StopOnError = true
         ShowLabels = true
         ToolPath = "./packages/NUnit.Runners.Net4/tools/"
-    }
+    })
+  environVarOrNone "BUILDENV"
+  |> Option.iter (fun _ -> 
+    integrationTestAssemblies
+    |> NUnitSequential.NUnit (fun p ->
+    { p with
+        StopOnError = true
+        ShowLabels = true
+        ToolPath = "./packages/NUnit.Runners.Net4/tools/"
+    })
   )
 )
 
