@@ -1,6 +1,8 @@
 # Hyperboliq
 ## Take control of your queries
 
+[![Build Status](https://travis-ci.org/wastaz/Hyperboliq.svg?branch=master)](https://travis-ci.org/wastaz/Hyperboliq)
+
 Hyperboliq is a .NET based ORM with the following main goals
 
 1. **Predictability**  
