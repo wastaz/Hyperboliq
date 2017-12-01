@@ -11,6 +11,9 @@ module TokenGeneration_SimpleWhereTests_Results =
   let carRef = TableIdentifier<Car>()
   let cref = carRef.Reference :> ITableReference
 
+  let animalRef = TableIdentifier<Animal>()
+  let aref = animalRef.Reference :> ITableReference
+
   let simpleWhereConditionExpression =
     { TestHelpers.EmptySelect with
         Select = { IsDistinct = false
@@ -133,4 +136,26 @@ module TokenGeneration_SimpleWhereTests_Results =
                                                          Lhs = ValueNode.Column("Age", typeof<int>, pref)
                                                          Rhs = ValueNode.Column("Age", typeof<int>, cref) 
                                                        } |> ValueNode.BinaryExpression } ] } |> Some
+    } |> TestHelpers.ToPlainSelect
+
+  let guidInConditionalExpression =
+    { TestHelpers.EmptySelect with
+        Select = { IsDistinct = false; Values = [ StarColumn(aref) ] }
+        From = { Tables = [ animalRef ]; Joins = [] }
+        Where = { Start = { Operation = BinaryOperation.Equal
+                            Lhs = ValueNode.Column("Id", typeof<System.Guid>, aref)
+                            Rhs = ValueNode.Constant("'7ba52264-9b79-41da-975a-5bc7980f08c1'") } |> ValueNode.BinaryExpression
+                  AdditionalClauses = [] 
+                } |> Some
+    } |> TestHelpers.ToPlainSelect
+    
+  let dateInConditionalExpression =
+    { TestHelpers.EmptySelect with
+        Select = { IsDistinct = false; Values = [ StarColumn(aref) ] }
+        From = { Tables = [ animalRef ]; Joins = [] }
+        Where = { Start = { Operation = BinaryOperation.Equal
+                            Lhs = ValueNode.Column("BornAt", typeof<System.DateTime>, aref)
+                            Rhs = ValueNode.Constant("'2017-02-14T12:34:50.0000000'") } |> ValueNode.BinaryExpression
+                  AdditionalClauses = [] 
+                } |> Some
     } |> TestHelpers.ToPlainSelect

@@ -74,6 +74,5 @@ namespace Hyperboliq.Tests
 
             Assert.That(result, Is.EqualTo(TokenGeneration_SimpleSelectTests_Results.selectNamedCountExpression));
         }
-
     }
 }

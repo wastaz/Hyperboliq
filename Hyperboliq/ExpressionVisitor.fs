@@ -74,6 +74,17 @@ module internal LinqExpressionVisitor =
         | ParameterExpression (mbrName, mbrType, expr) -> 
             let binding = FindBinding context expr.Name
             ValueNode.Column(mbrName, mbrType, TableRef binding)
+        | :? MemberExpression as me ->
+            let lambda = Expression.Lambda(Expression.Convert(me, typeof<obj>))
+            let getter = lambda.Compile()
+            match me.Type with
+            | t when t = typeof<System.DateTime> ->
+                getter.DynamicInvoke() :?> System.DateTime
+                |> fun dt -> System.DateTime.SpecifyKind(dt, System.DateTimeKind.Unspecified).ToString("O")
+                |> sprintf "'%s'" 
+                |> ValueNode.Constant
+            | _ -> 
+                sprintf "'%s'" (getter.DynamicInvoke().ToString()) |> ValueNode.Constant  
         | _ -> failwith "Not implemented"
 
     let VisitConstant (exp : ConstantExpression) : ValueNode =
