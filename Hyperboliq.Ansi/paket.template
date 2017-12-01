@@ -10,3 +10,4 @@ frameworkAssemblies
 dependencies
     FSharp.Core >= 4.0.0.1
     Unquote >= 3.0.0
+    Dapper >= 1.50.2
