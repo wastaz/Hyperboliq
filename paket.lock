@@ -1,13 +1,14 @@
+FRAMEWORK: NET451
 NUGET
-  remote: https://nuget.org/api/v2
-  specs:
-    FAKE (4.9.3)
+  remote: https://www.nuget.org/api/v2
+    Dapper (1.50.2)
+    FAKE (4.50)
     FSharp.Core (4.0.0.1)
-    FsUnit (1.4.0)
+    FsUnit (1.4.1)
       FSharp.Core (>= 3.1.2.5)
       NUnit (2.6.4)
-    Npgsql (3.0.2) - framework: >= net451
+    Npgsql (3.0.2)
     NUnit (2.6.4)
     NUnit.Runners.Net4 (2.6.4)
-    System.Data.SQLite.Core (1.0.98.1) - framework: >= net451
-    Unquote (3.0.0) - framework: >= net451
+    System.Data.SQLite.Core (1.0.104)
+    Unquote (3.0)

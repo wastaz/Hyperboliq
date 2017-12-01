@@ -73,46 +73,9 @@ namespace Hyperboliq.Tests.Sqllite
                 con.ExecuteNonQuery(insertQuery);
 
                 var selectQuery = Select.Column<Person>(p => new { Count = Sql.Count(), }).From<Person>();
-                var result = (long)con.ExecuteScalar(selectQuery);
+                var result = con.ExecuteScalar<long>(selectQuery);
 
                 Assert.That(result, Is.EqualTo(3));
-            }
-        }
-
-
-        public class AliasPerson
-        {
-            [Alias("Name")]
-            public string AliasName { get; set; }
-
-            public int Id { get; set; }
-
-            [Alias("Age")]
-            public int AliasAge { get; set; }
-        }
-
-        [Test]
-        public void ItShouldBeAbleToMapAClassByUsingAliases()
-        {
-            var factory = new HyperboliqConnectionFactory(SqlLite.Dialect, "Data source=:memory:");
-            using (var con = factory.OpenDbConnection())
-            {
-                const string createTable = "CREATE TABLE Person (Id INT, Name VARCHAR(50), Age INT, LivesAtHouseId INT, ParentId INT)";
-                var cmd1 = con.AsIDbConnection().CreateCommand();
-                cmd1.CommandText = createTable;
-                cmd1.ExecuteNonQuery();
-
-                var insertQuery = Insert.Into<Person>().AllColumns.Values(new Person { Id = 1, Name = "Kalle", Age = 42 });
-                con.ExecuteNonQuery(insertQuery);
-
-                var selectQuery = Select.Star<Person>().From<Person>();
-                var persons = con.Query<AliasPerson>(selectQuery);
-
-                Assert.That(persons, Has.Count.EqualTo(1));
-                var person = persons.First();
-                Assert.That(person.Id, Is.EqualTo(1));
-                Assert.That(person.AliasName, Is.EqualTo("Kalle"));
-                Assert.That(person.AliasAge, Is.EqualTo(42));
             }
         }
 
@@ -131,7 +94,7 @@ namespace Hyperboliq.Tests.Sqllite
                 con.ExecuteNonQuery(insertQuery);
 
                 var selectQuery = Select.Star<Person>().From<Person>();
-                var persons = con.DynamicQuery(selectQuery);
+                var persons = con.Query<dynamic>(selectQuery);
 
                 Assert.That(persons, Has.Count.EqualTo(1));
                 dynamic person = persons.First();

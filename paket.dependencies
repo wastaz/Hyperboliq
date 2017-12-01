@@ -1,13 +1,15 @@
+framework: net451
 source https://www.nuget.org/api/v2/
 
 nuget FSharp.Core 4.0.0.1
-nuget Unquote 3.0.0 framework: >= net451
-nuget Npgsql 3.0.2 framework: >= net451
-nuget System.Data.SQLite.Core framework: >= net451
+nuget Unquote 3.0.0
+nuget Npgsql 3.0.2
+nuget System.Data.SQLite.Core
+nuget Dapper
 
 nuget FAKE
 
 nuget FsUnit
-nuget NUnit
+nuget NUnit 2.6.4
 nuget NUnit.Runners.Net4
 

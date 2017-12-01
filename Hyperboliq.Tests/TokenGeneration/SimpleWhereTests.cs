@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using System;
+using NUnit.Framework;
 using Hyperboliq.Tests.TokenGeneration;
 
 namespace Hyperboliq.Tests
@@ -16,6 +17,28 @@ namespace Hyperboliq.Tests
             Assert.That(result, Is.EqualTo(TokenGeneration_SimpleWhereTests_Results.simpleWhereConditionExpression));
         }
 
+        [Test]
+        public void ItShouldHandleASimpleWhereConditionWithAGuid()
+        {
+            var id = Guid.Parse("7ba52264-9b79-41da-975a-5bc7980f08c1");
+            var expr = Select.Star<Animal>()
+                .From<Animal>()
+                .Where<Animal>(a => a.Id == id);
+            var result = expr.ToSqlExpression();
+            Assert.That(result, Is.EqualTo(TokenGeneration_SimpleWhereTests_Results.guidInConditionalExpression));
+        }
+
+        [Test]
+        public void ItShouldHandleASimpleWhereConditionWithADateTime()
+        {
+            var date = DateTime.Parse("2017-02-14T12:34:50");
+            var expr = Select.Star<Animal>()
+                .From<Animal>()
+                .Where<Animal>(a => a.BornAt == date);
+            var result = expr.ToSqlExpression();
+            Assert.That(result, Is.EqualTo(TokenGeneration_SimpleWhereTests_Results.dateInConditionalExpression));
+        }
+        
         [Test]
         public void ItShouldHandleAWhereConditionWithAndAndOrsInTheExpression()
         {
@@ -37,7 +60,6 @@ namespace Hyperboliq.Tests
             var result = expr.ToSqlExpression();
             Assert.That(result, Is.EqualTo(TokenGeneration_SimpleWhereTests_Results.conditionalWithAndAndOrsOutsideExpression));
         }
-
 
         [Test]
         public void ItShouldBePossibleToMakeWhereConditionsOnJoinedTables()

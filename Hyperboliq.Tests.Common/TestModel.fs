@@ -28,6 +28,13 @@ type Car =
     DriverId : int
     Age : int 
   }
+  
+[<CLIMutable>]
+type Animal =
+  { Id : System.Guid
+    Name : string
+    BornAt : System.DateTime  
+  }
 
 [<CLIMutable>]
 type RecursivePerson = 
