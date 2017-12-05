@@ -7,6 +7,8 @@ type HyperboliqConnection(dialect : ISqlDialect, connection : System.Data.IDbCon
     let _dbConn = connection
     member val Dialect = dialect with get
     member x.AsIDbConnection() = x :> System.Data.IDbConnection
+    member x.BeginTransaction() = x.AsIDbConnection().BeginTransaction()
+    member x.BeginTransaction(level) = x.AsIDbConnection().BeginTransaction(level)
     interface System.Data.IDbConnection with
         member x.Open() = _dbConn.Open()
         member x.Close() = _dbConn.Close()

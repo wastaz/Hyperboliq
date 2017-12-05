@@ -121,7 +121,7 @@ namespace Hyperboliq.Tests.Sqllite
                 var nameParam = new ExpressionParameter<string>("name");
                 var selectQuery = Select.Star<Person>().From<Person>().Where<Person>(p => p.Name == nameParam);
                 nameParam.SetValue("Kalle");
-                var persons = con.Query<Person>(selectQuery, nameParam);
+                var persons = con.Query<Person>(selectQuery, new ExpressionParameter[] { nameParam });
 
                 Assert.That(persons, Has.Count.EqualTo(1));
                 var person = persons.First();
