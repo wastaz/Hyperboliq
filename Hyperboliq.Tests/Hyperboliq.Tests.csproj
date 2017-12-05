@@ -71,6 +71,7 @@
     <Compile Include="SqlGeneration\SimpleInsertTests.cs" />
     <Compile Include="TokenGeneration\CommonTableExpressionTests.cs" />
     <Compile Include="TokenGeneration\ExpressionVisitorTests.cs" />
+    <Compile Include="TokenGeneration\LimitOffsetTests.cs" />
     <Compile Include="TokenGeneration\OrderByNullsTests.cs" />
     <Compile Include="TokenGeneration\SelectPartitionsTests.cs" />
     <Compile Include="TokenGeneration\SetOperationTests.cs" />

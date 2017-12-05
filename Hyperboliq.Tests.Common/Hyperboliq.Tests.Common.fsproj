@@ -66,6 +66,7 @@
     <Compile Include="TokenGeneration_SimpleWhereTests.fs" />
     <Compile Include="TokenGeneration_SubExpressionTests.fs" />
     <Compile Include="TokenGeneration_CommonTableExpressions.fs" />
+    <Compile Include="TokenGeneration_LimitOffsetTests.fs" />
     <None Include="paket.references" />
   </ItemGroup>
   <ItemGroup>

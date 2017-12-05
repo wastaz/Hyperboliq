@@ -3,6 +3,7 @@
 type ISqlDialect =
     abstract member CreateConnection : string -> System.Data.IDbConnection
     abstract member QuoteIdentifier : string -> string
+    abstract member GenerateLimitOffsetSql : int option -> int option -> string option 
 
 type ISqlTransformable =
     abstract member ToSql : ISqlDialect -> string

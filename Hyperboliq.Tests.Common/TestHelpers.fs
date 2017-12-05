@@ -8,5 +8,7 @@ module TestHelpers =
           From = { Tables = []; Joins = [] }
           Where = None
           GroupBy = None
-          OrderBy = None }
+          OrderBy = None
+          LimitOffset = { Limit = None; Offset = None } 
+        }
     let ToPlainSelect = PlainSelectExpression.Plain >> SelectExpression.Plain >> SqlExpression.Select

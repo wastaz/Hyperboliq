@@ -38,6 +38,7 @@ using OrderByClauseNode = Hyperboliq.Domain.AST.OrderByClauseNode;
 using JoinClauseNode = Hyperboliq.Domain.AST.JoinClauseNode;
 using WhereClauseNode = Hyperboliq.Domain.AST.WhereClauseNode;
 using SetSelectExpression = Hyperboliq.Domain.AST.SetSelectExpression;
+using LimitOffsetNode = Hyperboliq.Domain.AST.LimitOffsetNode;
 using Hyperboliq.Domain;
 
 #endregion
@@ -228,7 +229,8 @@ namespace Hyperboliq.Tests
             FromExpressionNode from,
             WhereExpressionNode where = null,
             GroupByExpressionNode groupBy = null,
-            OrderByExpressionNode orderBy = null)
+            OrderByExpressionNode orderBy = null,
+            LimitOffsetNode limitOffset = null)
         {
             return ValueNode.NewSubExpression(
                 PlainSelectExpression.NewPlain(
@@ -237,7 +239,8 @@ namespace Hyperboliq.Tests
                         from,
                         where.ToOption(),
                         groupBy.ToOption(),
-                        orderBy.ToOption())));
+                        orderBy.ToOption(),
+                        limitOffset ?? new LimitOffsetNode(FSharpOption<int>.None, FSharpOption<int>.None))));
         }
 
         public static OrderByClauseNode OrderClause(ValueNode col, Direction direction, NullsOrdering nullsOrdering = null)
@@ -415,7 +418,8 @@ namespace Hyperboliq.Tests
             FromExpressionNode from,
             WhereExpressionNode where = null,
             GroupByExpressionNode groupBy = null,
-            OrderByExpressionNode orderBy = null)
+            OrderByExpressionNode orderBy = null,
+            LimitOffsetNode limitOffset = null)
         {
             return
                 new SelectExpressionToken(
@@ -423,7 +427,8 @@ namespace Hyperboliq.Tests
                     from,
                     where.ToOption(),
                     groupBy.ToOption(),
-                    orderBy.ToOption());
+                    orderBy.ToOption(),
+                    limitOffset ?? new LimitOffsetNode(FSharpOption<int>.None, FSharpOption<int>.None));
         }
 
         public static SqlExpression DeleteNode(FromExpressionNode from, WhereExpressionNode where = null)
@@ -478,12 +483,19 @@ namespace Hyperboliq.Tests
             FromExpressionNode from,
             WhereExpressionNode where = null,
             GroupByExpressionNode groupBy = null,
-            OrderByExpressionNode orderBy = null)
+            OrderByExpressionNode orderBy = null,
+            LimitOffsetNode limitOffset = null)
         {
             return
                 new AST.CommonTableDefinition<TType>(
                     PlainSelectExpression.NewPlain(
-                        new SelectExpressionToken(select, from, where.ToOption(), groupBy.ToOption(), orderBy.ToOption())),
+                        new SelectExpressionToken(
+                            select, 
+                            from, 
+                            where.ToOption(), 
+                            groupBy.ToOption(), 
+                            orderBy.ToOption(),
+                            limitOffset ?? new LimitOffsetNode(FSharpOption<int>.None, FSharpOption<int>.None))),
                     tdef);
         }
 

@@ -30,6 +30,10 @@ type FluentSelectBase(expr : SelectExpressionToken) =
     interface ISqlQuery with
         member x.ToSql(dialect : ISqlDialect) = x.ToSqlExpression() |> SqlifyExpression dialect
 
+type SelectLimit internal (expr : SelectExpressionToken) =
+    inherit FluentSelectBase(expr)
+    member x.Offset(offset : int) = SelectLimit({ expr with LimitOffset = { expr.LimitOffset with Offset = Some offset } })
+
 type SelectOrderBy internal (expr : SelectExpressionToken) =
     inherit FluentSelectBase(expr)
     static let New expr = SelectOrderBy(expr)
@@ -47,6 +51,9 @@ type SelectOrderBy internal (expr : SelectExpressionToken) =
 
     member x.ThenBy<'a>(selector : Expression<Func<'a, obj>>, direction : Direction, nullsOrdering : NullsOrdering) = x.InternalThenBy<'a>(LinqExpression(selector), direction, nullsOrdering) |> New
     member x.ThenBy<'a, 'b>([<ReflectedDefinition>] selector : Quotations.Expr<'a -> 'b>, direction : Direction, nullsOrdering : NullsOrdering) = x.InternalThenBy<'a>(Quotation(selector), direction, nullsOrdering) |> New
+
+    member x.Limit(limit : int) = SelectLimit({ expr with LimitOffset = { expr.LimitOffset with Limit = Some limit } })
+    member x.Offset(offset : int) = SelectLimit(expr).Offset(offset)
 
 type SelectHaving internal  (expr : SelectExpressionToken) =
     inherit FluentSelectBase(expr)
@@ -290,6 +297,7 @@ type SelectFrom<'a> internal (tbl: ITableIdentifier, exprNode : SelectValuesExpr
                                  Where = None
                                  GroupBy = None
                                  OrderBy = None
+                                 LimitOffset = { Limit = None; Offset = None }
                              })
 
     member x.InnerJoin<'src, 'tgt>(predicate : Expression<Func<'src, 'tgt, bool>>) = Join(x.Expression).InnerJoin(predicate)

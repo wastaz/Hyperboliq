@@ -54,6 +54,7 @@
   <ItemGroup>
     <Compile Include="IdentifierQuotingTests.cs" />
     <Compile Include="ConnectionTests.cs" />
+    <Compile Include="LimitOffsetTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

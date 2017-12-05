@@ -42,6 +42,11 @@ module AST =
 
     type ExpressionCombinatorType = And | Or
 
+    type LimitOffsetNode = {
+        Limit : int option
+        Offset : int option
+    }
+
     type FunctionToken = FunctionType * ValueNode list
 
     and WindowedColumnNode = AggregateToken * WindowNode
@@ -145,6 +150,7 @@ module AST =
             Where : WhereExpressionNode option
             GroupBy : GroupByExpressionNode option
             OrderBy : OrderByExpressionNode option
+            LimitOffset : LimitOffsetNode
         }
     
     and SetSelectExpression = {
@@ -158,7 +164,7 @@ module AST =
         interface IPlainSelectExpressionTransformable with
             member x.ToPlainSelectExpression () = x
 
-    and  IPlainSelectExpressionTransformable =
+    and IPlainSelectExpressionTransformable =
         abstract member ToPlainSelectExpression : unit -> PlainSelectExpression
 
     and CommonTableValuedSelectExpression = CommonTableExpression * PlainSelectExpression

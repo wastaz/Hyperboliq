@@ -11,3 +11,13 @@ type public PostgreSql private () =
     interface ISqlDialect with
         member x.QuoteIdentifier identifier = sprintf "\"%s\"" identifier
         member x.CreateConnection connectionString = new NpgsqlConnection(connectionString) :> IDbConnection
+        member x.GenerateLimitOffsetSql limit offset =
+            match limit, offset with
+            | Some(limit), Some(offset) -> 
+                sprintf "LIMIT %i OFFSET %i" limit offset |> Some
+            | Some(limit), None ->
+                sprintf "LIMIT %i" limit |> Some
+            | None, Some(offset) ->
+                sprintf "OFFSET %i" offset |> Some
+            | _ -> 
+                None

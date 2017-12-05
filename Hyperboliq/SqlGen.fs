@@ -322,6 +322,9 @@ module SelectSqlGen =
             |> sprintf "ORDER BY %s"
             |> Option.Some
 
+    and HandleLimitOffset (dialect : ISqlDialect) (limitOffset : LimitOffsetNode) : string option =
+        dialect.GenerateLimitOffsetSql limitOffset.Limit  limitOffset.Offset
+
     and HandleSelectExpressionToken dialect (select : SelectExpressionToken) =
         [
             Some(HandleSelect dialect select.Select)
@@ -329,6 +332,7 @@ module SelectSqlGen =
             HandleWhere HandleSelectBinaryExpression dialect select.Where
             HandleGroupBy dialect select.GroupBy
             HandleOrderBy dialect select.OrderBy
+            HandleLimitOffset dialect select.LimitOffset
         ]
         |> JoinOptionsWithSpace
 

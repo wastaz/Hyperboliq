@@ -8,3 +8,4 @@ type public AnsiSql private () =
     interface ISqlDialect with
         member x.CreateConnection connectionString = null
         member x.QuoteIdentifier identifier = identifier
+        member x.GenerateLimitOffsetSql limit offset = None
