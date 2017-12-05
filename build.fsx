@@ -8,7 +8,7 @@ open System
 let artifactsDir = "./artifacts/"
 let testArtifactsDir = "./testartifacts/"
 let packagingDir = "./packaging/"
-let version = "0.3.1"
+let version = "0.4.0"
 
 let testProjectFiles =
   [ "./Hyperboliq.Tests/Hyperboliq.Tests.csproj"

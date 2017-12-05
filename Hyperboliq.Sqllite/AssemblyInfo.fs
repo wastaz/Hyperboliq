@@ -6,8 +6,8 @@ open System.Reflection
 [<assembly: AssemblyDescriptionAttribute("Hyperboliq.SqlLite- Hyperboliq adapter for SqlLite")>]
 [<assembly: AssemblyProductAttribute("Hyperboliq.SqlLite")>]
 [<assembly: AssemblyCopyrightAttribute("Copyright 2015 Fredrik Forssen")>]
-[<assembly: AssemblyVersionAttribute("0.3.1")>]
-[<assembly: AssemblyFileVersionAttribute("0.3.1")>]
+[<assembly: AssemblyVersionAttribute("0.4.0")>]
+[<assembly: AssemblyFileVersionAttribute("0.4.0")>]
 do ()
 
 module internal AssemblyVersionInformation =
@@ -15,5 +15,5 @@ module internal AssemblyVersionInformation =
     let [<Literal>] AssemblyDescription = "Hyperboliq.SqlLite- Hyperboliq adapter for SqlLite"
     let [<Literal>] AssemblyProduct = "Hyperboliq.SqlLite"
     let [<Literal>] AssemblyCopyright = "Copyright 2015 Fredrik Forssen"
-    let [<Literal>] AssemblyVersion = "0.3.1"
-    let [<Literal>] AssemblyFileVersion = "0.3.1"
+    let [<Literal>] AssemblyVersion = "0.4.0"
+    let [<Literal>] AssemblyFileVersion = "0.4.0"
