@@ -8,7 +8,7 @@ open System
 let artifactsDir = "./artifacts/"
 let testArtifactsDir = "./testartifacts/"
 let packagingDir = "./packaging/"
-let version = "0.4.0"
+let version = "0.4.1"
 
 let testProjectFiles =
   [ "./Hyperboliq.Tests/Hyperboliq.Tests.csproj"
@@ -115,6 +115,14 @@ Target "buildSqlServer" (fun _ ->
 Target "buildCore" (fun _ -> 
   trace "Build Release"
   CreateFSharpAssemblyInfo "./Hyperboliq.Ansi/AssemblyInfo.fs"
+    [ Attribute.Title "Hyperboliq.Ansi"
+      Attribute.Description "Hyperboliq - Predictable SQL"
+      Attribute.Product "Hyperboliq"
+      Attribute.Copyright "Copyright 2015 Fredrik Forssen"
+      Attribute.Version version
+      Attribute.FileVersion version
+    ]
+  CreateFSharpAssemblyInfo "./Hyperboliq/AssemblyInfo.fs"
     [ Attribute.Title "Hyperboliq"
       Attribute.Description "Hyperboliq - Predictable SQL"
       Attribute.Product "Hyperboliq"
@@ -122,6 +130,8 @@ Target "buildCore" (fun _ ->
       Attribute.Version version
       Attribute.FileVersion version
     ]
+  MSBuildRelease "./Hyperboliq/bin/Release" "Build" [ "./Hyperboliq/Hyperboliq.fsproj" ]
+  |> Log "AppBuild-Output: "
   MSBuildRelease "./Hyperboliq.Ansi/bin/Release" "Build" [ "./Hyperboliq.Ansi/Hyperboliq.Ansi.fsproj" ]
   |> Log "AppBuild-Output: "
 )

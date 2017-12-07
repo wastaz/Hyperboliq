@@ -2,18 +2,18 @@
 namespace System
 open System.Reflection
 
-[<assembly: AssemblyTitleAttribute("Hyperboliq")>]
+[<assembly: AssemblyTitleAttribute("Hyperboliq.Ansi")>]
 [<assembly: AssemblyDescriptionAttribute("Hyperboliq - Predictable SQL")>]
 [<assembly: AssemblyProductAttribute("Hyperboliq")>]
 [<assembly: AssemblyCopyrightAttribute("Copyright 2015 Fredrik Forssen")>]
-[<assembly: AssemblyVersionAttribute("0.4.0")>]
-[<assembly: AssemblyFileVersionAttribute("0.4.0")>]
+[<assembly: AssemblyVersionAttribute("0.4.1")>]
+[<assembly: AssemblyFileVersionAttribute("0.4.1")>]
 do ()
 
 module internal AssemblyVersionInformation =
-    let [<Literal>] AssemblyTitle = "Hyperboliq"
+    let [<Literal>] AssemblyTitle = "Hyperboliq.Ansi"
     let [<Literal>] AssemblyDescription = "Hyperboliq - Predictable SQL"
     let [<Literal>] AssemblyProduct = "Hyperboliq"
     let [<Literal>] AssemblyCopyright = "Copyright 2015 Fredrik Forssen"
-    let [<Literal>] AssemblyVersion = "0.4.0"
-    let [<Literal>] AssemblyFileVersion = "0.4.0"
+    let [<Literal>] AssemblyVersion = "0.4.1"
+    let [<Literal>] AssemblyFileVersion = "0.4.1"

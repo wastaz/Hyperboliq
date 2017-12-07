@@ -3,11 +3,10 @@ licenseUrl http://opensource.org/licenses/Apache-2.0
 projectUrl https://github.com/wastaz/Hyperboliq
 id Hyperboliq
 authors Fredrik Forssen
-files
-    bin/Release/Hyperboliq.* ==> lib/net40
+include-referenced-projects true
 frameworkAssemblies
     System.Data
 dependencies
     FSharp.Core >= 4.0.0.1
     Unquote >= 3.0.0
-    Dapper >= 1.50.2
+    Dapper >= 1.50.4
