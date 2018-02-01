@@ -39,9 +39,10 @@ You can provide your own aliases if necessary, though as long as you are not ref
 
 ### Basic selects
 
-````csharp
+```csharp
 Select<Person>(p => p.Name).From<Person>().Where<Person>(p => p.Age > 42)
 ```
+
 
 ```sql
 SELECT PersonRef.Name 
